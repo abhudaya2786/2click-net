@@ -1,0 +1,23 @@
+{
+  "short_name": "2click.in",
+  "name": "2click.in - Engineers, Dukandar & Construction B2B Hub",
+  "description": "Hyperlocal construction materials, Dukandar marketplace, BOQ calculators, Vastu designs, and contractor hub.",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/fluency/192/building.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/512/building.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#0d9488",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+}

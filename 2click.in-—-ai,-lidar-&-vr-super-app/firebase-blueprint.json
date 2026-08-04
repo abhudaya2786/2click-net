@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string" },
+        "companyName": { "type": "string" },
+        "city": { "type": "string" },
+        "isKycVerified": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "BoqEstimate": {
+      "title": "BoqEstimate",
+      "description": "Saved BOQ calculation and estimation",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "builtupArea": { "type": "number" },
+        "qualityGrade": { "type": "string" },
+        "totalCost": { "type": "number" },
+        "city": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "totalCost"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Multi-turn Gemini chatbot message log",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "role": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "userId", "role", "text"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/estimates/{estimateId}": {
+      "schema": "BoqEstimate",
+      "description": "Saved BOQ estimates"
+    },
+    "/chats/{chatId}": {
+      "schema": "ChatMessage",
+      "description": "Chatbot logs"
+    }
+  }
+}

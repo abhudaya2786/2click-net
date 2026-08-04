@@ -1,0 +1,6 @@
+{
+  "name": "2click.in — AI, LiDAR & VR Super App",
+  "description": "Enterprise-grade AI, LiDAR and VR powered super app for construction, solar, and interior projects in India.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
