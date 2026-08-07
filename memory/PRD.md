@@ -45,3 +45,13 @@ A 30-step enterprise B2B/B2C construction & infrastructure SaaS platform combini
 - **Frontend**: `PermissionContext` + `usePermission` hook + `PermissionGate`; Super Admin → Administration panel (`AdminRBAC.jsx`) with tabs Companies, Departments, Roles, Permission Matrix (module×action grid, select-all/clear, save), Users & Assignments, Modules, Menus, Audit Logs.
 - **Testing**: 40/40 backend tests pass (15 new RBAC/audit), frontend E2E 100%.
 - **NOT YET DONE (approved future phases)**: multi-company data-scoping enforcement on business queries, auth hardening (refresh rotation/lockout/reset/2FA), audit middleware on all business writes, new business modules (GST/Accounting, Inventory, Logistics, CRM, Notifications).
+
+## Phase 3 — Delivered (2026-06, additive & non-destructive)
+- **Dynamic Categories** (`categories` collection, typed product/service/tender, nested-ready): public `GET /api/categories`; Super-Admin CRUD `/api/admin/categories`; used in marketplace + smart signup.
+- **Smart Signup**: `RegisterIn` extended with `interests[]`, `business_type`, `primary_category` (all optional, backward compatible); `/register` shows role selector + interest chips + business-type field.
+- **Personalized Workspace**: `PersonalBanner` in `DashboardLayout` (greeting + role + interest chips) driven by the user's stored interests.
+- **White-Label Branding** (`companies.branding`): public `GET /api/branding`; Super-Admin `PATCH /api/admin/branding`; `BrandingContext` applies primary color (hex→HSL on `--primary`/`--ring`) + brand name across Navbar/Dashboard + document title.
+- **Pricing Plans** (`plans` collection): public `GET /api/plans` (Starter/Business/Enterprise) renders `/pricing` dynamically; Super-Admin CRUD.
+- **Commission Engine** (`app_settings.commission`): global default % + per-category overrides (Solar 3%, Steel 2.5%); `create_order` computes `platform_commission` per line item.
+- **Super Admin UI**: Administration panel now 11 tabs incl. Categories, White Label, Plans & Commission.
+- **Testing**: 57/57 backend tests pass (17 new Phase 3), frontend E2E 100%.
