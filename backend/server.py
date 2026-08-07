@@ -143,11 +143,24 @@ def require_roles(*roles):
     return checker
 
 
-async def audit(user, action, meta=None):
+async def audit(user, action, meta=None, module="", record_id=None, request=None,
+                old_value=None, new_value=None, status="success"):
+    """Backward-compatible audit writer. Existing callers keep working; new fields optional."""
+    ip = ua = device = None
+    if request is not None:
+        ip = request.headers.get("x-forwarded-for")
+        ip = ip.split(",")[0].strip() if ip else (request.client.host if request.client else None)
+        ua = request.headers.get("user-agent")
+        device = "mobile" if (ua and ("Mobile" in ua or "Android" in ua or "iPhone" in ua)) else "desktop"
     await db.audit_logs.insert_one({
         "id": new_id("log"), "user_id": user.get("id") if user else None,
         "user_email": user.get("email") if user else None,
-        "action": action, "meta": meta or {}, "created_at": iso(now_utc()),
+        "company_id": user.get("company_id") if user else None, "department_id": None,
+        "action": action, "module": module, "record_id": record_id,
+        "old_value": old_value, "new_value": new_value, "status": status,
+        "ip_address": ip, "user_agent": ua, "device": device,
+        "meta": meta or {}, "metadata": meta or {},
+        "timestamp": iso(now_utc()), "created_at": iso(now_utc()),
     })
 
 
@@ -803,6 +816,11 @@ async def seed():
 @app.on_event("startup")
 async def startup():
     await seed()
+    import rbac
+    rbac.init(db, get_current_user)
+    await rbac.ensure_indexes()
+    await rbac.seed_rbac()
+    logger.info("RBAC + indexes ready")
 
 
 @app.on_event("shutdown")
@@ -815,7 +833,11 @@ async def root():
     return {"message": "2click.in Enterprise API", "status": "ok"}
 
 
+import rbac as _rbac
+_rbac.init(db, get_current_user)
 app.include_router(api)
+app.include_router(_rbac.rbac_router)
+app.include_router(_rbac.auth_perm_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { PermissionProvider } from "@/context/PermissionContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 
@@ -45,10 +46,12 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BrowserRouter>
-          <AppRouter />
-          <Toaster position="top-right" />
-        </BrowserRouter>
+        <PermissionProvider>
+          <BrowserRouter>
+            <AppRouter />
+            <Toaster position="top-right" />
+          </BrowserRouter>
+        </PermissionProvider>
       </AuthProvider>
     </ThemeProvider>
   );

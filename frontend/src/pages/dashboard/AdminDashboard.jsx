@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { LayoutDashboard, Users, ScrollText, IndianRupee, Package, Gavel, Trash2, Loader2, ShieldCheck } from "lucide-react";
 import { BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { toast } from "sonner";
+import AdminRBAC from "@/pages/dashboard/AdminRBAC";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "users", label: "Users & Roles", icon: Users },
+  { id: "admin", label: "Administration", icon: ShieldCheck },
   { id: "audit", label: "Audit Logs", icon: ScrollText },
 ];
 const COLORS = ["#FF5A1F", "#10B981", "#3B82F6"];
@@ -113,6 +115,8 @@ export default function AdminDashboard() {
               {logs.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">No activity yet.</div>}
             </div>
           )}
+
+          {active === "admin" && <AdminRBAC />}
         </>
       )}
     </DashboardLayout>
