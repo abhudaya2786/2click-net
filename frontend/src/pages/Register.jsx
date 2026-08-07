@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useBranding } from "@/context/BrandingContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HardHat, Loader2, Store, User, Building2 } from "lucide-react";
@@ -15,10 +16,16 @@ const ROLES = [
 
 export default function Register() {
   const { setSession } = useAuth();
+  const { brand_name } = useBranding();
   const nav = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "customer", company: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "customer", company: "", business_type: "", primary_category: "", interests: [] });
+  const [cats, setCats] = useState([]);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => { api.get("/categories", { params: { type: "service" } }).then(({ data }) => setCats(data)); }, []);
+
+  const toggleInterest = (name) => setForm((f) => ({ ...f, interests: f.interests.includes(name) ? f.interests.filter((x) => x !== name) : [...f.interests, name] }));
 
   const submit = async (e) => {
     e.preventDefault();
@@ -38,7 +45,7 @@ export default function Register() {
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center gap-2.5 mb-8">
           <div className="h-9 w-9 bg-primary flex items-center justify-center"><HardHat className="h-5 w-5 text-white" strokeWidth={1.75} /></div>
-          <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
+          <span className="font-display font-extrabold text-lg tracking-tight">{brand_name}</span>
         </Link>
         <h1 className="font-display font-extrabold text-3xl tracking-tight">Create your account</h1>
         <p className="text-sm text-muted-foreground mt-1">Choose your role to get a tailored workspace.</p>
@@ -60,6 +67,20 @@ export default function Register() {
           {form.role !== "customer" && (
             <Input data-testid="register-company" placeholder="Company name" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="rounded-none" />
           )}
+          {form.role !== "customer" && (
+            <Input data-testid="register-business-type" placeholder="Business type (e.g. Steel supplier, EPC)" value={form.business_type} onChange={(e) => setForm({ ...form, business_type: e.target.value })} className="rounded-none" />
+          )}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Your interests <span className="text-muted-foreground font-normal">(personalizes your workspace)</span></label>
+            <div className="flex flex-wrap gap-1.5" data-testid="register-interests">
+              {cats.map((c) => (
+                <button key={c.id} type="button" data-testid={`interest-${c.slug}`} onClick={() => toggleInterest(c.name)}
+                  className={`text-xs px-2.5 py-1 border transition-colors ${form.interests.includes(c.name) ? "bg-primary text-white border-primary" : "border-border hover:border-primary"}`}>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
           <Input data-testid="register-email" type="email" placeholder="Email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-none" />
           <Input data-testid="register-password" type="password" placeholder="Password (min 6 chars)" required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="rounded-none" />
           <Button data-testid="register-submit" type="submit" disabled={busy} className="w-full rounded-none">

@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard } from "lucide-react";
 
 const TABS = [
   { id: "companies", label: "Companies", icon: Building2 },
@@ -11,11 +11,15 @@ const TABS = [
   { id: "roles", label: "Roles", icon: Shield },
   { id: "matrix", label: "Permission Matrix", icon: Grid3x3 },
   { id: "assign", label: "Users & Assignments", icon: UserCog },
+  { id: "categories", label: "Categories", icon: Tag },
+  { id: "branding", label: "White Label", icon: Palette },
+  { id: "pricing", label: "Plans & Commission", icon: CreditCard },
   { id: "modules", label: "Modules", icon: Boxes },
   { id: "menus", label: "Menus", icon: MenuIcon },
   { id: "audit", label: "Audit Logs", icon: ScrollText },
 ];
 const R = "/admin/rbac";
+const A = "/admin";
 
 export default function AdminRBAC() {
   const [tab, setTab] = useState("departments");
@@ -34,6 +38,9 @@ export default function AdminRBAC() {
       {tab === "roles" && <Roles />}
       {tab === "matrix" && <Matrix />}
       {tab === "assign" && <Assignments />}
+      {tab === "categories" && <Categories />}
+      {tab === "branding" && <Branding />}
+      {tab === "pricing" && <PricingCommission />}
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
       {tab === "audit" && <Audit />}
@@ -227,6 +234,126 @@ function SimpleList({ url, cols, testid }) {
         <tbody>{rows.map((r) => (<tr key={r.id} className="border-b border-border hover:bg-muted/50">{cols.map((c) => <td key={c} className="p-3 font-mono text-xs">{String(r[c] ?? "")}</td>)}</tr>))}</tbody>
       </table>
     </Panel>
+  );
+}
+
+function Categories() {
+  const [rows, setRows] = useState([]);
+  const [form, setForm] = useState({ name: "", type: "product" });
+  const load = () => api.get(`${A}/categories`).then(({ data }) => setRows(data));
+  useEffect(() => { load(); }, []);
+  const add = async () => { if (!form.name) return; await api.post(`${A}/categories`, form); setForm({ name: "", type: form.type }); toast.success("Category added"); load(); };
+  const del = async (id) => { await api.delete(`${A}/categories/${id}`); toast.success("Disabled"); load(); };
+  const byType = (t) => rows.filter((r) => r.type === t);
+  return (
+    <Panel title={`Categories (${rows.length})`} action={
+      <div className="flex gap-2">
+        <select data-testid="cat-type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="bg-background border border-input px-2 h-9 text-sm">
+          <option value="product">Product</option><option value="service">Service</option><option value="tender">Tender</option>
+        </select>
+        <Input data-testid="cat-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="New category" className="rounded-none h-9 w-48" />
+        <Button data-testid="add-cat" onClick={add} size="sm" className="rounded-none"><Plus className="h-4 w-4" /></Button>
+      </div>}>
+      <div className="grid md:grid-cols-3 gap-px bg-border">
+        {["product", "service", "tender"].map((t) => (
+          <div key={t} className="bg-card p-4">
+            <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-3">{t}</div>
+            <div className="flex flex-wrap gap-1.5">
+              {byType(t).map((c) => (
+                <span key={c.id} data-testid={`cat-chip-${c.slug}`} className={`inline-flex items-center gap-1 text-xs px-2 py-1 border ${c.status === "active" ? "border-border" : "border-border opacity-40"}`}>
+                  {c.name}<button onClick={() => del(c.id)} className="hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+function Branding() {
+  const [b, setB] = useState({ brand_name: "", primary_color: "#FF5A1F", logo: "", tagline: "" });
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { api.get("/branding").then(({ data }) => setB(data)); }, []);
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.patch(`${A}/branding`, { brand_name: b.brand_name, primary_color: b.primary_color, logo: b.logo, tagline: b.tagline });
+      toast.success("Branding saved — reload to see everywhere");
+    } catch (e) { toast.error("Save failed"); } finally { setSaving(false); }
+  };
+  return (
+    <Panel title="White-Label Branding">
+      <div className="p-5 grid md:grid-cols-2 gap-5 max-w-3xl">
+        <div><label className="text-sm font-medium mb-1.5 block">Brand name</label>
+          <Input data-testid="brand-name" value={b.brand_name} onChange={(e) => setB({ ...b, brand_name: e.target.value })} className="rounded-none" /></div>
+        <div><label className="text-sm font-medium mb-1.5 block">Tagline</label>
+          <Input value={b.tagline} onChange={(e) => setB({ ...b, tagline: e.target.value })} className="rounded-none" /></div>
+        <div><label className="text-sm font-medium mb-1.5 block">Primary color</label>
+          <div className="flex gap-2 items-center">
+            <input data-testid="brand-color" type="color" value={b.primary_color} onChange={(e) => setB({ ...b, primary_color: e.target.value })} className="h-10 w-14 border border-input" />
+            <Input value={b.primary_color} onChange={(e) => setB({ ...b, primary_color: e.target.value })} className="rounded-none" />
+          </div></div>
+        <div><label className="text-sm font-medium mb-1.5 block">Logo URL</label>
+          <Input value={b.logo} onChange={(e) => setB({ ...b, logo: e.target.value })} placeholder="https://…" className="rounded-none" /></div>
+        <div className="md:col-span-2"><Button data-testid="brand-save" onClick={save} disabled={saving} className="rounded-none">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save branding"}</Button></div>
+      </div>
+    </Panel>
+  );
+}
+
+function PricingCommission() {
+  const [plans, setPlans] = useState([]);
+  const [comm, setComm] = useState({ default_percent: 5, per_category: [] });
+  const [saving, setSaving] = useState(false);
+  const load = () => { api.get(`${A}/plans`).then(({ data }) => setPlans(data)); api.get(`${A}/commission`).then(({ data }) => setComm(data)); };
+  useEffect(() => { load(); }, []);
+  const saveComm = async () => {
+    setSaving(true);
+    try { await api.put(`${A}/commission`, { default_percent: Number(comm.default_percent), per_category: comm.per_category }); toast.success("Commission saved"); }
+    catch { toast.error("Save failed"); } finally { setSaving(false); }
+  };
+  const addRow = () => setComm({ ...comm, per_category: [...comm.per_category, { category: "", percent: 0 }] });
+  const setRow = (i, k, v) => { const pc = [...comm.per_category]; pc[i] = { ...pc[i], [k]: k === "percent" ? Number(v) : v }; setComm({ ...comm, per_category: pc }); };
+  const delRow = (i) => setComm({ ...comm, per_category: comm.per_category.filter((_, x) => x !== i) });
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <Panel title={`Subscription Plans (${plans.length})`}>
+        <div className="divide-y divide-border">
+          {plans.map((p) => (
+            <div key={p.id} className="p-4 flex items-center justify-between">
+              <div><div className="font-medium">{p.name} {p.highlight && <span className="text-[10px] bg-primary text-white px-1.5 py-0.5 ml-1">POPULAR</span>}</div>
+                <div className="text-xs text-muted-foreground">{p.description}</div></div>
+              <div className="font-mono font-bold">{p.price === -1 ? "Custom" : `₹${Number(p.price).toLocaleString("en-IN")}`}<span className="text-xs text-muted-foreground">{p.price > 0 ? `/${p.period}` : ""}</span></div>
+            </div>
+          ))}
+        </div>
+      </Panel>
+      <Panel title="Commission Engine" action={<Button data-testid="comm-save" onClick={saveComm} disabled={saving} size="sm" className="rounded-none">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}</Button>}>
+        <div className="p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium">Default platform commission</label>
+            <Input data-testid="comm-default" type="number" value={comm.default_percent} onChange={(e) => setComm({ ...comm, default_percent: e.target.value })} className="rounded-none w-24 h-9" />
+            <span className="text-sm text-muted-foreground">%</span>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Per-category overrides</span>
+              <Button data-testid="comm-add-row" onClick={addRow} size="sm" variant="outline" className="rounded-none"><Plus className="h-3.5 w-3.5" /></Button></div>
+            <div className="space-y-2">
+              {comm.per_category.map((r, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <Input value={r.category} onChange={(e) => setRow(i, "category", e.target.value)} placeholder="Category" className="rounded-none h-9 flex-1" />
+                  <Input type="number" value={r.percent} onChange={(e) => setRow(i, "percent", e.target.value)} className="rounded-none h-9 w-24" />
+                  <span className="text-sm text-muted-foreground">%</span>
+                  <button onClick={() => delRow(i)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Panel>
+    </div>
   );
 }
 

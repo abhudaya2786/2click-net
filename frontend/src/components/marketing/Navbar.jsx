@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { HardHat, Menu, X, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useBranding } from "@/context/BrandingContext";
 
 const LINKS = [
   { to: "/marketplace", label: "Marketplace" },
@@ -17,6 +18,7 @@ const LINKS = [
 export default function Navbar() {
   const { user } = useAuth();
   const { theme, toggle } = useTheme();
+  const { brand_name } = useBranding();
   const [open, setOpen] = useState(false);
   const nav = useNavigate();
 
@@ -27,7 +29,7 @@ export default function Navbar() {
           <div className="h-9 w-9 bg-primary flex items-center justify-center">
             <HardHat className="h-5 w-5 text-white" strokeWidth={1.75} />
           </div>
-          <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
+          <span className="font-display font-extrabold text-lg tracking-tight">{brand_name}</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-7">

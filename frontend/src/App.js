@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { PermissionProvider } from "@/context/PermissionContext";
+import { BrandingProvider } from "@/context/BrandingContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 
@@ -45,6 +46,7 @@ function AppRouter() {
 export default function App() {
   return (
     <ThemeProvider>
+      <BrandingProvider>
       <AuthProvider>
         <PermissionProvider>
           <BrowserRouter>
@@ -53,6 +55,7 @@ export default function App() {
           </BrowserRouter>
         </PermissionProvider>
       </AuthProvider>
+      </BrandingProvider>
     </ThemeProvider>
   );
 }

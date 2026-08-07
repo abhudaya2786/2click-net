@@ -173,6 +173,9 @@ class RegisterIn(BaseModel):
     password: str = Field(min_length=6)
     role: str = "customer"
     company: Optional[str] = None
+    interests: Optional[List[str]] = None
+    business_type: Optional[str] = None
+    primary_category: Optional[str] = None
 
 
 class LoginIn(BaseModel):
@@ -272,7 +275,9 @@ async def register(body: RegisterIn, response: Response):
     doc = {
         "id": uid, "name": body.name, "email": email,
         "password_hash": hash_password(body.password), "role": role,
-        "company": body.company, "picture": None, "auth": "jwt",
+        "company": body.company, "company_id": "company_default", "picture": None, "auth": "jwt",
+        "interests": body.interests or [], "business_type": body.business_type,
+        "primary_category": body.primary_category,
         "kyc_status": "pending", "wallet": 0.0, "created_at": iso(now_utc()),
     }
     await db.users.insert_one(doc)
@@ -466,9 +471,20 @@ async def create_order(body: OrderIn, user=Depends(get_current_user)):
     total = sum(i["price"] * i.get("qty", 1) for i in body.items)
     tax = round(total * 0.18, 2)
     grand = round(total + tax, 2)
+    # Phase 3 commission engine
+    import phase3
+    cfg = await phase3.get_commission_config()
+    commission = 0.0
+    for it in body.items:
+        line = it["price"] * it.get("qty", 1)
+        pct = phase3.commission_for(cfg, it.get("category"))
+        commission += line * pct / 100
+    commission = round(commission, 2)
     doc = {
         "id": new_id("order"), "user_id": user["id"], "user_email": user["email"],
+        "company_id": user.get("company_id", "company_default"),
         "items": body.items, "subtotal": total, "tax": tax, "total": grand,
+        "platform_commission": commission,
         "address": body.address, "status": "pending",
         "created_at": iso(now_utc()),
     }
@@ -820,7 +836,11 @@ async def startup():
     rbac.init(db, get_current_user)
     await rbac.ensure_indexes()
     await rbac.seed_rbac()
-    logger.info("RBAC + indexes ready")
+    import phase3
+    phase3.init(db, get_current_user)
+    await phase3.ensure_indexes()
+    await phase3.seed_phase3()
+    logger.info("RBAC + Phase3 + indexes ready")
 
 
 @app.on_event("shutdown")
@@ -835,9 +855,13 @@ async def root():
 
 import rbac as _rbac
 _rbac.init(db, get_current_user)
+import phase3 as _phase3
+_phase3.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
+app.include_router(_phase3.public_router)
+app.include_router(_phase3.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
