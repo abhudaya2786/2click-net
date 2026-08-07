@@ -1,0 +1,84 @@
+import { createContext, useContext, useState, useCallback } from "react";
+
+const STRINGS = {
+  en: {
+    create_account: "Create your 2Click.in Account",
+    onboarding_sub: "A few quick steps to set up your workspace",
+    step_type: "Account Type",
+    step_category: "Categories",
+    step_business: "Business Details",
+    step_account: "Your Account",
+    select_user_type: "Who are you signing up as?",
+    select_categories: "Select your categories",
+    categories_hint: "Pick a primary and any additional categories",
+    primary: "Primary",
+    make_primary: "Make primary",
+    search_categories: "Search categories…",
+    clear_all: "Clear all",
+    selected: "Selected",
+    company_name: "Company name",
+    department: "Department",
+    business_type: "Business type",
+    skills: "Skills (comma separated)",
+    service_area: "Service area / city",
+    portfolio: "Portfolio URL",
+    pricing: "Expected pricing",
+    availability: "Availability",
+    full_name: "Full name",
+    email: "Email",
+    password: "Password (min 6 chars)",
+    accept_terms: "I accept the Terms & Privacy Policy",
+    back: "Back",
+    next: "Next",
+    create: "Create account",
+    have_account: "Already have an account?",
+    login: "Log in",
+    choose_at_least_one: "Please select at least one category",
+    accept_required: "Please accept the terms to continue",
+  },
+  hi: {
+    create_account: "अपना 2Click.in खाता बनाएँ",
+    onboarding_sub: "अपना वर्कस्पेस सेट करने के लिए कुछ आसान चरण",
+    step_type: "खाता प्रकार",
+    step_category: "श्रेणियाँ",
+    step_business: "व्यवसाय विवरण",
+    step_account: "आपका खाता",
+    select_user_type: "आप किस रूप में साइन अप कर रहे हैं?",
+    select_categories: "अपनी श्रेणियाँ चुनें",
+    categories_hint: "एक प्राथमिक और अन्य श्रेणियाँ चुनें",
+    primary: "प्राथमिक",
+    make_primary: "प्राथमिक बनाएँ",
+    search_categories: "श्रेणियाँ खोजें…",
+    clear_all: "सब हटाएँ",
+    selected: "चयनित",
+    company_name: "कंपनी का नाम",
+    department: "विभाग",
+    business_type: "व्यवसाय प्रकार",
+    skills: "कौशल (कॉमा से अलग)",
+    service_area: "सेवा क्षेत्र / शहर",
+    portfolio: "पोर्टफोलियो URL",
+    pricing: "अपेक्षित मूल्य",
+    availability: "उपलब्धता",
+    full_name: "पूरा नाम",
+    email: "ईमेल",
+    password: "पासवर्ड (कम से कम 6 अक्षर)",
+    accept_terms: "मैं नियम और गोपनीयता नीति स्वीकार करता/करती हूँ",
+    back: "पीछे",
+    next: "आगे",
+    create: "खाता बनाएँ",
+    have_account: "पहले से खाता है?",
+    login: "लॉग इन",
+    choose_at_least_one: "कृपया कम से कम एक श्रेणी चुनें",
+    accept_required: "जारी रखने के लिए कृपया नियम स्वीकार करें",
+  },
+};
+
+const LanguageContext = createContext(null);
+export const useLang = () => useContext(LanguageContext) || { lang: "en", t: (k) => STRINGS.en[k] || k, toggle: () => {} };
+
+export function LanguageProvider({ children }) {
+  const [lang, setLang] = useState(() => localStorage.getItem("bs_lang") || "en");
+  const toggle = useCallback(() => setLang((l) => { const n = l === "en" ? "hi" : "en"; localStorage.setItem("bs_lang", n); return n; }), []);
+  const t = useCallback((k) => (STRINGS[lang] && STRINGS[lang][k]) || STRINGS.en[k] || k, [lang]);
+  return <LanguageContext.Provider value={{ lang, t, toggle }}>{children}</LanguageContext.Provider>;
+}

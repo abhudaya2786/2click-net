@@ -178,6 +178,15 @@ class RegisterIn(BaseModel):
     interests: Optional[List[str]] = None
     business_type: Optional[str] = None
     primary_category: Optional[str] = None
+    user_type: Optional[str] = None
+    primary_category_id: Optional[str] = None
+    category_ids: Optional[List[str]] = None
+    department_id: Optional[str] = None
+    skills: Optional[List[str]] = None
+    service_area: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    expected_pricing: Optional[str] = None
+    availability: Optional[str] = None
 
 
 class LoginIn(BaseModel):
@@ -266,26 +275,41 @@ class TenderSummaryIn(BaseModel):
 # ---------------------------------------------------------------------------
 @api.post("/auth/register")
 async def register(body: RegisterIn, response: Response):
+    import phase3a
     email = body.email.lower()
-    if body.role not in ROLES or body.role == "super_admin":
-        role = "customer" if body.role == "super_admin" else body.role
-    else:
-        role = body.role
+    user_type = body.user_type or body.role
+    role = phase3a.role_for_user_type(user_type)
+    if role == "super_admin":
+        role = "customer"
     if await db.users.find_one({"email": email}):
         raise HTTPException(status_code=400, detail="Email already registered")
+    # Validate category ids on backend (never trust frontend)
+    all_cat_ids = list(dict.fromkeys(([body.primary_category_id] if body.primary_category_id else [])
+                                     + (body.category_ids or [])))
+    valid_ids = []
+    for cid in all_cat_ids:
+        if await db.categories.find_one({"id": cid, "status": "active"}, {"_id": 0}):
+            valid_ids.append(cid)
     uid = new_id("user")
     doc = {
         "id": uid, "name": body.name, "email": email,
         "password_hash": hash_password(body.password), "role": role,
+        "user_type": user_type, "default_dashboard": phase3a.dashboard_for_user_type(user_type),
         "company": body.company, "company_id": "company_default", "picture": None, "auth": "jwt",
         "interests": body.interests or [], "business_type": body.business_type,
-        "primary_category": body.primary_category,
+        "primary_category": body.primary_category, "primary_category_id": body.primary_category_id,
+        "department_id": body.department_id, "skills": body.skills or [],
+        "service_area": body.service_area, "portfolio_url": body.portfolio_url,
+        "expected_pricing": body.expected_pricing, "availability": body.availability,
+        "onboarding_completed": True,
         "kyc_status": "pending", "wallet": 0.0, "created_at": iso(now_utc()),
     }
     await db.users.insert_one(doc)
+    if valid_ids:
+        await phase3a.sync_user_categories(uid, body.primary_category_id, valid_ids)
     token = create_access_token(uid, email)
     set_auth_cookie(response, token)
-    await audit(doc, "register")
+    await audit(doc, "register", module="users", record_id=uid)
     return {"token": token, "user": {k: v for k, v in clean(doc).items() if k != "password_hash"}}
 
 
@@ -842,7 +866,11 @@ async def startup():
     phase3.init(db, get_current_user)
     await phase3.ensure_indexes()
     await phase3.seed_phase3()
-    logger.info("RBAC + Phase3 + indexes ready")
+    import phase3a
+    phase3a.init(db, get_current_user)
+    await phase3a.ensure_indexes()
+    await phase3a.seed_phase3a()
+    logger.info("RBAC + Phase3 + Phase3A + indexes ready")
 
 
 @app.on_event("shutdown")
@@ -859,11 +887,15 @@ import rbac as _rbac
 _rbac.init(db, get_current_user)
 import phase3 as _phase3
 _phase3.init(db, get_current_user)
+import phase3a as _phase3a
+_phase3a.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
 app.include_router(_phase3.public_router)
 app.include_router(_phase3.admin_router)
+app.include_router(_phase3a.public_router)
+app.include_router(_phase3a.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"project_id":{"$numberInt":"1"}},"name":"project_id_1"},{"v":{"$numberInt":"2"},"key":{"date":{"$numberInt":"1"}},"name":"date_1"}],"uuid":"c0ebb433854c40b596836faef8f9ba64","collectionName":"dpr","type":"collection"}

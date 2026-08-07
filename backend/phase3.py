@@ -39,12 +39,9 @@ class CategoryIn(BaseModel):
     icon: Optional[str] = None
     status: str = "active"
 
-@public_router.get("/categories")
-async def public_categories(type: Optional[str] = None):
-    q = {"status": "active"}
-    if type:
-        q["type"] = type
-    return await _db.categories.find(q, {"_id": 0}).sort("name", 1).to_list(500)
+# NOTE: public GET /api/categories is now served by phase3a (nested Category Engine).
+# The Phase 3 flat categories route was removed to avoid a duplicate route; admin
+# category management also lives in phase3a. This keeps a single source of truth.
 
 @admin_router.get("/categories")
 async def list_categories(type: Optional[str] = None, user=Depends(rbac.rbac_admin)):

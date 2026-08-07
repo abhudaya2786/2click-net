@@ -239,30 +239,60 @@ function SimpleList({ url, cols, testid }) {
 
 function Categories() {
   const [rows, setRows] = useState([]);
-  const [form, setForm] = useState({ name: "", type: "product" });
-  const load = () => api.get(`${A}/categories`).then(({ data }) => setRows(data));
+  const [form, setForm] = useState({ name: "", category_type: "construction", parent_id: "" });
+  const [q, setQ] = useState("");
+  const load = () => api.get("/categories", { params: { include_disabled: true } }).then(({ data }) => setRows(data));
   useEffect(() => { load(); }, []);
-  const add = async () => { if (!form.name) return; await api.post(`${A}/categories`, form); setForm({ name: "", type: form.type }); toast.success("Category added"); load(); };
-  const del = async (id) => { await api.delete(`${A}/categories/${id}`); toast.success("Disabled"); load(); };
-  const byType = (t) => rows.filter((r) => r.type === t);
+  const add = async () => {
+    if (!form.name) return;
+    try { await api.post("/categories", { name: form.name, category_type: form.category_type, parent_id: form.parent_id || null }); setForm({ ...form, name: "" }); toast.success("Category added"); load(); }
+    catch (e) { toast.error(e.response?.data?.detail || "Failed"); }
+  };
+  const toggle = async (c) => { await api.patch(`/categories/${c.id}/status`, { status: c.status === "active" ? "disabled" : "active" }); load(); };
+  const del = async (c) => { await api.delete(`/categories/${c.id}`); toast.success("Removed"); load(); };
+  const types = [...new Set(rows.map((r) => r.category_type))];
+  const matches = (r) => !q || r.name.toLowerCase().includes(q.toLowerCase());
+  const parents = (t) => rows.filter((r) => r.category_type === t && !r.parent_id);
+  const childrenOf = (pid) => rows.filter((r) => r.parent_id === pid && matches(r));
+  const parentOptions = rows.filter((r) => r.category_type === form.category_type && !r.parent_id);
+  const ALL_TYPES = ["construction", "marketplace", "solar", "logistics", "professional_service", "freelancer", "product", "service", "tender", "architecture", "general"];
   return (
     <Panel title={`Categories (${rows.length})`} action={
-      <div className="flex gap-2">
-        <select data-testid="cat-type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="bg-background border border-input px-2 h-9 text-sm">
-          <option value="product">Product</option><option value="service">Service</option><option value="tender">Tender</option>
+      <div className="flex flex-wrap gap-2">
+        <Input data-testid="cat-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="rounded-none h-9 w-32" />
+        <select data-testid="cat-type" value={form.category_type} onChange={(e) => setForm({ ...form, category_type: e.target.value, parent_id: "" })} className="bg-background border border-input px-2 h-9 text-sm">
+          {ALL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
-        <Input data-testid="cat-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="New category" className="rounded-none h-9 w-48" />
+        <select data-testid="cat-parent" value={form.parent_id} onChange={(e) => setForm({ ...form, parent_id: e.target.value })} className="bg-background border border-input px-2 h-9 text-sm">
+          <option value="">— top level —</option>{parentOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+        </select>
+        <Input data-testid="cat-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="New category" className="rounded-none h-9 w-36" />
         <Button data-testid="add-cat" onClick={add} size="sm" className="rounded-none"><Plus className="h-4 w-4" /></Button>
       </div>}>
-      <div className="grid md:grid-cols-3 gap-px bg-border">
-        {["product", "service", "tender"].map((t) => (
-          <div key={t} className="bg-card p-4">
-            <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-3">{t}</div>
-            <div className="flex flex-wrap gap-1.5">
-              {byType(t).map((c) => (
-                <span key={c.id} data-testid={`cat-chip-${c.slug}`} className={`inline-flex items-center gap-1 text-xs px-2 py-1 border ${c.status === "active" ? "border-border" : "border-border opacity-40"}`}>
-                  {c.name}<button onClick={() => del(c.id)} className="hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
-                </span>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+        {types.map((t) => (
+          <div key={t} className="bg-card p-4" data-testid={`cat-group-${t}`}>
+            <div className="font-mono text-xs uppercase tracking-wider text-primary mb-3">{t.replace("_", " ")}</div>
+            <div className="space-y-2.5">
+              {parents(t).map((p) => (
+                <div key={p.id}>
+                  <div className="flex items-center justify-between">
+                    <span data-testid={`cat-chip-${p.slug}`} className={`font-medium text-sm ${p.status !== "active" ? "opacity-40 line-through" : ""}`}>{p.name}</span>
+                    <span className="flex gap-1.5 items-center">
+                      <button onClick={() => toggle(p)} className={`text-[10px] font-mono px-1.5 py-0.5 border ${p.status === "active" ? "border-solar/40 text-solar" : "border-border text-muted-foreground"}`}>{p.status === "active" ? "ON" : "OFF"}</button>
+                      <button onClick={() => del(p)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </span>
+                  </div>
+                  <div className="pl-3 mt-1.5 flex flex-wrap gap-1">
+                    {childrenOf(p.id).map((c) => (
+                      <span key={c.id} data-testid={`cat-chip-${c.slug}`} className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 border border-border ${c.status !== "active" ? "opacity-40 line-through" : ""}`}>
+                        {c.name}
+                        <button onClick={() => toggle(c)} className="hover:text-solar text-[9px] font-mono">{c.status === "active" ? "•" : "×"}</button>
+                        <button onClick={() => del(c)} className="hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>

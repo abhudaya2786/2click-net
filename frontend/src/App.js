@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { PermissionProvider } from "@/context/PermissionContext";
 import { BrandingProvider } from "@/context/BrandingContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 
@@ -16,6 +17,7 @@ import Marketplace from "@/pages/Marketplace";
 import Solar from "@/pages/Solar";
 import TenderHub from "@/pages/TenderHub";
 import TenderDetail from "@/pages/TenderDetail";
+import Freelancers from "@/pages/Freelancers";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import AuthCallback from "@/pages/AuthCallback";
@@ -36,6 +38,7 @@ function AppRouter() {
       <Route path="/solar" element={M(<Solar />)} />
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />
+      <Route path="/freelancers" element={M(<Freelancers />)} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -45,17 +48,19 @@ function AppRouter() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <BrandingProvider>
-      <AuthProvider>
-        <PermissionProvider>
-          <BrowserRouter>
-            <AppRouter />
-            <Toaster position="top-right" />
-          </BrowserRouter>
-        </PermissionProvider>
-      </AuthProvider>
-      </BrandingProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <BrandingProvider>
+          <AuthProvider>
+            <PermissionProvider>
+              <BrowserRouter>
+                <AppRouter />
+                <Toaster position="top-right" />
+              </BrowserRouter>
+            </PermissionProvider>
+          </AuthProvider>
+        </BrandingProvider>
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
