@@ -326,7 +326,7 @@ class EnquiryIn(BaseModel):
 async def freelancer_enquiry(fid: str, body: EnquiryIn, request: Request):
     user = await _get_current_user(request)  # LOGIN REQUIRED for protected action
     fr = await _db.users.find_one({"id": fid}, {"_id": 0})
-    if not fr:
+    if not fr or fr.get("user_type") not in FREELANCER_TYPES:
         raise HTTPException(404, "Freelancer not found")
     doc = {"id": new_id("enq"), "freelancer_id": fid, "from_user_id": user["id"],
            "from_name": user.get("name"), "from_email": user.get("email"),
@@ -371,6 +371,8 @@ async def admin_edit_profile(uid: str, body: dict, request: Request, user=Depend
     events = []
     if "user_type" in body and body["user_type"]:
         ut = body["user_type"]
+        if ut not in _UT_MAP:
+            raise HTTPException(400, "Invalid user_type")
         upd["user_type"] = ut
         upd["role"] = role_for_user_type(ut)
         upd["default_dashboard"] = dashboard_for_user_type(ut)

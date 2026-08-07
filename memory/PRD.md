@@ -55,3 +55,18 @@ A 30-step enterprise B2B/B2C construction & infrastructure SaaS platform combini
 - **Commission Engine** (`app_settings.commission`): global default % + per-category overrides (Solar 3%, Steel 2.5%); `create_order` computes `platform_commission` per line item.
 - **Super Admin UI**: Administration panel now 11 tabs incl. Categories, White Label, Plans & Commission.
 - **Testing**: 57/57 backend tests pass (17 new Phase 3), frontend E2E 100%.
+
+## Phase 3A — Delivered + Verified (2026-06, additive & non-destructive)
+- **Dynamic Category Engine** (`categories`, nested via `parent_id`, typed via `category_type`): public `GET /api/categories`, `/api/categories/tree`, `/api/categories/type/{type}`, `/api/categories/{id}`; Super-Admin CRUD via `/api/categories` (POST/PUT), `PATCH /categories/{id}/status`, `DELETE /categories/{id}` (soft-disable if referenced, hard-delete otherwise). Seeded 8-group nested tree.
+- **Smart Signup Wizard** (`/register`, 4 steps): 14 user types (freelancer/architect/engineer/ca/contractor/vendor/customer/etc.), category chips, business fields, account. `role`/`default_dashboard` derived from user_type; escalation to super_admin blocked.
+- **Personalized Workspace Routing**: dashboard routes by user_type (Freelancer/Vendor/Contractor/Customer/Super Admin). Super admin via secret triple-click on `/login` title.
+- **Freelancers Module**: public `GET /api/freelancers` (email omitted); `POST /api/freelancers/{id}/enquiry` (auth required; target must be a freelancer type); `GET /api/freelancers/me/enquiries`.
+- **Stabilization fixes (from iteration_5.json)**: FE Categories null-safety + empty state; legacy `/api/admin/categories` migrated to `category_type` schema (no more collection pollution); freelancer-enquiry target validation (404); admin profile invalid user_type rejected (400); seed-if-empty semantics for category tree.
+- **Testing**: backend 77 passed / 1 skipped (full suite); Phase 3A 20/21; FE Categories tab verified crash-free. See `/app/memory/PHASE3A_VERIFICATION_REPORT.md`.
+
+## Next (approved backlog, priority order)
+- **P1 Phase 3B**: White-Label Engine — domain mapping + per-company custom themes.
+- **P1 Phase 3C**: Pricing & Commission Engine full build — subscriptions, invoicing.
+- **P1 Auth hardening**: password reset, OTP, email verification, 2FA, JWT refresh rotation, brute-force lockout.
+- **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users.
+- **P2**: Logistics/Fleet, Architect/3D-LiDAR, CRM/Khatabook, GST/Accounting/E-Way, WhatsApp/SMS/Push, PWA, CI/CD.

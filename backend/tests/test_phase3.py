@@ -33,20 +33,21 @@ def h(t):
 
 # ---- Dynamic Categories ----
 class TestCategories:
-    def test_public_categories_product(self):
-        r = requests.get(f"{API}/categories", params={"type": "product"})
+    def test_public_categories_list(self):
+        # Phase 3A: public categories now nested/typed via category_type
+        r = requests.get(f"{API}/categories")
         assert r.status_code == 200
         d = r.json()
         assert isinstance(d, list) and len(d) >= 5
-        assert all(c.get("type") == "product" for c in d)
+        assert all("category_type" in c for c in d)
 
-    def test_public_categories_service(self):
-        r = requests.get(f"{API}/categories", params={"type": "service"})
-        assert r.status_code == 200 and len(r.json()) >= 3
+    def test_public_categories_tree(self):
+        r = requests.get(f"{API}/categories/tree")
+        assert r.status_code == 200 and isinstance(r.json(), list)
 
-    def test_public_categories_tender(self):
-        r = requests.get(f"{API}/categories", params={"type": "tender"})
-        assert r.status_code == 200 and len(r.json()) >= 3
+    def test_public_categories_by_type(self):
+        r = requests.get(f"{API}/categories/type/freelancer")
+        assert r.status_code == 200 and isinstance(r.json(), list)
 
     def test_admin_list_categories(self, admin_tok):
         r = requests.get(f"{API}/admin/categories", headers=h(admin_tok))

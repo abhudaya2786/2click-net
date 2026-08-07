@@ -250,8 +250,8 @@ function Categories() {
   };
   const toggle = async (c) => { await api.patch(`/categories/${c.id}/status`, { status: c.status === "active" ? "disabled" : "active" }); load(); };
   const del = async (c) => { await api.delete(`/categories/${c.id}`); toast.success("Removed"); load(); };
-  const types = [...new Set(rows.map((r) => r.category_type))];
-  const matches = (r) => !q || r.name.toLowerCase().includes(q.toLowerCase());
+  const types = [...new Set(rows.map((r) => r.category_type).filter(Boolean))];
+  const matches = (r) => !q || (r.name || "").toLowerCase().includes(q.toLowerCase());
   const parents = (t) => rows.filter((r) => r.category_type === t && !r.parent_id);
   const childrenOf = (pid) => rows.filter((r) => r.parent_id === pid && matches(r));
   const parentOptions = rows.filter((r) => r.category_type === form.category_type && !r.parent_id);
@@ -270,9 +270,10 @@ function Categories() {
         <Button data-testid="add-cat" onClick={add} size="sm" className="rounded-none"><Plus className="h-4 w-4" /></Button>
       </div>}>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+        {rows.length === 0 && <div className="bg-card p-6 text-sm text-muted-foreground" data-testid="cat-empty">No categories yet. Add one above.</div>}
         {types.map((t) => (
           <div key={t} className="bg-card p-4" data-testid={`cat-group-${t}`}>
-            <div className="font-mono text-xs uppercase tracking-wider text-primary mb-3">{t.replace("_", " ")}</div>
+            <div className="font-mono text-xs uppercase tracking-wider text-primary mb-3">{(t || "").replace(/_/g, " ")}</div>
             <div className="space-y-2.5">
               {parents(t).map((p) => (
                 <div key={p.id}>

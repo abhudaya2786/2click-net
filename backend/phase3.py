@@ -35,6 +35,7 @@ admin_router = APIRouter(prefix="/api/admin", tags=["phase3-admin"])
 class CategoryIn(BaseModel):
     name: str
     type: str = "product"
+    category_type: Optional[str] = None
     parent_id: Optional[str] = None
     icon: Optional[str] = None
     status: str = "active"
@@ -45,16 +46,23 @@ class CategoryIn(BaseModel):
 
 @admin_router.get("/categories")
 async def list_categories(type: Optional[str] = None, user=Depends(rbac.rbac_admin)):
-    q = {} if not type else {"type": type}
-    return await _db.categories.find(q, {"_id": 0}).sort([("type", 1), ("name", 1)]).to_list(1000)
+    q = {} if not type else {"$or": [{"category_type": type}, {"type": type}]}
+    rows = await _db.categories.find(q, {"_id": 0}).sort([("category_type", 1), ("name", 1)]).to_list(1000)
+    for r in rows:  # normalize legacy rows that used `type`
+        if not r.get("category_type") and r.get("type"):
+            r["category_type"] = r["type"]
+    return rows
 
 @admin_router.post("/categories")
 async def create_category(body: CategoryIn, request: Request, user=Depends(rbac.rbac_admin)):
-    doc = {"id": new_id("cat"), "name": body.name, "type": body.type, "slug": slug(body.name),
-           "parent_id": body.parent_id, "icon": body.icon, "status": body.status,
-           "created_at": iso(now_utc()), "updated_at": iso(now_utc())}
+    ct = body.category_type or body.type or "general"
+    doc = {"id": new_id("cat"), "name": body.name, "category_type": ct, "slug": slug(body.name),
+           "parent_id": body.parent_id, "icon": body.icon, "image": None, "description": "",
+           "status": body.status, "sort_order": 0, "metadata": {},
+           "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+           "created_by": "system", "updated_by": "system"}
     await _db.categories.insert_one(dict(doc))
-    await rbac.audit_log("CREATE", "categories", doc["id"], None, {"name": body.name, "type": body.type}, user=user, request=request)
+    await rbac.audit_log("CREATE", "categories", doc["id"], None, {"name": body.name, "category_type": ct}, user=user, request=request)
     doc.pop("_id", None)
     return doc
 
