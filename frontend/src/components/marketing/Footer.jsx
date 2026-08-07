@@ -21,6 +21,15 @@ export default function Footer() {
           <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
             The enterprise operating system for construction — tenders, marketplace, ERP, solar and AI in one platform.
           </p>
+          <div className="mt-5 space-y-1.5 text-sm">
+            <a href="tel:+917007254932" data-testid="footer-phone" className="block text-muted-foreground hover:text-primary transition-colors">+91 70072 54932</a>
+            <a href="mailto:sales@2click.in" data-testid="footer-email" className="block text-muted-foreground hover:text-primary transition-colors">sales@2click.in</a>
+          </div>
+          <div className="mt-4 space-y-1 text-xs text-muted-foreground" data-testid="footer-offices">
+            <div><span className="text-foreground font-medium">Head Office:</span> Gorakhpur, UP</div>
+            <div><span className="text-foreground font-medium">Corporate Office:</span> Gurugram, Haryana</div>
+            <div><span className="text-foreground font-medium">Branch Office:</span> Vapi, Gujarat</div>
+          </div>
         </div>
         {COLS.map((c) => (
           <div key={c.h}>
@@ -35,7 +44,7 @@ export default function Footer() {
       </div>
       <div className="border-t border-border">
         <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-5 flex flex-col sm:flex-row justify-between gap-2 text-xs text-muted-foreground">
-          <span>© 2026 2click.in Technologies Pvt Ltd. All rights reserved.</span>
+          <span>© 2026 2click.in Technologies Pvt Ltd · Head Office: Gorakhpur, UP</span>
           <span className="font-mono">Made in India · GST Ready · ISO 27001</span>
         </div>
       </div>

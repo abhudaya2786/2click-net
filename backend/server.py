@@ -537,6 +537,20 @@ async def toggle_2fa(body: dict, user=Depends(get_current_user)):
     return {"ok": True, "two_factor_enabled": enabled}
 
 
+class ContactIn(BaseModel):
+    name: str
+    email: EmailStr
+    message: str
+    phone: Optional[str] = None
+
+
+@api.post("/contact")
+async def contact_submit(body: ContactIn):
+    doc = {"id": new_id("msg"), **body.model_dump(), "status": "new", "created_at": iso(now_utc())}
+    await db.contact_messages.insert_one(dict(doc))
+    return {"ok": True}
+
+
 # ---------------------------------------------------------------------------
 # Admin: users, roles, analytics, audit
 # ---------------------------------------------------------------------------
