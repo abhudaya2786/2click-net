@@ -32,6 +32,8 @@ db = client[os.environ['DB_NAME']]
 JWT_SECRET = os.environ['JWT_SECRET']
 JWT_ALGORITHM = "HS256"
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
+AI_PROVIDER = os.environ.get('AI_PROVIDER', 'gemini')
+AI_MODEL = os.environ.get('AI_MODEL', 'gemini-3.1-pro-preview')
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
@@ -701,7 +703,7 @@ async def add_dpr(body: DPRIn, user=Depends(require_roles("contractor", "super_a
 def get_chat(session_id, system):
     from emergentintegrations.llm.chat import LlmChat
     return LlmChat(api_key=EMERGENT_LLM_KEY, session_id=session_id,
-                   system_message=system).with_model("anthropic", "claude-sonnet-4-6")
+                   system_message=system).with_model(AI_PROVIDER, AI_MODEL)
 
 
 @api.post("/ai/chat")

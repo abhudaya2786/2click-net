@@ -73,7 +73,7 @@ export default function AIAssistant() {
           <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-primary/5">
             <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.75} />
             <span className="font-display font-bold text-sm">2click.in AI</span>
-            <span className="ml-auto text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Claude Sonnet</span>
+            <span className="ml-auto text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Gemini</span>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((m, i) => (
