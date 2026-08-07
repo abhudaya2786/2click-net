@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import { api } from "@/lib/api";
 
 const BrandingContext = createContext(null);
-export const useBranding = () => useContext(BrandingContext) || { brand_name: "2Click.in", primary_color: "#FF5A1F", logo: "", tagline: "" };
+export const useBranding = () => useContext(BrandingContext) || { brand_name: "2Click.in", primary_color: "#FF5A1F", accent_color: "#10B981", logo: "", favicon: "", tagline: "" };
 
 function hexToHsl(hex) {
   let h = hex.replace("#", "");
@@ -22,10 +22,16 @@ function hexToHsl(hex) {
 }
 
 export function BrandingProvider({ children }) {
-  const [brand, setBrand] = useState({ brand_name: "2Click.in", primary_color: "#FF5A1F", logo: "", tagline: "" });
+  const [brand, setBrand] = useState({ brand_name: "2Click.in", primary_color: "#FF5A1F", accent_color: "#10B981", logo: "", favicon: "", tagline: "" });
 
   const refresh = useCallback(async () => {
-    try { const { data } = await api.get("/branding"); setBrand(data); } catch {}
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const slug = params.get("company") || params.get("tenant") || undefined;
+      const host = window.location.hostname;
+      const { data } = await api.get("/branding", { params: { slug, host } });
+      setBrand(data);
+    } catch { /* keep defaults */ }
   }, []);
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -36,8 +42,14 @@ export function BrandingProvider({ children }) {
         document.documentElement.style.setProperty("--primary", hsl);
         document.documentElement.style.setProperty("--ring", hsl);
       }
+      if (brand.accent_color) document.documentElement.style.setProperty("--brand-accent", brand.accent_color);
       if (brand.brand_name) document.title = `${brand.brand_name} — Construction Super App`;
-    } catch {}
+      if (brand.favicon) {
+        let link = document.querySelector("link[rel~='icon']");
+        if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
+        link.href = brand.favicon;
+      }
+    } catch { /* noop */ }
   }, [brand]);
 
   return <BrandingContext.Provider value={{ ...brand, refresh }}>{children}</BrandingContext.Provider>;

@@ -85,14 +85,32 @@ async def delete_category(cid: str, request: Request, user=Depends(rbac.rbac_adm
 # White-Label Branding (per company; default company drives public site)
 # ---------------------------------------------------------------------------
 @public_router.get("/branding")
-async def get_branding(company_id: str = DEFAULT_COMPANY_ID):
-    c = await _db.companies.find_one({"id": company_id}, {"_id": 0})
+async def get_branding(company_id: Optional[str] = None, slug: Optional[str] = None, host: Optional[str] = None):
+    """Resolve tenant branding by explicit id, slug, custom_domain or subdomain (falls back to default)."""
+    c = None
+    if company_id:
+        c = await _db.companies.find_one({"id": company_id}, {"_id": 0})
+    if not c and slug:
+        c = await _db.companies.find_one({"slug": slug}, {"_id": 0})
+    if not c and host:
+        h = host.split(":")[0].lower().strip()
+        c = await _db.companies.find_one({"custom_domain": h}, {"_id": 0})
+        if not c and "." in h:
+            sub = h.split(".")[0]
+            if sub not in ("www", "app", "localhost"):
+                c = await _db.companies.find_one({"slug": sub}, {"_id": 0})
+    if not c:
+        c = await _db.companies.find_one({"id": DEFAULT_COMPANY_ID}, {"_id": 0})
     b = (c or {}).get("branding") or {}
     return {
-        "company_id": company_id,
+        "company_id": (c or {}).get("id", DEFAULT_COMPANY_ID),
+        "slug": (c or {}).get("slug") or "",
+        "custom_domain": (c or {}).get("custom_domain") or "",
         "brand_name": b.get("brand_name") or (c or {}).get("name") or "2Click.in",
         "logo": b.get("logo") or "",
+        "favicon": b.get("favicon") or "",
         "primary_color": b.get("primary_color") or "#FF5A1F",
+        "accent_color": b.get("accent_color") or "#10B981",
         "tagline": b.get("tagline") or "The operating system for construction",
     }
 
@@ -100,11 +118,16 @@ async def get_branding(company_id: str = DEFAULT_COMPANY_ID):
 async def update_branding(body: dict, request: Request, user=Depends(rbac.rbac_admin)):
     company_id = body.pop("company_id", DEFAULT_COMPANY_ID)
     old = await _db.companies.find_one({"id": company_id}, {"_id": 0})
+    root = {}
+    if "slug" in body:
+        root["slug"] = slug(body.pop("slug") or "") or None
+    if "custom_domain" in body:
+        root["custom_domain"] = (body.pop("custom_domain") or "").strip().lower() or None
     branding = {**((old or {}).get("branding") or {}), **body}
-    await _db.companies.update_one({"id": company_id}, {"$set": {"branding": branding, "updated_at": iso(now_utc())}})
+    await _db.companies.update_one({"id": company_id}, {"$set": {"branding": branding, "updated_at": iso(now_utc()), **root}})
     await rbac.audit_log("EDIT", "settings", company_id, (old or {}).get("branding"), branding,
                          user=user, request=request, metadata={"section": "branding"})
-    return {"ok": True, "branding": branding}
+    return {"ok": True, "branding": branding, **root}
 
 
 # ---------------------------------------------------------------------------
@@ -192,6 +215,7 @@ async def ensure_indexes():
         "categories": ["type", "status", "parent_id", "slug"],
         "plans": ["status", "order"],
         "app_settings": ["key"],
+        "companies": ["slug", "custom_domain"],
     }.items():
         for f in fields:
             try:

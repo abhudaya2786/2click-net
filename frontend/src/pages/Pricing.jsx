@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 function fmtPrice(p) {
   if (p === -1 || p === "Custom") return "Custom";
@@ -13,7 +15,21 @@ function fmtPrice(p) {
 export default function Pricing() {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState("");
+  const { user } = useAuth();
+  const nav = useNavigate();
   useEffect(() => { api.get("/plans").then(({ data }) => setPlans(data)).finally(() => setLoading(false)); }, []);
+
+  const choose = async (p) => {
+    if (p.price === -1) { nav("/contact"); return; }
+    if (!user) { nav("/register"); return; }
+    setBusy(p.id);
+    try {
+      const { data } = await api.post("/subscriptions/subscribe", { plan_id: p.id });
+      toast.success(data.invoice ? `Subscribed to ${p.name} — invoice ${data.invoice.number} created` : `You're on the ${p.name} plan`);
+      nav("/dashboard");
+    } catch (e) { toast.error(e.response?.data?.detail || "Subscription failed"); } finally { setBusy(""); }
+  };
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24">
@@ -34,8 +50,10 @@ export default function Pricing() {
                 <span className="font-display font-extrabold text-4xl tracking-tight">{fmtPrice(p.price)}</span>
                 {p.price > 0 && <span className="text-muted-foreground text-sm">/{p.period}</span>}
               </div>
-              <Link to="/register"><Button className="w-full rounded-none mt-6" variant={p.highlight ? "default" : "outline"} data-testid={`plan-cta-${p.name.toLowerCase()}`}>
-                {p.price === -1 ? "Contact Sales" : "Get Started"}</Button></Link>
+              <Button className="w-full rounded-none mt-6" variant={p.highlight ? "default" : "outline"} data-testid={`plan-cta-${p.name.toLowerCase()}`}
+                onClick={() => choose(p)} disabled={busy === p.id}>
+                {busy === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : p.price === -1 ? "Contact Sales" : user ? "Subscribe" : "Get Started"}
+              </Button>
               <ul className="mt-6 space-y-3">
                 {(p.features || []).map((f) => (
                   <li key={f} className="flex items-start gap-2.5 text-sm"><Check className="h-4 w-4 text-primary mt-0.5 shrink-0" strokeWidth={2} />{f}</li>

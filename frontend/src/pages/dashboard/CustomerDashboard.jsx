@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import BillingSection from "@/components/dashboard/BillingSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "cart", label: "Cart & Checkout", icon: ShoppingCart },
   { id: "orders", label: "My Orders", icon: ReceiptText },
   { id: "quotes", label: "Solar Quotes", icon: Sun },
+  { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
 export default function CustomerDashboard() {
@@ -126,6 +128,8 @@ export default function CustomerDashboard() {
               {quotes.length === 0 && <div className="bg-card p-8 col-span-full text-center text-muted-foreground text-sm">No saved quotes. Use the Solar calculator.</div>}
             </div>
           )}
+
+          {active === "billing" && <BillingSection />}
         </>
       )}
     </DashboardLayout>

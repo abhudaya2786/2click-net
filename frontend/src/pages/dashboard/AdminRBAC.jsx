@@ -3,7 +3,9 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt } from "lucide-react";
+import { useBranding } from "@/context/BrandingContext";
+import AdminBilling from "@/pages/dashboard/AdminBilling";
 
 const TABS = [
   { id: "companies", label: "Companies", icon: Building2 },
@@ -14,6 +16,7 @@ const TABS = [
   { id: "categories", label: "Categories", icon: Tag },
   { id: "branding", label: "White Label", icon: Palette },
   { id: "pricing", label: "Plans & Commission", icon: CreditCard },
+  { id: "billing", label: "Billing", icon: Receipt },
   { id: "modules", label: "Modules", icon: Boxes },
   { id: "menus", label: "Menus", icon: MenuIcon },
   { id: "audit", label: "Audit Logs", icon: ScrollText },
@@ -41,6 +44,7 @@ export default function AdminRBAC() {
       {tab === "categories" && <Categories />}
       {tab === "branding" && <Branding />}
       {tab === "pricing" && <PricingCommission />}
+      {tab === "billing" && <AdminBilling />}
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
       {tab === "audit" && <Audit />}
@@ -304,31 +308,73 @@ function Categories() {
 }
 
 function Branding() {
-  const [b, setB] = useState({ brand_name: "", primary_color: "#FF5A1F", logo: "", tagline: "" });
+  const { refresh } = useBranding();
+  const [companies, setCompanies] = useState([]);
+  const [cid, setCid] = useState("company_default");
+  const [b, setB] = useState({ brand_name: "", primary_color: "#FF5A1F", accent_color: "#10B981", logo: "", favicon: "", tagline: "", slug: "", custom_domain: "" });
   const [saving, setSaving] = useState(false);
-  useEffect(() => { api.get("/branding").then(({ data }) => setB(data)); }, []);
+  useEffect(() => { api.get(`${R}/companies`).then(({ data }) => setCompanies(data)); }, []);
+  const loadBrand = useCallback((id) => { api.get("/branding", { params: { company_id: id } }).then(({ data }) => setB(data)); }, []);
+  useEffect(() => { loadBrand(cid); }, [cid, loadBrand]);
   const save = async () => {
     setSaving(true);
     try {
-      await api.patch(`${A}/branding`, { brand_name: b.brand_name, primary_color: b.primary_color, logo: b.logo, tagline: b.tagline });
-      toast.success("Branding saved — reload to see everywhere");
+      await api.patch(`${A}/branding`, { company_id: cid, brand_name: b.brand_name, tagline: b.tagline, primary_color: b.primary_color, accent_color: b.accent_color, logo: b.logo, favicon: b.favicon, slug: b.slug, custom_domain: b.custom_domain });
+      toast.success("Branding saved");
+      if (cid === "company_default") refresh();
     } catch (e) { toast.error("Save failed"); } finally { setSaving(false); }
   };
+  const set = (k, v) => setB({ ...b, [k]: v });
+  const host = typeof window !== "undefined" ? window.location.host : "";
   return (
-    <Panel title="White-Label Branding">
-      <div className="p-5 grid md:grid-cols-2 gap-5 max-w-3xl">
-        <div><label className="text-sm font-medium mb-1.5 block">Brand name</label>
-          <Input data-testid="brand-name" value={b.brand_name} onChange={(e) => setB({ ...b, brand_name: e.target.value })} className="rounded-none" /></div>
-        <div><label className="text-sm font-medium mb-1.5 block">Tagline</label>
-          <Input value={b.tagline} onChange={(e) => setB({ ...b, tagline: e.target.value })} className="rounded-none" /></div>
-        <div><label className="text-sm font-medium mb-1.5 block">Primary color</label>
-          <div className="flex gap-2 items-center">
-            <input data-testid="brand-color" type="color" value={b.primary_color} onChange={(e) => setB({ ...b, primary_color: e.target.value })} className="h-10 w-14 border border-input" />
-            <Input value={b.primary_color} onChange={(e) => setB({ ...b, primary_color: e.target.value })} className="rounded-none" />
-          </div></div>
-        <div><label className="text-sm font-medium mb-1.5 block">Logo URL</label>
-          <Input value={b.logo} onChange={(e) => setB({ ...b, logo: e.target.value })} placeholder="https://…" className="rounded-none" /></div>
-        <div className="md:col-span-2"><Button data-testid="brand-save" onClick={save} disabled={saving} className="rounded-none">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save branding"}</Button></div>
+    <Panel title="White-Label Branding" action={
+      <select data-testid="brand-company" value={cid} onChange={(e) => setCid(e.target.value)} className="bg-background border border-input px-2 h-9 text-sm">
+        {companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+      </select>}>
+      <div className="p-5 grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 grid md:grid-cols-2 gap-5">
+          <div><label className="text-sm font-medium mb-1.5 block">Brand name</label>
+            <Input data-testid="brand-name" value={b.brand_name || ""} onChange={(e) => set("brand_name", e.target.value)} className="rounded-none" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Tagline</label>
+            <Input data-testid="brand-tagline" value={b.tagline || ""} onChange={(e) => set("tagline", e.target.value)} className="rounded-none" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Primary color</label>
+            <div className="flex gap-2 items-center">
+              <input data-testid="brand-color" type="color" value={b.primary_color || "#FF5A1F"} onChange={(e) => set("primary_color", e.target.value)} className="h-10 w-14 border border-input" />
+              <Input value={b.primary_color || ""} onChange={(e) => set("primary_color", e.target.value)} className="rounded-none" />
+            </div></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Accent color</label>
+            <div className="flex gap-2 items-center">
+              <input data-testid="brand-accent" type="color" value={b.accent_color || "#10B981"} onChange={(e) => set("accent_color", e.target.value)} className="h-10 w-14 border border-input" />
+              <Input value={b.accent_color || ""} onChange={(e) => set("accent_color", e.target.value)} className="rounded-none" />
+            </div></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Logo URL</label>
+            <Input data-testid="brand-logo" value={b.logo || ""} onChange={(e) => set("logo", e.target.value)} placeholder="https://…" className="rounded-none" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Favicon URL</label>
+            <Input data-testid="brand-favicon" value={b.favicon || ""} onChange={(e) => set("favicon", e.target.value)} placeholder="https://…" className="rounded-none" /></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Subdomain slug</label>
+            <Input data-testid="brand-slug" value={b.slug || ""} onChange={(e) => set("slug", e.target.value)} placeholder="acme" className="rounded-none" />
+            <p className="text-[10px] text-muted-foreground mt-1 font-mono">{b.slug ? `${b.slug}.${host} · ?company=${b.slug}` : "?company=<slug>"}</p></div>
+          <div><label className="text-sm font-medium mb-1.5 block">Custom domain</label>
+            <Input data-testid="brand-domain" value={b.custom_domain || ""} onChange={(e) => set("custom_domain", e.target.value)} placeholder="portal.acme.com" className="rounded-none" />
+            <p className="text-[10px] text-muted-foreground mt-1">Point this domain's DNS to the app after deploy.</p></div>
+          <div className="md:col-span-2"><Button data-testid="brand-save" onClick={save} disabled={saving} className="rounded-none">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save branding"}</Button></div>
+        </div>
+        <div>
+          <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">Live preview</div>
+          <div className="border border-border" data-testid="brand-preview" style={{ borderTopWidth: 4, borderTopColor: b.primary_color }}>
+            <div className="p-4 flex items-center gap-2 border-b border-border">
+              {b.logo ? <img src={b.logo} alt="logo" className="h-7 w-7 object-contain" /> : <div className="h-7 w-7 flex items-center justify-center text-white text-xs font-bold" style={{ background: b.primary_color }}>2</div>}
+              <span className="font-display font-extrabold tracking-tight">{b.brand_name || "Brand"}</span>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-sm text-muted-foreground">{b.tagline || "Your tagline here"}</p>
+              <div className="flex gap-2">
+                <button className="px-3 py-1.5 text-sm text-white rounded-none" style={{ background: b.primary_color }}>Primary</button>
+                <button className="px-3 py-1.5 text-sm text-white rounded-none" style={{ background: b.accent_color }}>Accent</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </Panel>
   );

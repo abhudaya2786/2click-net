@@ -870,7 +870,10 @@ async def startup():
     phase3a.init(db, get_current_user)
     await phase3a.ensure_indexes()
     await phase3a.seed_phase3a()
-    logger.info("RBAC + Phase3 + Phase3A + indexes ready")
+    import phase3c
+    phase3c.init(db, get_current_user)
+    await phase3c.ensure_indexes()
+    logger.info("RBAC + Phase3 + Phase3A + Phase3C + indexes ready")
 
 
 @app.on_event("shutdown")
@@ -889,6 +892,8 @@ import phase3 as _phase3
 _phase3.init(db, get_current_user)
 import phase3a as _phase3a
 _phase3a.init(db, get_current_user)
+import phase3c as _phase3c
+_phase3c.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -896,6 +901,8 @@ app.include_router(_phase3.public_router)
 app.include_router(_phase3.admin_router)
 app.include_router(_phase3a.public_router)
 app.include_router(_phase3a.admin_router)
+app.include_router(_phase3c.public_router)
+app.include_router(_phase3c.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

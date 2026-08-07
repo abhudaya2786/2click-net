@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import BillingSection from "@/components/dashboard/BillingSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "products", label: "My Products", icon: Package },
   { id: "orders", label: "Orders", icon: ShoppingBag },
+  { id: "billing", label: "Billing", icon: CreditCard },
 ];
 const EMPTY = { name: "", category: "Steel & TMT", price: "", unit: "unit", stock: "", description: "", image: "https://images.unsplash.com/photo-1763926062529-1edf8664c366?crop=entropy&cs=srgb&fm=jpg&q=85&w=800" };
 
@@ -114,6 +116,8 @@ export default function VendorDashboard() {
               </table>
             </div>
           )}
+
+          {active === "billing" && <BillingSection />}
         </>
       )}
     </DashboardLayout>
