@@ -14,6 +14,7 @@ import Services from "@/pages/Services";
 import Pricing from "@/pages/Pricing";
 import Contact from "@/pages/Contact";
 import Marketplace from "@/pages/Marketplace";
+import Mart from "@/pages/Mart";
 import Solar from "@/pages/Solar";
 import TenderHub from "@/pages/TenderHub";
 import TenderDetail from "@/pages/TenderDetail";
@@ -35,6 +36,7 @@ function AppRouter() {
       <Route path="/pricing" element={M(<Pricing />)} />
       <Route path="/contact" element={M(<Contact />)} />
       <Route path="/marketplace" element={M(<Marketplace />)} />
+      <Route path="/mart" element={M(<Mart />)} />
       <Route path="/solar" element={M(<Solar />)} />
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />

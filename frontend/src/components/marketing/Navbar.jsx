@@ -8,6 +8,7 @@ import { useBranding } from "@/context/BrandingContext";
 
 const LINKS = [
   { to: "/marketplace", label: "Marketplace" },
+  { to: "/mart", label: "Super Mart" },
   { to: "/tenders", label: "Tender Hub" },
   { to: "/freelancers", label: "Freelancers" },
   { to: "/solar", label: "Solar" },

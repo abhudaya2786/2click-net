@@ -3,9 +3,10 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
 import AdminBilling from "@/pages/dashboard/AdminBilling";
+import AdminMaterials from "@/pages/dashboard/AdminMaterials";
 
 const TABS = [
   { id: "companies", label: "Companies", icon: Building2 },
@@ -17,6 +18,7 @@ const TABS = [
   { id: "branding", label: "White Label", icon: Palette },
   { id: "pricing", label: "Plans & Commission", icon: CreditCard },
   { id: "billing", label: "Billing", icon: Receipt },
+  { id: "materials", label: "Super Mart", icon: Store },
   { id: "modules", label: "Modules", icon: Boxes },
   { id: "menus", label: "Menus", icon: MenuIcon },
   { id: "audit", label: "Audit Logs", icon: ScrollText },
@@ -45,6 +47,7 @@ export default function AdminRBAC() {
       {tab === "branding" && <Branding />}
       {tab === "pricing" && <PricingCommission />}
       {tab === "billing" && <AdminBilling />}
+      {tab === "materials" && <AdminMaterials />}
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
       {tab === "audit" && <Audit />}

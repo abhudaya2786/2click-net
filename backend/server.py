@@ -251,6 +251,9 @@ class BOQIn(BaseModel):
     unit: str
     quantity: float
     rate: float
+    brand: Optional[str] = None
+    category: Optional[str] = None
+    material_id: Optional[str] = None
 
 
 class DPRIn(BaseModel):
@@ -708,6 +711,71 @@ async def add_boq(body: BOQIn, user=Depends(require_roles("contractor", "super_a
     return clean(doc)
 
 
+def _render_boq_pdf(proj, items, total):
+    import io
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from reportlab.lib import colors
+    from reportlab.pdfgen import canvas
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    w, h = A4
+    orange = colors.HexColor("#FF5A1F")
+    x = 18 * mm
+    c.setFillColor(orange); c.rect(0, h - 12 * mm, w, 12 * mm, fill=1, stroke=0)
+    c.setFillColor(orange); c.setFont("Helvetica-Bold", 20); c.drawString(x, h - 26 * mm, "2click.in")
+    c.setFillColor(colors.black); c.setFont("Helvetica-Bold", 14)
+    c.drawRightString(w - x, h - 24 * mm, "BILL OF QUANTITIES")
+    c.setFont("Helvetica", 10)
+    c.drawString(x, h - 34 * mm, f"Project: {proj.get('name', '-')}")
+    c.drawString(x, h - 40 * mm, f"Client: {proj.get('client', '-')}   Location: {proj.get('location', '-')}")
+    y = h - 52 * mm
+    c.setFillColor(colors.HexColor("#111827")); c.rect(x, y, w - 2 * x, 8 * mm, fill=1, stroke=0)
+    c.setFillColor(colors.white); c.setFont("Helvetica-Bold", 8)
+    c.drawString(x + 2 * mm, y + 2.5 * mm, "ITEM / BRAND")
+    c.drawRightString(w - x - 55 * mm, y + 2.5 * mm, "QTY")
+    c.drawRightString(w - x - 38 * mm, y + 2.5 * mm, "UNIT")
+    c.drawRightString(w - x - 20 * mm, y + 2.5 * mm, "RATE")
+    c.drawRightString(w - x - 2 * mm, y + 2.5 * mm, "AMOUNT")
+    c.setFillColor(colors.black); c.setFont("Helvetica", 9)
+    y -= 4 * mm
+    for it in items:
+        y -= 7 * mm
+        if y < 25 * mm:
+            c.showPage(); y = h - 25 * mm; c.setFont("Helvetica", 9)
+        label = it.get("item", "")
+        if it.get("brand"):
+            label += f"  [{it['brand']}]"
+        c.drawString(x + 2 * mm, y, label[:58])
+        c.drawRightString(w - x - 55 * mm, y, str(it.get("quantity", "")))
+        c.drawRightString(w - x - 38 * mm, y, str(it.get("unit", "")))
+        c.drawRightString(w - x - 20 * mm, y, f"{float(it.get('rate', 0)):,.2f}")
+        c.drawRightString(w - x - 2 * mm, y, f"{float(it.get('amount', 0)):,.2f}")
+        c.setStrokeColor(colors.HexColor("#E5E7EB")); c.line(x, y - 2 * mm, w - x, y - 2 * mm)
+    y -= 12 * mm
+    c.setFont("Helvetica-Bold", 13); c.setFillColor(orange)
+    c.drawRightString(w - x - 20 * mm, y, "TOTAL")
+    c.drawRightString(w - x - 2 * mm, y, f"Rs {float(total):,.2f}")
+    c.setFillColor(colors.HexColor("#9CA3AF")); c.setFont("Helvetica", 8)
+    c.drawCentredString(w / 2, 14 * mm, "Rates sourced from 2click.in Super Mart · system-generated BOQ")
+    c.showPage(); c.save()
+    return buf.getvalue()
+
+
+@api.get("/erp/boq/{project_id}/pdf")
+async def boq_pdf(project_id: str, user=Depends(require_roles("contractor", "super_admin"))):
+    proj = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if user["role"] != "super_admin" and proj.get("owner_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    items = await db.boq.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+    total = sum(i.get("amount", 0) for i in items)
+    pdf = _render_boq_pdf(proj, items, total)
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'inline; filename="BOQ-{project_id[:10]}.pdf"'})
+
+
 @api.get("/erp/dpr/{project_id}")
 async def list_dpr(project_id: str, user=Depends(require_roles("contractor", "super_admin"))):
     return await db.dpr.find({"project_id": project_id}, {"_id": 0}).sort("date", -1).to_list(200)
@@ -873,7 +941,11 @@ async def startup():
     import phase3c
     phase3c.init(db, get_current_user)
     await phase3c.ensure_indexes()
-    logger.info("RBAC + Phase3 + Phase3A + Phase3C + indexes ready")
+    import mart
+    mart.init(db)
+    await mart.ensure_indexes()
+    await mart.seed_mart()
+    logger.info("RBAC + Phase3 + Phase3A + Phase3C + Mart + indexes ready")
 
 
 @app.on_event("shutdown")
@@ -894,6 +966,8 @@ import phase3a as _phase3a
 _phase3a.init(db, get_current_user)
 import phase3c as _phase3c
 _phase3c.init(db, get_current_user)
+import mart as _mart
+_mart.init(db)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -903,6 +977,8 @@ app.include_router(_phase3a.public_router)
 app.include_router(_phase3a.admin_router)
 app.include_router(_phase3c.public_router)
 app.include_router(_phase3c.admin_router)
+app.include_router(_mart.public_router)
+app.include_router(_mart.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

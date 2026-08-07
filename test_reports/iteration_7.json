@@ -1,0 +1,43 @@
+{
+  "summary": "Super Mart feature tested end-to-end. Backend: 11/11 pytest tests pass in /app/backend/tests/test_mart.py — public categories (10), brands by category, materials filter by category+brand, name search 'q', admin RBAC (customer 403, super_admin 200), admin CRUD create/update-rate (persisted via public read)/delete, contractor BOQ POST /api/erp/boq stores brand+category+material_id and computes amount=qty*rate (10x420=4200), GET /api/erp/boq/{pid}/pdf returns application/pdf with %PDF header. Frontend: (1) /mart public page loads 82 seeded cards, category chip mart-cat-cement -> 11 cards, brand dropdown UltraTech -> 2 cards, search 'TMT' -> 8 cards, Navbar has 'Super Mart' link to /mart. (2) Customer login -> nav-materials -> material-calculator visible, added 2 lines (5xOPC=₹1,975 + 10xOPC=₹4,000, calc-total=₹5,975), remove line works. (3) Contractor login -> nav-materials also shows the same calculator; nav-boq -> project selected -> boq-supermart-btn opens dialog -> select Cement -> mart-dialog-material populates 11 options -> qty 7, click mart-dialog-add -> BOQ line added with brand badge (JK Lakshmi) shown and Amount = 7×395=₹2,765; total updates to ₹85,965; manual add-boq-btn also works (though it accepts empty rate/qty — minor). (4) boq-pdf-btn / GET /api/erp/boq/{pid}/pdf returns 200 application/pdf via authenticated fetch. (5) Super Admin (triple-click login-title) -> Administration -> Super Mart tab (rbac-tab-materials) -> admin-materials table shows 82 rows; mat-add creates new row (verified via filter); inline edit mat-rate-<id> + mat-save-<id> persists (re-fetched admin list shows rate=777); mat-toggle-<id> flips status; mat-del-<id> removes the row. Regression not deeply re-verified (per instructions) — Billing tab / other admin tabs render (visible in tab list: Companies, Departments, Roles, Permission Matrix, Users & Assignments, Categories, White Label, Plans & Commission, Billing, Super Mart, Modules, Menus, Audit Logs).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ContractorDashboard BOQ manual add", "issue": "Add BOQ Item (add-boq-btn) accepts empty rate/qty and creates a line with '0 cum × ₹0 = ₹0'. Should validate required fields (item, qty>0, rate>0) before allowing add.", "selector": "[data-testid=add-boq-btn]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "MaterialCalculator + ContractorDashboard mart dialog + AdminMaterials", "issues": ["React hydration warning: <span> injected as child of <option> from the platform's dynamic instrumentation attributes (x-file-name etc.). Not a functional bug; caused by instrumentation, but noisy in console."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mart.py",
+    "/app/test_reports/pytest/mart_results.xml"
+  ],
+  "action_items": [
+    "(Low) Validate BOQ manual Add Item form: reject empty item/qty/rate; currently a line with 0×0 can be inserted."
+  ],
+  "critical_code_review_comments": [
+    "mart.py admin_update_material accepts arbitrary `body: dict` — no schema validation. Any unknown/typo key gets $set into the doc (e.g., 'ratee': 999 would silently insert a junk field). Consider a MaterialUpdate Pydantic partial model.",
+    "mart.py seed_mart is guarded by count_documents({})>0 which is correct-once but not idempotent per-row: if an admin deletes seeded rows and restarts the server, seed won't restore them. Fine for demo.",
+    "mart.py admin_create_material returns `doc` after inserting a mutable dict copy — but does NOT do doc.pop('_id') on the source dict; motor mutates the passed dict to add _id. Fixed here by dict(doc) copy before insert, and the return path pops _id, so response is clean. Good.",
+    "server.py BOQIn uses `quantity` not `qty`; frontend Contractor dialog + manual Add BOQ both use `quantity` (matches). But test expectation in review_request mentioned 'qty' param — verify frontend consistently uses `quantity` (confirmed OK).",
+    "server.py add_boq has no auth-scope check that the project_id belongs to the caller (contractor). Any authenticated contractor can insert BOQ lines into another contractor's project by passing that project_id. Should verify project ownership.",
+    "server.py boq_pdf loads project via db.projects.find_one({'id': project_id}) with role 'contractor' or 'super_admin' — same cross-tenant leak risk as above.",
+    "AdminMaterials.jsx delete/toggle rely on window.confirm — no undo. Consider soft-delete or confirmation modal.",
+    "MaterialCalculator + Mart dialog select options render a raw {name} inside <option> that the platform's instrumentation wraps in a <span>, producing repeated hydration warnings. Consider moving the display string to a plain text child using String()."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mart.py (NEW - 11 tests, all pass)"
+  ],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% (public /mart, customer calc, contractor BOQ + PDF, admin materials CRUD all verified end-to-end)"},
+  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin via triple-click [data-testid=login-title]); contractor@2click.in/Demo@12345; customer@2click.in/Demo@12345",
+  "seed_data_creation": "Test material TEST_UI_MAT/TESTBRAND/TESTCAT was created + deleted during admin UI test (cleaned up). Contractor BOQ lines were added on existing project 'Mart Test Villa' (2 lines from Super Mart + 1 empty manual line — main agent may wish to clean these).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Super Mart is fully functional. Backend endpoints: GET /api/mart/categories, /api/mart/brands?category=..., /api/mart/materials?category=&brand=&q=, admin CRUD at /api/admin/mart/materials (rbac_admin required). BOQ endpoints: POST /api/erp/boq (BOQIn: project_id/item/unit/quantity/rate + optional brand/category/material_id), GET /api/erp/boq/{pid}, GET /api/erp/boq/{pid}/pdf. Frontend testids: mart-card, mart-cat-<slug>, mart-brand, mart-search, mart-boq-cta; calc-category, calc-material, calc-qty, calc-add, calc-line, calc-remove, calc-total, material-calculator; boq-supermart-btn, mart-dialog-category/material/qty/add, boq-pdf-btn, add-boq-btn; rbac-tab-materials, admin-materials, mat-category/name/brand/unit/rate/add/filter, mat-row-<id>, mat-rate-<id>, mat-save-<id>, mat-toggle-<id>, mat-del-<id>. Server clock is Aug 2026.",
+  "rca of the issue": "No blocking issues. Two code-quality notes worth follow-up: (1) admin_update_material accepts unvalidated dict (schema-less updates), (2) BOQ endpoints lack project-ownership check (cross-contractor tenant leak possible). Neither blocks the current feature; recommend hardening before multi-tenant rollout."
+}

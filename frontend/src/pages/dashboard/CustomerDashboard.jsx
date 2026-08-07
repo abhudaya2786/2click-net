@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package, CreditCard } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package, CreditCard, Store } from "lucide-react";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
+import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "cart", label: "Cart & Checkout", icon: ShoppingCart },
   { id: "orders", label: "My Orders", icon: ReceiptText },
   { id: "quotes", label: "Solar Quotes", icon: Sun },
+  { id: "materials", label: "Material Calc", icon: Store },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
@@ -129,6 +131,7 @@ export default function CustomerDashboard() {
             </div>
           )}
 
+          {active === "materials" && <MaterialCalculator />}
           {active === "billing" && <BillingSection />}
         </>
       )}

@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard } from "lucide-react";
+import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard, Store, Download } from "lucide-react";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
+import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "projects", label: "Projects", icon: Building2 },
   { id: "boq", label: "BOQ", icon: Calculator },
   { id: "dpr", label: "Daily Report", icon: ClipboardList },
+  { id: "materials", label: "Material Calc", icon: Store },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
@@ -26,8 +28,15 @@ export default function ContractorDashboard() {
   const [loading, setLoading] = useState(true);
   const [pForm, setPForm] = useState({ name: "", client: "", budget: "", location: "" });
   const [bForm, setBForm] = useState({ item: "", unit: "cum", quantity: "", rate: "" });
-  const [dForm, setDForm] = useState({ date: new Date().toISOString().slice(0,10), work_done: "", labour_count: "", weather: "Clear" });
+  const [dForm, setDForm] = useState({ date: new Date().toISOString().slice(0, 10), work_done: "", labour_count: "", weather: "Clear" });
   const [pOpen, setPOpen] = useState(false);
+  // Super Mart -> BOQ
+  const [martOpen, setMartOpen] = useState(false);
+  const [martCats, setMartCats] = useState([]);
+  const [martCategory, setMartCategory] = useState("");
+  const [martList, setMartList] = useState([]);
+  const [martSel, setMartSel] = useState("");
+  const [martQty, setMartQty] = useState("");
 
   const loadProjects = async () => {
     setLoading(true);
@@ -61,6 +70,36 @@ export default function ContractorDashboard() {
     setDForm({ ...dForm, work_done: "", labour_count: "" }); loadDetail(selected); toast.success("DPR logged");
   };
 
+  const openMart = async () => {
+    setMartOpen(true);
+    if (martCats.length === 0) {
+      const { data } = await api.get("/mart/categories");
+      setMartCats(data); const c = data[0] || ""; setMartCategory(c); loadMartList(c);
+    }
+  };
+  const loadMartList = async (c) => {
+    const { data } = await api.get("/mart/materials", { params: { category: c } });
+    setMartList(data); setMartSel(data[0]?.id || "");
+  };
+  const addBoqFromMart = async () => {
+    if (!selected) { toast.error("Select a project first"); return; }
+    const m = martList.find((x) => x.id === martSel);
+    if (!m) { toast.error("Pick a material"); return; }
+    const q = Number(martQty);
+    if (!q || q <= 0) { toast.error("Enter quantity"); return; }
+    await api.post("/erp/boq", { project_id: selected, item: m.name, unit: m.unit, quantity: q, rate: m.rate, brand: m.brand, category: m.category, material_id: m.id });
+    toast.success(`Added ${m.name} (${m.brand}) @ ₹${m.rate}/${m.unit}`);
+    setMartQty(""); setMartOpen(false); loadDetail(selected);
+  };
+  const downloadBoqPdf = async () => {
+    if (!selected) { toast.error("Select a project"); return; }
+    try {
+      const res = await api.get(`/erp/boq/${selected}/pdf`, { responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      window.open(url, "_blank"); setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch { toast.error("Could not generate PDF"); }
+  };
+
   return (
     <DashboardLayout nav={NAV} active={active} setActive={setActive} title="Contractor Workspace">
       {loading ? <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div> : (
@@ -68,8 +107,8 @@ export default function ContractorDashboard() {
           {active === "overview" && (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <StatCard icon={Building2} label="Active Projects" value={projects.length} />
-              <StatCard icon={IndianRupee} label="Total Budget" value={`₹${(projects.reduce((s,p)=>s+p.budget,0)/10000000).toFixed(2)}Cr`} color="text-solar" />
-              <StatCard icon={Calculator} label="BOQ Value" value={`₹${(boq.total/100000).toFixed(1)}L`} color="text-tender" />
+              <StatCard icon={IndianRupee} label="Total Budget" value={`₹${(projects.reduce((s, p) => s + p.budget, 0) / 10000000).toFixed(2)}Cr`} color="text-solar" />
+              <StatCard icon={Calculator} label="BOQ Value" value={`₹${(boq.total / 100000).toFixed(1)}L`} color="text-tender" />
               <StatCard icon={ClipboardList} label="DPR Entries" value={dpr.length} />
             </div>
           )}
@@ -107,7 +146,7 @@ export default function ContractorDashboard() {
                     <HardHat className="h-6 w-6 text-primary mb-3" strokeWidth={1.5} />
                     <div className="font-display font-bold">{p.name}</div>
                     <div className="text-sm text-muted-foreground">{p.client} · {p.location}</div>
-                    <div className="font-mono font-bold mt-2">₹{(p.budget/10000000).toFixed(2)} Cr</div>
+                    <div className="font-mono font-bold mt-2">₹{(p.budget / 10000000).toFixed(2)} Cr</div>
                   </div>
                 ))}
                 {projects.length === 0 && <div className="bg-card p-8 col-span-full text-center text-muted-foreground text-sm">No projects yet. Create your first.</div>}
@@ -116,33 +155,64 @@ export default function ContractorDashboard() {
           )}
 
           {active === "boq" && (
-            <div className="grid lg:grid-cols-[1fr_300px] gap-px bg-border border border-border">
-              <div className="bg-card overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                    <th className="p-3">Item</th><th className="p-3">Qty</th><th className="p-3">Rate</th><th className="p-3">Amount</th></tr></thead>
-                  <tbody>
-                    {boq.items.map((b) => (
-                      <tr key={b.id} className="border-b border-border hover:bg-muted/50">
-                        <td className="p-3">{b.item}</td><td className="p-3 font-mono">{b.quantity} {b.unit}</td>
-                        <td className="p-3 font-mono">₹{b.rate}</td><td className="p-3 font-mono font-medium">₹{b.amount.toLocaleString("en-IN")}</td>
-                      </tr>
-                    ))}
-                    {boq.items.length === 0 && <tr><td colSpan="4" className="p-8 text-center text-muted-foreground">No BOQ items. Add on the right.</td></tr>}
-                  </tbody>
-                  {boq.items.length > 0 && <tfoot><tr className="border-t-2 border-border font-bold"><td className="p-3" colSpan="3">Total BOQ Value</td><td className="p-3 font-mono">₹{boq.total.toLocaleString("en-IN")}</td></tr></tfoot>}
-                </table>
+            <div className="space-y-4">
+              <div className="flex items-center justify-end gap-2">
+                <Dialog open={martOpen} onOpenChange={setMartOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="boq-supermart-btn" variant="outline" className="rounded-none" onClick={openMart}><Store className="h-4 w-4 mr-1.5" />Add from Super Mart</Button>
+                  </DialogTrigger>
+                  <DialogContent className="rounded-none">
+                    <DialogHeader><DialogTitle className="font-display">Add material from Super Mart</DialogTitle></DialogHeader>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Category</label>
+                        <select data-testid="mart-dialog-category" value={martCategory} onChange={(e) => { setMartCategory(e.target.value); loadMartList(e.target.value); }} className="w-full bg-background border border-input px-3 h-10 text-sm">
+                          {martCats.map((c) => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground mb-1 block">Material · Brand · Rate</label>
+                        <select data-testid="mart-dialog-material" value={martSel} onChange={(e) => setMartSel(e.target.value)} className="w-full bg-background border border-input px-3 h-10 text-sm">
+                          {martList.map((m) => <option key={m.id} value={m.id}>{m.name} · {m.brand} — ₹{m.rate}/{m.unit}</option>)}
+                        </select>
+                      </div>
+                      <Input data-testid="mart-dialog-qty" type="number" placeholder="Quantity" value={martQty} onChange={(e) => setMartQty(e.target.value)} className="rounded-none" />
+                    </div>
+                    <DialogFooter><Button data-testid="mart-dialog-add" onClick={addBoqFromMart} className="rounded-none">Add to BOQ</Button></DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                <Button data-testid="boq-pdf-btn" variant="outline" className="rounded-none" onClick={downloadBoqPdf}><Download className="h-4 w-4 mr-1.5" />Download PDF</Button>
               </div>
-              <div className="bg-card p-5">
-                <h3 className="font-display font-bold text-sm mb-4">Add BOQ Item</h3>
-                <div className="space-y-3">
-                  <Input data-testid="boq-item" placeholder="Item (e.g. M25 Concrete)" value={bForm.item} onChange={(e) => setBForm({ ...bForm, item: e.target.value })} className="rounded-none" />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="Unit" value={bForm.unit} onChange={(e) => setBForm({ ...bForm, unit: e.target.value })} className="rounded-none" />
-                    <Input type="number" placeholder="Qty" value={bForm.quantity} onChange={(e) => setBForm({ ...bForm, quantity: e.target.value })} className="rounded-none" />
+              <div className="grid lg:grid-cols-[1fr_300px] gap-px bg-border border border-border">
+                <div className="bg-card overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                      <th className="p-3">Item</th><th className="p-3">Brand</th><th className="p-3">Qty</th><th className="p-3">Rate</th><th className="p-3">Amount</th></tr></thead>
+                    <tbody>
+                      {boq.items.map((b) => (
+                        <tr key={b.id} className="border-b border-border hover:bg-muted/50">
+                          <td className="p-3">{b.item}</td>
+                          <td className="p-3">{b.brand ? <span className="text-xs font-mono px-1.5 py-0.5 bg-muted">{b.brand}</span> : <span className="text-muted-foreground">—</span>}</td>
+                          <td className="p-3 font-mono">{b.quantity} {b.unit}</td>
+                          <td className="p-3 font-mono">₹{b.rate}</td><td className="p-3 font-mono font-medium">₹{b.amount.toLocaleString("en-IN")}</td>
+                        </tr>
+                      ))}
+                      {boq.items.length === 0 && <tr><td colSpan="5" className="p-8 text-center text-muted-foreground">No BOQ items. Add manually or from Super Mart.</td></tr>}
+                    </tbody>
+                    {boq.items.length > 0 && <tfoot><tr className="border-t-2 border-border font-bold"><td className="p-3" colSpan="4">Total BOQ Value</td><td className="p-3 font-mono">₹{boq.total.toLocaleString("en-IN")}</td></tr></tfoot>}
+                  </table>
+                </div>
+                <div className="bg-card p-5">
+                  <h3 className="font-display font-bold text-sm mb-4">Add BOQ Item</h3>
+                  <div className="space-y-3">
+                    <Input data-testid="boq-item" placeholder="Item (e.g. M25 Concrete)" value={bForm.item} onChange={(e) => setBForm({ ...bForm, item: e.target.value })} className="rounded-none" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="Unit" value={bForm.unit} onChange={(e) => setBForm({ ...bForm, unit: e.target.value })} className="rounded-none" />
+                      <Input type="number" placeholder="Qty" value={bForm.quantity} onChange={(e) => setBForm({ ...bForm, quantity: e.target.value })} className="rounded-none" />
+                    </div>
+                    <Input type="number" placeholder="Rate (₹)" value={bForm.rate} onChange={(e) => setBForm({ ...bForm, rate: e.target.value })} className="rounded-none" />
+                    <Button data-testid="add-boq-btn" onClick={addBoq} className="w-full rounded-none">Add Item</Button>
                   </div>
-                  <Input type="number" placeholder="Rate (₹)" value={bForm.rate} onChange={(e) => setBForm({ ...bForm, rate: e.target.value })} className="rounded-none" />
-                  <Button data-testid="add-boq-btn" onClick={addBoq} className="w-full rounded-none">Add Item</Button>
                 </div>
               </div>
             </div>
@@ -174,6 +244,7 @@ export default function ContractorDashboard() {
             </div>
           )}
 
+          {active === "materials" && <MaterialCalculator />}
           {active === "billing" && <BillingSection />}
         </>
       )}
