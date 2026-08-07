@@ -10,9 +10,9 @@ BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://db-design.preview.em
 API = f"{BASE_URL}/api"
 
 ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-VENDOR = ("vendor@buildsphere.in", "Demo@12345")
-CUSTOMER = ("customer@buildsphere.in", "Demo@12345")
-CONTRACTOR = ("contractor@buildsphere.in", "Demo@12345")
+VENDOR = ("vendor@2click.in", "Demo@12345")
+CUSTOMER = ("customer@2click.in", "Demo@12345")
+CONTRACTOR = ("contractor@2click.in", "Demo@12345")
 
 
 def login(email, password):
@@ -108,6 +108,27 @@ class TestRBAC:
         r = requests.get(f"{API}/admin/users", headers=hdr(admin_tok))
         u = next((x for x in r.json() if x["id"] == uid), None)
         assert u and u["role"] == "vendor" and u["kyc_status"] == "verified"
+
+
+# ---------------------- Vendor endpoints (bug fix regression) ----------------------
+class TestVendorEndpoints:
+    def test_vendor_products_200(self, tokens):
+        tok = tokens["vendor"][0]
+        r = requests.get(f"{API}/vendor/products", headers=hdr(tok), timeout=30)
+        assert r.status_code == 200, r.text
+        assert isinstance(r.json(), list)
+
+    def test_vendor_orders_200_no_500(self, tokens):
+        """Regression: previously raised TypeError 'async_generator not iterable' -> 500."""
+        tok = tokens["vendor"][0]
+        r = requests.get(f"{API}/vendor/orders", headers=hdr(tok), timeout=30)
+        assert r.status_code == 200, r.text
+        assert isinstance(r.json(), list)
+
+    def test_customer_forbidden_vendor_orders(self, tokens):
+        tok = tokens["customer"][0]
+        r = requests.get(f"{API}/vendor/orders", headers=hdr(tok), timeout=30)
+        assert r.status_code == 403
 
 
 # ---------------------- Marketplace ----------------------

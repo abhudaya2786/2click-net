@@ -474,10 +474,9 @@ async def vendor_orders(user=Depends(require_roles("vendor", "super_admin"))):
     orders = await db.orders.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
     if user["role"] == "super_admin":
         return orders
-    result = []
-    for o in orders:
-        if any(await db.products.find_one({"id": it.get("product_id"), "vendor_id": user["id"]}) for it in o["items"]):
-            result.append(o)
+    my_products = await db.products.find({"vendor_id": user["id"]}, {"_id": 0, "id": 1}).to_list(1000)
+    my_ids = {p["id"] for p in my_products}
+    result = [o for o in orders if any(it.get("product_id") in my_ids for it in o["items"])]
     return result
 
 
