@@ -736,9 +736,9 @@ async def seed():
 
     # demo users
     demo = [
-        ("Anil Steel Traders", "vendor@buildsphere.in", "vendor", "Anil Steel Traders"),
-        ("Priya Sharma", "customer@buildsphere.in", "customer", None),
-        ("Rajesh Constructions", "contractor@buildsphere.in", "contractor", "Rajesh Constructions Pvt Ltd"),
+        ("Anil Steel Traders", "vendor@2click.in", "vendor", "Anil Steel Traders"),
+        ("Priya Sharma", "customer@2click.in", "customer", None),
+        ("Rajesh Constructions", "contractor@2click.in", "contractor", "Rajesh Constructions Pvt Ltd"),
     ]
     vendor_id = None
     for name, email, role, company in demo:
@@ -780,7 +780,7 @@ async def seed():
             })
 
     if await db.tenders.count_documents({}) == 0:
-        cust = await db.users.find_one({"email": "customer@buildsphere.in"})
+        cust = await db.users.find_one({"email": "customer@2click.in"})
         tenders = [
             ("Supply of 200MT TMT Steel Bars", "Steel & TMT", 12500000, 125000,
              "Requirement of Fe500D TMT bars for a G+12 residential tower in Pune. Delivery in 3 phases over 45 days."),
