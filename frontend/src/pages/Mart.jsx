@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Search, Store, Loader2, ArrowRight, TrendingUp, TrendingDown, LineChart as LineIcon } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -96,6 +96,7 @@ export default function Mart() {
         <DialogContent className="rounded-none max-w-lg" data-testid="mart-trend-dialog">
           <DialogHeader>
             <DialogTitle className="font-display flex items-center gap-2"><LineIcon className="h-4 w-4 text-primary" />{trend?.name} · {trend?.brand}</DialogTitle>
+            <DialogDescription className="sr-only">Six-month brand-wise price trend and best-time-to-buy guidance.</DialogDescription>
           </DialogHeader>
           {history.length > 1 ? (
             <div>
@@ -106,7 +107,7 @@ export default function Mart() {
                 </span>
               </div>
               <div className="h-56" data-testid="mart-trend-chart">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                   <LineChart data={history} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(d) => d.slice(5)} stroke="hsl(var(--muted-foreground))" />

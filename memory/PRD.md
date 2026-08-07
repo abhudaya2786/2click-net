@@ -91,8 +91,17 @@ Started, then paused for Super Mart. Built but **NOT yet wired into server.py** 
 - `mailer.py` (Resend email), `payments_stripe.py` (Stripe invoice checkout, INR verified). `.env` has EMERGENT_EMAIL_KEY, EMAIL_FROM_NAME, STRIPE_API_KEY. `phase3c` commission run has optional `company_id` scope.
 - TODO to complete: login brute-force lockout + email OTP 2FA + forgot/reset password endpoints in server.py; mount payments_stripe (checkout/status/webhook) + frontend Pay-with-card + /payment/success page; tenant `company_id` scoping across products/orders/tenders/ERP + backfill.
 
+## Phase 3D + Super Mart Enhancements — Delivered + Verified (2026-06, additive)
+- **Super Mart material images**: category-wise photos on `/mart` cards + calculator. `mart.py` `CATEGORY_IMAGES` map; `migrate_mart()` idempotently backfills `image` on existing docs. Card shows image header + brand + rate.
+- **Rate History (price-trend)**: each material has a 6-point monthly `rate_history` (seeded via `_gen_history`, appended on every admin rate change). `/mart` card → "Rate trend" opens a Recharts LineChart dialog with % change badge + buy-timing note.
+- **1-click BOQ templates**: `SEED_TEMPLATES` = 3BHK Villa (12 items, ~₹9.06L), 2BHK Flat (8), Boundary Wall (5). Public `GET /api/mart/boq-templates` + `GET /api/mart/boq-templates/{id}` resolve each item to the cheapest active brand at live rate. UI: MaterialCalculator "Generate BOQ" (customer+contractor) and Contractor BOQ "Generate from template" (posts lines to /erp/boq) + PDF export.
+- **Auth hardening (server.py)**: brute-force lockout (5 fails → 15-min lock, `login_attempts`); email OTP 2FA (`two_factor_enabled` user flag; login returns `{requires_otp}`; `POST /api/auth/otp/verify|resend`, hashed `otp_codes`, 10-min TTL); forgot/reset password (`POST /api/auth/forgot-password|reset-password`, `password_reset_tokens`, 1-hr TTL). Emails via Resend (`mailer.py`, EMERGENT_EMAIL_KEY). `POST /api/auth/2fa/toggle`.
+- **Real Stripe payments**: `payments_stripe.py` mounted. `POST /api/payments/invoice-checkout` (server-side amount) → Stripe Checkout (INR, test-mode `sk_test_emergent`), `GET /api/payments/status/{sid}`, `POST /api/webhook/stripe`. Frontend: BillingSection "Pay with card" → redirect; `/payment/success` polls status; `/reset-password` page.
+- **Frontend routes added**: `/reset-password`, `/payment/success`, `/payment/cancel`. Login rewritten with login|otp|forgot stages.
+- **Testing**: backend verified via curl (lockout 429, Stripe real checkout URL, 2FA requires_otp, templates resolve, images+history, Resend send=True). Frontend 5/5 flows pass — see `/app/test_reports/iteration_8.json`. Stripe is TEST-MODE (real checkout, no live charge).
+
 ## Next (approved backlog, priority order)
-- **P1 Auth hardening**: password reset, OTP, email verification, 2FA, JWT refresh rotation, brute-force lockout.
-- **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id`.
-- **P1 Real payments**: swap DEMO billing for real Stripe/Razorpay on invoices + subscriptions.
+- **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id` (marketplace stays cross-company by design).
+- **P1 Auth extras**: JWT refresh rotation, email verification on signup, 2FA setup UI in account settings.
+- **P1 Payments**: go live (claim Stripe account) + `/erp/boq/bulk` batch endpoint to speed up template loading.
 - **P2**: Logistics/Fleet, Architect/3D-LiDAR, CRM/Khatabook, GST/Accounting/E-Way, WhatsApp/SMS/Push, PWA, CI/CD.
