@@ -70,7 +70,7 @@ export default function Login() {
             <p className="font-medium mb-2 text-muted-foreground">Demo accounts (click to fill):</p>
             <div className="grid grid-cols-2 gap-1.5 font-mono">
               {["abbhuadaya@gmail.com","vendor@buildsphere.in","customer@buildsphere.in","contractor@buildsphere.in"].map((e) => (
-                <button key={e} type="button" onClick={() => demo(e)} className="text-left text-primary hover:underline truncate">{e}</button>
+                <button key={e} type="button" data-testid={`demo-${e.split("@")[0]}`} onClick={() => demo(e)} className="text-left text-primary hover:underline truncate">{e}</button>
               ))}
             </div>
           </div>
