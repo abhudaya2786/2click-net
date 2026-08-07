@@ -7,12 +7,19 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        display: ['Cabinet Grotesk', 'sans-serif'],
+        sans: ['IBM Plex Sans', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)'
       },
       colors: {
+        solar: 'hsl(var(--solar))',
+        tender: 'hsl(var(--tender))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
