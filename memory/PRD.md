@@ -64,9 +64,21 @@ A 30-step enterprise B2B/B2C construction & infrastructure SaaS platform combini
 - **Stabilization fixes (from iteration_5.json)**: FE Categories null-safety + empty state; legacy `/api/admin/categories` migrated to `category_type` schema (no more collection pollution); freelancer-enquiry target validation (404); admin profile invalid user_type rejected (400); seed-if-empty semantics for category tree.
 - **Testing**: backend 77 passed / 1 skipped (full suite); Phase 3A 20/21; FE Categories tab verified crash-free. See `/app/memory/PHASE3A_VERIFICATION_REPORT.md`.
 
+## Phase 3B — White-Label Engine — Delivered + Verified (2026-06, additive)
+- **Multi-tenant branding** (`companies.branding` + company-root `slug`/`custom_domain`): public `GET /api/branding` resolves tenant by `company_id` → `slug` → `custom_domain`/subdomain(host) → falls back to default. New fields: `accent_color`, `favicon`.
+- **Admin White Label tab** (`AdminRBAC.jsx` → Branding): company selector, edit brand name/tagline/primary+accent color/logo/favicon/slug/custom_domain, live preview. `PATCH /api/admin/branding` persists all.
+- **Frontend theming** (`BrandingContext`): resolves tenant via `?company=<slug>` or hostname, applies primary→`--primary/--ring`, accent→`--brand-accent`, favicon + document title.
+- ⚠️ Real custom-domain DNS is a post-deploy infra step (slug/subdomain + `?company=` work in-app now).
+
+## Phase 3C — Subscriptions + Invoicing + Commission — Delivered + Verified (2026-06, additive; DEMO payments)
+- **Subscriptions** (`subscriptions`): `POST /api/subscriptions/subscribe`, `GET /subscriptions/me`, `POST /subscriptions/cancel`. Free plan active immediately; paid plans create a pending invoice.
+- **Invoices** (`invoices`, number `INV-YYYY-NNNN`, 18% GST): `GET /invoices/me`, `GET /invoices/{id}` (owner/admin), `POST /invoices/{id}/pay` (DEMO mark-paid + activates subscription), `GET /invoices/{id}/pdf` (reportlab PDF).
+- **Commission payouts**: `POST /api/admin/billing/run-commission {period}` aggregates platform commission from paid orders per vendor → one commission invoice/vendor/month (idempotent). Admin dashboards: `/billing/summary` (MRR, invoiced, collected, outstanding, commission), `/billing/invoices`, `/billing/subscriptions`.
+- **Frontend**: shared `BillingSection` (Billing tab on Vendor/Customer/Contractor dashboards) + `AdminBilling` (admin Billing tab) + Pricing `/pricing` Subscribe CTA.
+- **Testing**: backend 24/24 (`test_phase3bc.py`), frontend 100% (see `/app/test_reports/iteration_6.json`). Payments are DEMO/MOCKED.
+
 ## Next (approved backlog, priority order)
-- **P1 Phase 3B**: White-Label Engine — domain mapping + per-company custom themes.
-- **P1 Phase 3C**: Pricing & Commission Engine full build — subscriptions, invoicing.
 - **P1 Auth hardening**: password reset, OTP, email verification, 2FA, JWT refresh rotation, brute-force lockout.
-- **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users.
+- **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id`.
+- **P1 Real payments**: swap DEMO billing for real Stripe/Razorpay on invoices + subscriptions.
 - **P2**: Logistics/Fleet, Architect/3D-LiDAR, CRM/Khatabook, GST/Accounting/E-Way, WhatsApp/SMS/Push, PWA, CI/CD.
