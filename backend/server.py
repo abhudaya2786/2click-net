@@ -222,6 +222,12 @@ class BidIn(BaseModel):
 class OrderIn(BaseModel):
     items: List[dict]  # [{product_id, name, price, qty}]
     address: Optional[str] = ""
+    site_location: Optional[str] = None
+    architect_name: Optional[str] = None
+    architect_phone: Optional[str] = None
+    company_name: Optional[str] = None
+    company_gst: Optional[str] = None
+    contact_phone: Optional[str] = None
 
 
 class SolarIn(BaseModel):
@@ -686,10 +692,14 @@ async def create_order(body: OrderIn, user=Depends(get_current_user)):
     commission = round(commission, 2)
     doc = {
         "id": new_id("order"), "user_id": user["id"], "user_email": user["email"],
+        "user_name": user.get("name"),
         "company_id": user.get("company_id", "company_default"),
         "items": body.items, "subtotal": total, "tax": tax, "total": grand,
         "platform_commission": commission,
         "address": body.address, "status": "pending",
+        "site_location": body.site_location, "architect_name": body.architect_name,
+        "architect_phone": body.architect_phone, "company_name": body.company_name,
+        "company_gst": body.company_gst, "contact_phone": body.contact_phone,
         "created_at": iso(now_utc()),
     }
     await db.orders.insert_one(dict(doc))
@@ -1138,6 +1148,10 @@ async def startup():
     solar_epc.init(db, get_current_user)
     await solar_epc.ensure_indexes()
     solar_epc.init_storage_safe()
+    import wallet
+    wallet.init(db, get_current_user)
+    await wallet.ensure_indexes()
+    await wallet.migrate()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1168,6 +1182,8 @@ import payments_stripe as _pstripe
 _pstripe.init(db, get_current_user)
 import solar_epc as _solar
 _solar.init(db, get_current_user)
+import wallet as _wallet
+_wallet.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1181,6 +1197,7 @@ app.include_router(_mart.public_router)
 app.include_router(_mart.admin_router)
 app.include_router(_pstripe.router)
 app.include_router(_solar.router)
+app.include_router(_wallet.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

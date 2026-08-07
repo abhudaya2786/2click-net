@@ -4,7 +4,7 @@ import time
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://db-design.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://wallet-vendor-mvp.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
