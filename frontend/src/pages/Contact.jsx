@@ -16,7 +16,7 @@ export default function Contact() {
         <h1 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight mt-3">Let's build something big.</h1>
         <p className="mt-4 text-muted-foreground">Questions about enterprise plans, integrations or partnerships? We're here.</p>
         <div className="mt-10 space-y-6">
-          {[[Mail, "sales@buildsphere.in"], [Phone, "+91 80 4000 1234"], [MapPin, "Prestige Tech Park, Bengaluru, KA 560103"]].map(([Icon, v], i) => (
+          {[[Mail, "sales@2click.in"], [Phone, "+91 80 4000 1234"], [MapPin, "Prestige Tech Park, Bengaluru, KA 560103"]].map(([Icon, v], i) => (
             <div key={i} className="flex items-center gap-4">
               <div className="h-10 w-10 bg-primary/10 flex items-center justify-center"><Icon className="h-5 w-5 text-primary" strokeWidth={1.5} /></div>
               <span className="text-sm font-medium">{v}</span>

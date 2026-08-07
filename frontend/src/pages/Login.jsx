@@ -42,7 +42,7 @@ export default function Login() {
         <div className="relative h-full flex flex-col justify-between p-12 text-white">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="h-9 w-9 bg-primary flex items-center justify-center"><HardHat className="h-5 w-5" strokeWidth={1.75} /></div>
-            <span className="font-display font-extrabold text-lg tracking-tight">BuildSphere</span>
+            <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
           </Link>
           <div>
             <h2 className="font-display font-extrabold text-4xl tracking-tight leading-tight">The operating system for<br />India's construction economy.</h2>

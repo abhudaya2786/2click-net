@@ -7,7 +7,7 @@ export default function AIAssistant() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: "ai", text: "Hi! I'm BuildSphere AI. Ask me about tenders, BOQ estimation, solar sizing or GST." },
+    { role: "ai", text: "Hi! I'm 2click.in AI. Ask me about tenders, BOQ estimation, solar sizing or GST." },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -72,7 +72,7 @@ export default function AIAssistant() {
         <div data-testid="ai-assistant-panel" className="fixed bottom-24 right-6 z-50 w-[92vw] max-w-sm h-[520px] bg-card border border-border flex flex-col shadow-2xl">
           <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-primary/5">
             <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.75} />
-            <span className="font-display font-bold text-sm">BuildSphere AI</span>
+            <span className="font-display font-bold text-sm">2click.in AI</span>
             <span className="ml-auto text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Claude Sonnet</span>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">

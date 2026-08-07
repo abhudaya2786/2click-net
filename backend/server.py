@@ -37,7 +37,7 @@ RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 ROLES = ["super_admin", "vendor", "customer", "contractor"]
 
-app = FastAPI(title="BuildSphere Enterprise API")
+app = FastAPI(title="2click.in Enterprise API")
 api = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO)
@@ -680,7 +680,7 @@ def get_chat(session_id, system):
 async def ai_chat(body: AIChatIn, user=Depends(get_current_user)):
     from emergentintegrations.llm.chat import UserMessage, TextDelta, StreamDone
     session_id = body.session_id or new_id("chat")
-    system = ("You are BuildSphere AI, an expert assistant for a construction, tender, "
+    system = ("You are 2click.in AI, an expert assistant for a construction, tender, "
               "solar and B2B marketplace platform in India. Be concise, practical, and helpful "
               "with BOQ, tenders, solar sizing, GST, and procurement questions.")
     chat = get_chat(session_id, system)
@@ -727,7 +727,7 @@ async def seed():
         await db.users.insert_one({
             "id": new_id("user"), "name": "Platform Owner", "email": admin_email,
             "password_hash": hash_password(admin_pw), "role": "super_admin",
-            "company": "BuildSphere", "picture": None, "auth": "jwt",
+            "company": "2click.in", "picture": None, "auth": "jwt",
             "kyc_status": "verified", "wallet": 0.0, "created_at": iso(now_utc()),
         })
     else:
@@ -813,7 +813,7 @@ async def shutdown():
 
 @api.get("/")
 async def root():
-    return {"message": "BuildSphere Enterprise API", "status": "ok"}
+    return {"message": "2click.in Enterprise API", "status": "ok"}
 
 
 app.include_router(api)

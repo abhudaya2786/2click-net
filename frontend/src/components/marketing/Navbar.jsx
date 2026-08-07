@@ -27,7 +27,7 @@ export default function Navbar() {
           <div className="h-9 w-9 bg-primary flex items-center justify-center">
             <HardHat className="h-5 w-5 text-white" strokeWidth={1.75} />
           </div>
-          <span className="font-display font-extrabold text-lg tracking-tight">BuildSphere</span>
+          <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-7">

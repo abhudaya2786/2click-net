@@ -14,7 +14,7 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
       <aside className="w-16 md:w-60 border-r border-border flex flex-col shrink-0 bg-card">
         <Link to="/" className="h-16 flex items-center gap-2.5 px-4 border-b border-border">
           <div className="h-8 w-8 bg-primary flex items-center justify-center shrink-0"><HardHat className="h-4.5 w-4.5 text-white" strokeWidth={1.75} /></div>
-          <span className="font-display font-extrabold tracking-tight hidden md:inline">BuildSphere</span>
+          <span className="font-display font-extrabold tracking-tight hidden md:inline">2click.in</span>
         </Link>
         <nav className="flex-1 py-4 space-y-1 px-2">
           {nav.map((n) => (

@@ -35,7 +35,7 @@ export default function Home() {
                 Build. Bid. <span className="text-primary">Procure.</span><br />All in one platform.
               </h1>
               <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">
-                BuildSphere unifies tenders, reverse auctions, a B2B marketplace, construction ERP, solar and AI —
+                2click.in unifies tenders, reverse auctions, a B2B marketplace, construction ERP, solar and AI —
                 the operating system for India's infrastructure economy.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -89,7 +89,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-[1400px] px-5 md:px-10 py-20 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>
             <h2 className="font-display font-extrabold text-3xl md:text-5xl tracking-tight max-w-xl">Ready to digitize your construction business?</h2>
-            <p className="mt-4 text-slate-400 max-w-md">Join thousands of vendors, contractors and buyers already on BuildSphere.</p>
+            <p className="mt-4 text-slate-400 max-w-md">Join thousands of vendors, contractors and buyers already on 2click.in.</p>
           </div>
           <Link to="/register"><Button data-testid="cta-bottom" size="lg" className="rounded-none hover:-translate-y-0.5 transition-transform">Create your account <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
         </div>

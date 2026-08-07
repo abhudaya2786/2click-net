@@ -38,7 +38,7 @@ export default function Register() {
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center gap-2.5 mb-8">
           <div className="h-9 w-9 bg-primary flex items-center justify-center"><HardHat className="h-5 w-5 text-white" strokeWidth={1.75} /></div>
-          <span className="font-display font-extrabold text-lg tracking-tight">BuildSphere</span>
+          <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
         </Link>
         <h1 className="font-display font-extrabold text-3xl tracking-tight">Create your account</h1>
         <p className="text-sm text-muted-foreground mt-1">Choose your role to get a tailored workspace.</p>
