@@ -325,6 +325,7 @@ async def all_subscriptions(user=Depends(rbac.rbac_admin)):
 
 class RunCommissionIn(BaseModel):
     period: Optional[str] = None  # 'YYYY-MM'
+    company_id: Optional[str] = None  # tenant scope (super_admin bills a specific tenant)
 
 
 @admin_router.post("/billing/run-commission")
@@ -337,7 +338,10 @@ async def run_commission(body: RunCommissionIn, request: Request, user=Depends(r
     start = datetime(year, month, 1, tzinfo=timezone.utc)
     end = datetime(year + (month // 12), (month % 12) + 1, 1, tzinfo=timezone.utc)
 
-    orders = await _db.orders.find({"status": "paid"}, {"_id": 0}).to_list(10000)
+    order_q = {"status": "paid"}
+    if body.company_id:  # tenant isolation: only orders belonging to this company
+        order_q["company_id"] = body.company_id
+    orders = await _db.orders.find(order_q, {"_id": 0}).to_list(10000)
     vendor_lines = {}
     for o in orders:
         raw = o.get("paid_at") or o.get("created_at")
