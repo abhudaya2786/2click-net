@@ -36,3 +36,12 @@ A 30-step enterprise B2B/B2C construction & infrastructure SaaS platform combini
 - Add real Razorpay keys to go live on payments.
 - Object storage for KYC/vendor documents.
 - GST invoice generation + PDF export.
+
+## Phase 1 + Phase 2 — Delivered (2026-06, additive & non-destructive)
+- **DB backup** taken via mongodump at `/app/backups/dump_*` before changes.
+- **Phase 1 – DB foundation**: added indexes across all collections (`rbac.ensure_indexes`); expanded `audit_logs` schema (module, record_id, ip_address, user_agent, device, old_value/new_value, status, metadata, timestamp) — backward compatible; reusable `audit_log()` utility in `backend/rbac.py` with sensitive-key redaction (passwords/tokens/secrets never stored).
+- **Phase 2 – Enterprise RBAC** (`backend/rbac.py`, additive): new collections `companies, departments, roles, permissions, role_permissions, user_roles, modules, menus`. Seeds default company "2Click.in", 24 departments (incl. Super Administration), 26 modules/menus, 15 permission actions, 4 system roles mapped from legacy `users.role`, and backfills `user_roles` + `company_id` for existing users. Legacy `role` field preserved.
+- **Guards**: `require_permission(module, action)` dependency (backend is authority, 403 on deny) + `rbac_admin` guard; escalation guard prevents non-super users from assigning/editing the super role. Endpoints under `/api/admin/rbac/*`; `/api/auth/permissions` returns effective perms.
+- **Frontend**: `PermissionContext` + `usePermission` hook + `PermissionGate`; Super Admin → Administration panel (`AdminRBAC.jsx`) with tabs Companies, Departments, Roles, Permission Matrix (module×action grid, select-all/clear, save), Users & Assignments, Modules, Menus, Audit Logs.
+- **Testing**: 40/40 backend tests pass (15 new RBAC/audit), frontend E2E 100%.
+- **NOT YET DONE (approved future phases)**: multi-company data-scoping enforcement on business queries, auth hardening (refresh rotation/lockout/reset/2FA), audit middleware on all business writes, new business modules (GST/Accounting, Inventory, Logistics, CRM, Notifications).
