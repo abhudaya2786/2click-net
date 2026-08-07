@@ -77,6 +77,20 @@ A 30-step enterprise B2B/B2C construction & infrastructure SaaS platform combini
 - **Frontend**: shared `BillingSection` (Billing tab on Vendor/Customer/Contractor dashboards) + `AdminBilling` (admin Billing tab) + Pricing `/pricing` Subscribe CTA.
 - **Testing**: backend 24/24 (`test_phase3bc.py`), frontend 100% (see `/app/test_reports/iteration_6.json`). Payments are DEMO/MOCKED.
 
+## Super Mart (Construction Materials) — Delivered + Verified (2026-06, additive)
+- **Catalog** (`materials` collection, admin-managed, editable rates): category-wise + brand-wise, 82 seeded rows across 10 categories (Cement, Steel & TMT, Bricks & Blocks, Sand & Aggregate, Paint, Tiles, Plumbing, Electrical, Plywood & Wood, Waterproofing) with real brands (UltraTech/ACC/Ambuja, TATA/JSW/SAIL, Asian/Berger, Kajaria/Somany, Havells/Polycab, etc.).
+- **Public page** `/mart`: category chips + brand dropdown + search, brand-wise rate cards. Navbar "Super Mart" link.
+- **Material Calculator** (`MaterialCalculator.jsx`) on Customer + Contractor dashboards: pick category→material→brand (rate auto), qty → line items + live estimated total.
+- **BOQ integration** (Contractor): "Add from Super Mart" dialog adds a BOQ line at the brand rate (amount = qty × rate, brand stored); manual add validated; **BOQ PDF export** via `GET /api/erp/boq/{pid}/pdf` (reportlab).
+- **Admin management**: Administration → Super Mart tab (`AdminMaterials.jsx`) — add/edit-rate/toggle/delete (schema-validated `MaterialUpdate`).
+- **Hardening**: BOQ list/add + PDF now enforce project ownership (403/404 on foreign project).
+- **Endpoints**: `GET /api/mart/categories|brands|materials`, admin CRUD `/api/admin/mart/materials`. **Testing**: backend 11/11 (`test_mart.py`), frontend 100% — see `/app/test_reports/iteration_7.json`.
+
+## PAUSED — Phase 3D (Auth hardening + Tenant isolation + Real Stripe payments)
+Started, then paused for Super Mart. Built but **NOT yet wired into server.py** (inert, app unaffected):
+- `mailer.py` (Resend email), `payments_stripe.py` (Stripe invoice checkout, INR verified). `.env` has EMERGENT_EMAIL_KEY, EMAIL_FROM_NAME, STRIPE_API_KEY. `phase3c` commission run has optional `company_id` scope.
+- TODO to complete: login brute-force lockout + email OTP 2FA + forgot/reset password endpoints in server.py; mount payments_stripe (checkout/status/webhook) + frontend Pay-with-card + /payment/success page; tenant `company_id` scoping across products/orders/tenders/ERP + backfill.
+
 ## Next (approved backlog, priority order)
 - **P1 Auth hardening**: password reset, OTP, email verification, 2FA, JWT refresh rotation, brute-force lockout.
 - **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id`.

@@ -37,6 +37,17 @@ class MaterialIn(BaseModel):
     status: str = "active"
 
 
+class MaterialUpdate(BaseModel):
+    category: Optional[str] = None
+    name: Optional[str] = None
+    brand: Optional[str] = None
+    unit: Optional[str] = None
+    rate: Optional[float] = None
+    hsn: Optional[str] = None
+    image: Optional[str] = None
+    status: Optional[str] = None
+
+
 # category -> [ (material_name, unit, [(brand, rate), ...]) ]
 SEED = {
     "Cement": [
@@ -137,16 +148,16 @@ async def admin_create_material(body: MaterialIn, request: Request, user=Depends
 
 
 @admin_router.put("/mart/materials/{mid}")
-async def admin_update_material(mid: str, body: dict, request: Request, user=Depends(rbac.rbac_admin)):
+async def admin_update_material(mid: str, body: MaterialUpdate, request: Request, user=Depends(rbac.rbac_admin)):
     old = await _db.materials.find_one({"id": mid}, {"_id": 0})
     if not old:
         raise HTTPException(404, "Material not found")
-    body.pop("id", None)
-    if "rate" in body:
-        body["rate"] = float(body["rate"])
-    body["updated_at"] = iso(now_utc())
-    await _db.materials.update_one({"id": mid}, {"$set": body})
-    await rbac.audit_log("EDIT", "materials", mid, old, body, user=user, request=request)
+    upd = body.model_dump(exclude_unset=True)
+    if not upd:
+        return {"ok": True}
+    upd["updated_at"] = iso(now_utc())
+    await _db.materials.update_one({"id": mid}, {"$set": upd})
+    await rbac.audit_log("EDIT", "materials", mid, old, upd, user=user, request=request)
     return {"ok": True}
 
 

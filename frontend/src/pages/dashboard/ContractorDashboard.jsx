@@ -61,6 +61,8 @@ export default function ContractorDashboard() {
   };
   const addBoq = async () => {
     if (!selected) { toast.error("Create/select a project first"); return; }
+    if (!bForm.item.trim()) { toast.error("Item name required"); return; }
+    if (!(Number(bForm.quantity) > 0) || !(Number(bForm.rate) > 0)) { toast.error("Enter a valid quantity and rate"); return; }
     await api.post("/erp/boq", { project_id: selected, item: bForm.item, unit: bForm.unit, quantity: Number(bForm.quantity), rate: Number(bForm.rate) });
     setBForm({ item: "", unit: "cum", quantity: "", rate: "" }); loadDetail(selected); toast.success("BOQ item added");
   };

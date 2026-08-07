@@ -697,6 +697,11 @@ async def create_project(body: ProjectIn, user=Depends(require_roles("contractor
 
 @api.get("/erp/boq/{project_id}")
 async def list_boq(project_id: str, user=Depends(require_roles("contractor", "super_admin"))):
+    proj = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if user["role"] != "super_admin" and proj.get("owner_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
     items = await db.boq.find({"project_id": project_id}, {"_id": 0}).to_list(500)
     total = sum(i["amount"] for i in items)
     return {"items": items, "total": round(total, 2)}
@@ -704,6 +709,11 @@ async def list_boq(project_id: str, user=Depends(require_roles("contractor", "su
 
 @api.post("/erp/boq")
 async def add_boq(body: BOQIn, user=Depends(require_roles("contractor", "super_admin"))):
+    proj = await db.projects.find_one({"id": body.project_id}, {"_id": 0})
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if user["role"] != "super_admin" and proj.get("owner_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
     doc = body.model_dump()
     doc["amount"] = round(body.quantity * body.rate, 2)
     doc.update({"id": new_id("boq"), "created_at": iso(now_utc())})
