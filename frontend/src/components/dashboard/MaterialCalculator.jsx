@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Store, Loader2 } from "lucide-react";
+import { Plus, Trash2, Store, Loader2, LayoutTemplate } from "lucide-react";
 import { toast } from "sonner";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
@@ -15,9 +15,13 @@ export default function MaterialCalculator() {
   const [qty, setQty] = useState("");
   const [lines, setLines] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [templates, setTemplates] = useState([]);
+  const [tplSel, setTplSel] = useState("");
+  const [tplBusy, setTplBusy] = useState(false);
 
   useEffect(() => {
     api.get("/mart/categories").then(({ data }) => { setCats(data); setCategory(data[0] || ""); }).finally(() => setLoading(false));
+    api.get("/mart/boq-templates").then(({ data }) => { setTemplates(data); setTplSel(data[0]?.id || ""); });
   }, []);
   const loadMaterials = useCallback((c) => {
     if (!c) return;
@@ -36,15 +40,37 @@ export default function MaterialCalculator() {
   const removeLine = (k) => setLines(lines.filter((l) => l.key !== k));
   const total = lines.reduce((s, l) => s + l.amount, 0);
 
+  const loadTemplate = async () => {
+    if (!tplSel) return;
+    setTplBusy(true);
+    try {
+      const { data } = await api.get(`/mart/boq-templates/${tplSel}`);
+      const newLines = data.lines.map((l, i) => ({ key: Date.now() + i, name: l.name, brand: l.brand, unit: l.unit, rate: l.rate, qty: l.qty, amount: l.amount }));
+      setLines(newLines);
+      toast.success(`${data.name} loaded — ${newLines.length} items · ${fmt(data.total)}`);
+    } catch { toast.error("Could not load template"); } finally { setTplBusy(false); }
+  };
+
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
     <div className="space-y-6" data-testid="material-calculator">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <Store className="h-5 w-5 text-primary" />
         <h2 className="font-display font-bold text-lg tracking-tight">Material Calculator</h2>
         <span className="text-xs text-muted-foreground">Super Mart rates · brand-wise</span>
       </div>
+
+      <div className="bg-card border border-border p-4 flex items-center gap-3 flex-wrap" data-testid="template-bar">
+        <div className="flex items-center gap-2 text-sm"><LayoutTemplate className="h-4 w-4 text-primary" /><span className="font-medium">1-click templates</span></div>
+        <select data-testid="template-select" value={tplSel} onChange={(e) => setTplSel(e.target.value)} className="bg-background border border-input px-3 h-10 text-sm flex-1 min-w-[200px]">
+          {templates.map((t) => <option key={t.id} value={t.id}>{t.name} · {t.area} ({t.items} items)</option>)}
+        </select>
+        <Button data-testid="template-load" onClick={loadTemplate} disabled={tplBusy} className="rounded-none">
+          {tplBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate BOQ"}
+        </Button>
+      </div>
+
       <div className="grid lg:grid-cols-[1fr_320px] gap-px bg-border border border-border">
         <div className="bg-card overflow-x-auto">
           <table className="w-full text-sm">
@@ -61,7 +87,7 @@ export default function MaterialCalculator() {
                   <td className="p-3"><button onClick={() => removeLine(l.key)} data-testid="calc-remove" className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button></td>
                 </tr>
               ))}
-              {lines.length === 0 && <tr><td colSpan="6" className="p-8 text-center text-muted-foreground">Pick materials on the right to estimate cost.</td></tr>}
+              {lines.length === 0 && <tr><td colSpan="6" className="p-8 text-center text-muted-foreground">Load a template above, or pick materials on the right.</td></tr>}
             </tbody>
             {lines.length > 0 && <tfoot><tr className="border-t-2 border-border font-bold"><td className="p-3" colSpan="4">Estimated Total</td><td className="p-3 font-mono" data-testid="calc-total">{fmt(total)}</td><td></td></tr></tfoot>}
           </table>

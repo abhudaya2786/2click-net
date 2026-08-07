@@ -2,9 +2,12 @@
 2Click.in — Super Mart: construction material catalog, category-wise + brand-wise
 with per-brand editable rates. Public read; Super-Admin managed CRUD. Feeds the
 Material Calculator + Contractor BOQ ("add from Super Mart" at the brand rate).
+Adds: category images, per-material rate history (price-trend), and 1-click BOQ
+templates (e.g. 3BHK Villa) resolved at live cheapest-brand rates.
 """
 import uuid
-from datetime import datetime, timezone
+import random
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
@@ -46,6 +49,21 @@ class MaterialUpdate(BaseModel):
     hsn: Optional[str] = None
     image: Optional[str] = None
     status: Optional[str] = None
+
+
+# category -> representative image (used on Mart cards + calculator)
+CATEGORY_IMAGES = {
+    "Cement": "https://images.pexels.com/photos/29817952/pexels-photo-29817952.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "Steel & TMT": "https://images.unsplash.com/photo-1550041462-7e8602a4c4bc?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Bricks & Blocks": "https://images.unsplash.com/photo-1495578942200-c5f5d2137def?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Sand & Aggregate": "https://images.unsplash.com/photo-1631948856825-73b6c57b5345?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Paint": "https://images.unsplash.com/photo-1643822308521-1da534425d82?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Tiles": "https://images.unsplash.com/photo-1647102256335-7a7370d99924?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Plumbing": "https://images.pexels.com/photos/12142829/pexels-photo-12142829.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "Electrical": "https://images.unsplash.com/photo-1584774354932-62ceb99e6053?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Plywood & Wood": "https://images.unsplash.com/photo-1422246654994-34520d5a0340?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Waterproofing": "https://images.unsplash.com/photo-1674485169641-bcb2bf6f1df9?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+}
 
 
 # category -> [ (material_name, unit, [(brand, rate), ...]) ]
@@ -102,6 +120,73 @@ SEED = {
 }
 
 
+# 1-click BOQ templates. Items resolve to the cheapest active brand at request time.
+SEED_TEMPLATES = [
+    {
+        "id": "tpl_villa_3bhk", "name": "3BHK Villa", "area": "~1800 sqft",
+        "description": "Complete material estimate for a standard 3BHK independent villa (G+1).",
+        "image": "https://images.pexels.com/photos/7031594/pexels-photo-7031594.jpeg?auto=compress&cs=tinysrgb&w=800",
+        "items": [
+            {"category": "Cement", "name": "OPC 53 Grade", "qty": 350},
+            {"category": "Steel & TMT", "name": "TMT Bar Fe500", "qty": 4500},
+            {"category": "Bricks & Blocks", "name": "Red Clay Brick", "qty": 14000},
+            {"category": "Sand & Aggregate", "name": "River Sand", "qty": 1200},
+            {"category": "Sand & Aggregate", "name": "20mm Aggregate", "qty": 900},
+            {"category": "Tiles", "name": "Vitrified Tile", "qty": 1800},
+            {"category": "Paint", "name": "Interior Emulsion", "qty": 120},
+            {"category": "Paint", "name": "Exterior Emulsion", "qty": 80},
+            {"category": "Plumbing", "name": "CPVC Pipe", "qty": 250},
+            {"category": "Electrical", "name": "Wire 2.5 sqmm", "qty": 600},
+            {"category": "Plywood & Wood", "name": "Plywood 18mm", "qty": 400},
+            {"category": "Waterproofing", "name": "Waterproofing Coat", "qty": 150},
+        ],
+    },
+    {
+        "id": "tpl_flat_2bhk", "name": "2BHK Flat", "area": "~1000 sqft",
+        "description": "Material estimate for a 2BHK apartment / flat interior + civil.",
+        "image": "https://images.pexels.com/photos/35339499/pexels-photo-35339499.jpeg?auto=compress&cs=tinysrgb&w=800",
+        "items": [
+            {"category": "Cement", "name": "OPC 53 Grade", "qty": 180},
+            {"category": "Steel & TMT", "name": "TMT Bar Fe500", "qty": 2400},
+            {"category": "Bricks & Blocks", "name": "AAC Block", "qty": 1800},
+            {"category": "Sand & Aggregate", "name": "River Sand", "qty": 650},
+            {"category": "Tiles", "name": "Vitrified Tile", "qty": 1000},
+            {"category": "Paint", "name": "Interior Emulsion", "qty": 70},
+            {"category": "Plumbing", "name": "CPVC Pipe", "qty": 150},
+            {"category": "Electrical", "name": "Wire 2.5 sqmm", "qty": 350},
+        ],
+    },
+    {
+        "id": "tpl_boundary_wall", "name": "Boundary Wall", "area": "100 rft × 6 ft",
+        "description": "Compound / boundary wall material estimate (brick masonry, 6 ft high).",
+        "image": "https://images.unsplash.com/photo-1592795694703-24f1814cfb0a?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+        "items": [
+            {"category": "Cement", "name": "OPC 53 Grade", "qty": 60},
+            {"category": "Steel & TMT", "name": "TMT Bar Fe500", "qty": 350},
+            {"category": "Bricks & Blocks", "name": "Red Clay Brick", "qty": 4500},
+            {"category": "Sand & Aggregate", "name": "River Sand", "qty": 220},
+            {"category": "Paint", "name": "Exterior Emulsion", "qty": 30},
+        ],
+    },
+]
+
+
+def _gen_history(rate, seed_str):
+    """Deterministic-per-material 6-point monthly price trend ending at the current rate."""
+    rnd = random.Random(seed_str)
+    n = 6
+    start_factor = 1 - rnd.uniform(0.03, 0.14)
+    pts = []
+    now = now_utc()
+    for i in range(n):
+        frac = i / (n - 1)
+        f = start_factor + (1.0 - start_factor) * frac
+        f = 1.0 if i == n - 1 else f + rnd.uniform(-0.02, 0.02)
+        d = now - timedelta(days=30 * (n - 1 - i))
+        pts.append({"date": d.date().isoformat(), "rate": round(rate * f, 2)})
+    return pts
+
+
 # ---------------------------------------------------------------------------
 # Public reads
 # ---------------------------------------------------------------------------
@@ -130,8 +215,35 @@ async def mart_materials(category: Optional[str] = None, brand: Optional[str] = 
     return await _db.materials.find(query, {"_id": 0}).sort([("category", 1), ("name", 1), ("rate", 1)]).to_list(1000)
 
 
+@public_router.get("/mart/boq-templates")
+async def list_boq_templates():
+    return [{"id": t["id"], "name": t["name"], "description": t["description"],
+             "image": t["image"], "area": t["area"], "items": len(t["items"])} for t in SEED_TEMPLATES]
+
+
+@public_router.get("/mart/boq-templates/{tid}")
+async def get_boq_template(tid: str):
+    t = next((x for x in SEED_TEMPLATES if x["id"] == tid), None)
+    if not t:
+        raise HTTPException(404, "Template not found")
+    lines = []
+    for it in t["items"]:
+        mat = await _db.materials.find_one(
+            {"category": it["category"], "name": it["name"], "status": "active"},
+            {"_id": 0}, sort=[("rate", 1)])
+        if not mat:
+            continue
+        rate = float(mat["rate"])
+        qty = float(it["qty"])
+        lines.append({"name": mat["name"], "category": mat["category"], "brand": mat["brand"],
+                      "unit": mat["unit"], "rate": rate, "qty": qty, "amount": round(rate * qty, 2)})
+    total = round(sum(l["amount"] for l in lines), 2)
+    return {"id": t["id"], "name": t["name"], "description": t["description"],
+            "area": t["area"], "image": t["image"], "lines": lines, "total": total}
+
+
 # ---------------------------------------------------------------------------
-# Super-Admin managed CRUD (rates editable)
+# Super-Admin managed CRUD (rates editable, rate history tracked)
 # ---------------------------------------------------------------------------
 @admin_router.get("/mart/materials")
 async def admin_list_materials(user=Depends(rbac.rbac_admin)):
@@ -140,7 +252,12 @@ async def admin_list_materials(user=Depends(rbac.rbac_admin)):
 
 @admin_router.post("/mart/materials")
 async def admin_create_material(body: MaterialIn, request: Request, user=Depends(rbac.rbac_admin)):
-    doc = {"id": new_id("mat"), **body.model_dump(), "created_at": iso(now_utc()), "updated_at": iso(now_utc())}
+    data = body.model_dump()
+    if not data.get("image"):
+        data["image"] = CATEGORY_IMAGES.get(data["category"])
+    doc = {"id": new_id("mat"), **data,
+           "rate_history": [{"date": now_utc().date().isoformat(), "rate": float(data["rate"])}],
+           "created_at": iso(now_utc()), "updated_at": iso(now_utc())}
     await _db.materials.insert_one(dict(doc))
     await rbac.audit_log("CREATE", "materials", doc["id"], None, {"name": body.name, "brand": body.brand, "rate": body.rate}, user=user, request=request)
     doc.pop("_id", None)
@@ -157,6 +274,10 @@ async def admin_update_material(mid: str, body: MaterialUpdate, request: Request
         return {"ok": True}
     upd["updated_at"] = iso(now_utc())
     await _db.materials.update_one({"id": mid}, {"$set": upd})
+    if "rate" in upd and float(old.get("rate", 0)) != float(upd["rate"]):
+        await _db.materials.update_one(
+            {"id": mid},
+            {"$push": {"rate_history": {"date": now_utc().date().isoformat(), "rate": float(upd["rate"])}}})
     await rbac.audit_log("EDIT", "materials", mid, old, upd, user=user, request=request)
     return {"ok": True}
 
@@ -169,7 +290,7 @@ async def admin_delete_material(mid: str, request: Request, user=Depends(rbac.rb
 
 
 # ---------------------------------------------------------------------------
-# Indexes + Seed
+# Indexes + Seed + Migrate
 # ---------------------------------------------------------------------------
 async def ensure_indexes():
     for f in ["category", "brand", "name", "status"]:
@@ -190,6 +311,21 @@ async def seed_mart():
                 await _db.materials.insert_one({
                     "id": new_id("mat"), "category": category, "name": name,
                     "brand": brand, "unit": unit, "rate": float(rate), "hsn": None,
-                    "image": None, "status": "active", "sort_order": order,
+                    "image": CATEGORY_IMAGES.get(category), "status": "active", "sort_order": order,
+                    "rate_history": _gen_history(float(rate), f"{category}-{name}-{brand}"),
                     "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
                 })
+
+
+async def migrate_mart():
+    """Idempotent backfill: add category image + rate history to older material docs."""
+    async for m in _db.materials.find({}, {"_id": 0}):
+        upd = {}
+        if not m.get("image"):
+            img = CATEGORY_IMAGES.get(m.get("category"))
+            if img:
+                upd["image"] = img
+        if not m.get("rate_history"):
+            upd["rate_history"] = _gen_history(float(m.get("rate", 0)), m["id"])
+        if upd:
+            await _db.materials.update_one({"id": m["id"]}, {"$set": upd})

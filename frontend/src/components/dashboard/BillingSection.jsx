@@ -43,8 +43,10 @@ export default function BillingSection() {
   };
   const pay = async (id) => {
     setBusy(`pay-${id}`);
-    try { await api.post(`/invoices/${id}/pay`); toast.success("Payment successful (demo)"); load(); }
-    catch { toast.error("Payment failed"); } finally { setBusy(""); }
+    try {
+      const { data } = await api.post("/payments/invoice-checkout", { invoice_id: id, origin_url: window.location.origin });
+      window.location.href = data.checkout_url;
+    } catch (e) { toast.error(e.response?.data?.detail || "Could not start payment"); setBusy(""); }
   };
   const download = async (inv) => {
     setBusy(`pdf-${inv.id}`);
@@ -122,7 +124,7 @@ export default function BillingSection() {
                   <td className="p-3">
                     <div className="flex gap-2 justify-end">
                       {inv.status !== "paid" && <Button data-testid={`invoice-pay-${inv.id}`} onClick={() => pay(inv.id)} disabled={busy === `pay-${inv.id}`} size="sm" className="rounded-none h-8">
-                        {busy === `pay-${inv.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Pay now"}</Button>}
+                        {busy === `pay-${inv.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Pay with card"}</Button>}
                       <Button data-testid={`invoice-pdf-${inv.id}`} onClick={() => download(inv)} disabled={busy === `pdf-${inv.id}`} size="sm" variant="outline" className="rounded-none h-8">
                         {busy === `pdf-${inv.id}` ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}</Button>
                     </div>

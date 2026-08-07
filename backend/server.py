@@ -316,18 +316,82 @@ async def register(body: RegisterIn, response: Response):
     return {"token": token, "user": {k: v for k, v in clean(doc).items() if k != "password_hash"}}
 
 
-@api.post("/auth/login")
-async def login(body: LoginIn, response: Response):
-    email = body.email.lower()
-    user = await db.users.find_one({"email": email})
-    if not user or not verify_password(body.password, user.get("password_hash", "")):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token(user["id"], email)
+LOCKOUT_MAX_ATTEMPTS = 5
+LOCKOUT_MINUTES = 15
+OTP_TTL_MINUTES = 10
+RESET_TTL_MINUTES = 60
+
+
+def _client_ip(request: Request):
+    ip = request.headers.get("x-forwarded-for") if request else None
+    if ip:
+        return ip.split(",")[0].strip()
+    return request.client.host if (request and request.client) else "unknown"
+
+
+def _gen_otp():
+    return f"{secrets.randbelow(1000000):06d}"
+
+
+async def _record_failed_login(identifier: str):
+    rec = await db.login_attempts.find_one({"identifier": identifier})
+    count = (rec.get("count", 0) if rec else 0) + 1
+    upd = {"identifier": identifier, "count": count, "updated_at": iso(now_utc())}
+    if count >= LOCKOUT_MAX_ATTEMPTS:
+        upd["locked_until"] = iso(now_utc() + timedelta(minutes=LOCKOUT_MINUTES))
+        upd["count"] = 0
+    await db.login_attempts.update_one({"identifier": identifier}, {"$set": upd}, upsert=True)
+
+
+async def _check_lockout(identifier: str):
+    rec = await db.login_attempts.find_one({"identifier": identifier})
+    if rec and rec.get("locked_until"):
+        lu = datetime.fromisoformat(rec["locked_until"])
+        if lu.tzinfo is None:
+            lu = lu.replace(tzinfo=timezone.utc)
+        if lu > now_utc():
+            mins = max(1, int((lu - now_utc()).total_seconds() // 60) + 1)
+            raise HTTPException(status_code=429, detail=f"Too many failed attempts. Try again in {mins} minute(s).")
+
+
+async def _issue_login_token(user: dict, response: Response):
+    token = create_access_token(user["id"], user["email"])
     set_auth_cookie(response, token)
-    await audit(user, "login")
-    u = clean(user)
+    u = clean(dict(user))
     u.pop("password_hash", None)
     return {"token": token, "user": u}
+
+
+async def _send_login_otp(user: dict):
+    import mailer
+    code = _gen_otp()
+    await db.otp_codes.insert_one({
+        "id": new_id("otp"), "email": user["email"], "purpose": "login",
+        "code_hash": hash_password(code), "used": False, "attempts": 0,
+        "expires_at": iso(now_utc() + timedelta(minutes=OTP_TTL_MINUTES)),
+        "created_at": iso(now_utc()),
+    })
+    await mailer.send_email(user["email"], "Your 2click.in login code",
+                            mailer.otp_email_html(user.get("name"), code))
+
+
+@api.post("/auth/login")
+async def login(body: LoginIn, request: Request, response: Response):
+    email = body.email.lower()
+    identifier = f"{_client_ip(request)}:{email}"
+    await _check_lockout(identifier)
+    user = await db.users.find_one({"email": email})
+    if not user or not verify_password(body.password, user.get("password_hash", "")):
+        await _record_failed_login(identifier)
+        await audit(user or {"email": email}, "login_failed", module="auth", status="failed", request=request)
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    await db.login_attempts.delete_one({"identifier": identifier})
+    if user.get("two_factor_enabled"):
+        await _send_login_otp(user)
+        await audit(user, "login_2fa_challenge", module="auth", request=request)
+        return {"requires_otp": True, "email": email}
+    await audit(user, "login", module="auth", request=request)
+    return await _issue_login_token(user, response)
 
 
 @api.get("/auth/me")
@@ -374,6 +438,103 @@ async def google_session(request: Request, response: Response):
     u = clean(dict(user))
     u.pop("password_hash", None)
     return {"user": u, "token": session_token}
+
+
+# ---------------------------------------------------------------------------
+# Auth hardening: OTP 2FA, forgot/reset password
+# ---------------------------------------------------------------------------
+class OtpVerifyIn(BaseModel):
+    email: EmailStr
+    code: str
+
+
+@api.post("/auth/otp/verify")
+async def otp_verify(body: OtpVerifyIn, response: Response):
+    email = body.email.lower()
+    rec = await db.otp_codes.find_one(
+        {"email": email, "purpose": "login", "used": False}, sort=[("created_at", -1)])
+    if not rec:
+        raise HTTPException(status_code=400, detail="No pending code. Please log in again.")
+    exp = datetime.fromisoformat(rec["expires_at"])
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp < now_utc():
+        raise HTTPException(status_code=400, detail="Code expired. Please log in again.")
+    if rec.get("attempts", 0) >= 5:
+        raise HTTPException(status_code=429, detail="Too many attempts. Please log in again.")
+    if not verify_password(body.code, rec["code_hash"]):
+        await db.otp_codes.update_one({"id": rec["id"]}, {"$inc": {"attempts": 1}})
+        raise HTTPException(status_code=400, detail="Invalid code")
+    await db.otp_codes.update_one({"id": rec["id"]}, {"$set": {"used": True}})
+    user = await db.users.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    await audit(user, "login_2fa_success", module="auth")
+    return await _issue_login_token(user, response)
+
+
+@api.post("/auth/otp/resend")
+async def otp_resend(body: dict):
+    email = (body.get("email") or "").lower()
+    user = await db.users.find_one({"email": email})
+    if user and user.get("two_factor_enabled"):
+        await _send_login_otp(user)
+    return {"ok": True}
+
+
+class ForgotIn(BaseModel):
+    email: EmailStr
+    origin: Optional[str] = None
+
+
+@api.post("/auth/forgot-password")
+async def forgot_password(body: ForgotIn):
+    import mailer
+    email = body.email.lower()
+    user = await db.users.find_one({"email": email})
+    if user:
+        token = secrets.token_urlsafe(32)
+        await db.password_reset_tokens.insert_one({
+            "id": new_id("prt"), "user_id": user["id"], "email": email, "token": token,
+            "used": False, "expires_at": iso(now_utc() + timedelta(minutes=RESET_TTL_MINUTES)),
+            "created_at": iso(now_utc()),
+        })
+        origin = (body.origin or "").rstrip("/")
+        link = f"{origin}/reset-password?token={token}"
+        await mailer.send_email(email, "Reset your 2click.in password",
+                                mailer.reset_email_html(user.get("name"), link))
+    return {"ok": True}
+
+
+class ResetIn(BaseModel):
+    token: str
+    password: str = Field(min_length=6)
+
+
+@api.post("/auth/reset-password")
+async def reset_password(body: ResetIn):
+    rec = await db.password_reset_tokens.find_one({"token": body.token, "used": False})
+    if not rec:
+        raise HTTPException(status_code=400, detail="Invalid or already-used reset link")
+    exp = datetime.fromisoformat(rec["expires_at"])
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp < now_utc():
+        raise HTTPException(status_code=400, detail="Reset link expired")
+    await db.users.update_one({"id": rec["user_id"]}, {"$set": {"password_hash": hash_password(body.password)}})
+    await db.password_reset_tokens.update_one({"id": rec["id"]}, {"$set": {"used": True}})
+    user = await db.users.find_one({"id": rec["user_id"]})
+    if user:
+        await audit(user, "password_reset", module="auth")
+    return {"ok": True}
+
+
+@api.post("/auth/2fa/toggle")
+async def toggle_2fa(body: dict, user=Depends(get_current_user)):
+    enabled = bool(body.get("enabled"))
+    await db.users.update_one({"id": user["id"]}, {"$set": {"two_factor_enabled": enabled}})
+    await audit(user, "2fa_toggle", {"enabled": enabled}, module="auth")
+    return {"ok": True, "two_factor_enabled": enabled}
 
 
 # ---------------------------------------------------------------------------
@@ -955,7 +1116,14 @@ async def startup():
     mart.init(db)
     await mart.ensure_indexes()
     await mart.seed_mart()
-    logger.info("RBAC + Phase3 + Phase3A + Phase3C + Mart + indexes ready")
+    await mart.migrate_mart()
+    import payments_stripe
+    payments_stripe.init(db, get_current_user)
+    await payments_stripe.ensure_indexes()
+    await db.login_attempts.create_index("identifier")
+    await db.otp_codes.create_index("email")
+    await db.password_reset_tokens.create_index("token")
+    logger.info("RBAC + Phase3 + Phase3A + Phase3C + Mart + Payments + Auth-hardening ready")
 
 
 @app.on_event("shutdown")
@@ -978,6 +1146,8 @@ import phase3c as _phase3c
 _phase3c.init(db, get_current_user)
 import mart as _mart
 _mart.init(db)
+import payments_stripe as _pstripe
+_pstripe.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -989,6 +1159,7 @@ app.include_router(_phase3c.public_router)
 app.include_router(_phase3c.admin_router)
 app.include_router(_mart.public_router)
 app.include_router(_mart.admin_router)
+app.include_router(_pstripe.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

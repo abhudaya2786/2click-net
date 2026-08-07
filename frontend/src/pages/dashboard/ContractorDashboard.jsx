@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard, Store, Download } from "lucide-react";
+import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard, Store, Download, LayoutTemplate } from "lucide-react";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
@@ -37,6 +37,10 @@ export default function ContractorDashboard() {
   const [martList, setMartList] = useState([]);
   const [martSel, setMartSel] = useState("");
   const [martQty, setMartQty] = useState("");
+  // BOQ templates (1-click generate)
+  const [tpls, setTpls] = useState([]);
+  const [tplSel, setTplSel] = useState("");
+  const [tplBusy, setTplBusy] = useState(false);
 
   const loadProjects = async () => {
     setLoading(true);
@@ -52,6 +56,21 @@ export default function ContractorDashboard() {
   };
   useEffect(() => { loadProjects(); }, []);
   useEffect(() => { loadDetail(selected); /* eslint-disable-next-line */ }, [selected]);
+  useEffect(() => { api.get("/mart/boq-templates").then(({ data }) => { setTpls(data); setTplSel(data[0]?.id || ""); }); }, []);
+
+  const loadTemplate = async () => {
+    if (!selected) { toast.error("Create/select a project first"); return; }
+    if (!tplSel) return;
+    setTplBusy(true);
+    try {
+      const { data } = await api.get(`/mart/boq-templates/${tplSel}`);
+      for (const l of data.lines) {
+        await api.post("/erp/boq", { project_id: selected, item: l.name, unit: l.unit, quantity: l.qty, rate: l.rate, brand: l.brand, category: l.category });
+      }
+      toast.success(`${data.name} added — ${data.lines.length} BOQ items`);
+      loadDetail(selected);
+    } catch { toast.error("Could not load template"); } finally { setTplBusy(false); }
+  };
 
   const addProject = async () => {
     if (!pForm.name) { toast.error("Project name required"); return; }
@@ -158,7 +177,17 @@ export default function ContractorDashboard() {
 
           {active === "boq" && (
             <div className="space-y-4">
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <LayoutTemplate className="h-4 w-4 text-primary" />
+                  <select data-testid="boq-template-select" value={tplSel} onChange={(e) => setTplSel(e.target.value)} className="bg-background border border-input px-3 h-10 text-sm">
+                    {tpls.map((t) => <option key={t.id} value={t.id}>{t.name} · {t.area}</option>)}
+                  </select>
+                  <Button data-testid="boq-template-load" onClick={loadTemplate} disabled={tplBusy} className="rounded-none">
+                    {tplBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate from template"}
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
                 <Dialog open={martOpen} onOpenChange={setMartOpen}>
                   <DialogTrigger asChild>
                     <Button data-testid="boq-supermart-btn" variant="outline" className="rounded-none" onClick={openMart}><Store className="h-4 w-4 mr-1.5" />Add from Super Mart</Button>
@@ -184,6 +213,7 @@ export default function ContractorDashboard() {
                   </DialogContent>
                 </Dialog>
                 <Button data-testid="boq-pdf-btn" variant="outline" className="rounded-none" onClick={downloadBoqPdf}><Download className="h-4 w-4 mr-1.5" />Download PDF</Button>
+                </div>
               </div>
               <div className="grid lg:grid-cols-[1fr_300px] gap-px bg-border border border-border">
                 <div className="bg-card overflow-x-auto">
