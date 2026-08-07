@@ -108,8 +108,16 @@ async def pay_order_wallet(order_id: str, request: Request):
         user["id"], "debit", amount, f"Order payment · {order_id}",
         created_by=user["id"], created_by_email=user["email"],
         meta={"order_id": order_id})
-    await _db.orders.update_one({"id": order_id}, {"$set": {
-        "status": "paid", "paid_at": iso(now_utc()), "payment_mode": "wallet"}})
+    try:
+        await _db.orders.update_one({"id": order_id}, {"$set": {
+            "status": "paid", "paid_at": iso(now_utc()), "payment_mode": "wallet"}})
+    except Exception:
+        # Reverse the debit so the customer is never charged without the order flipping to paid.
+        await apply_transaction(
+            user["id"], "credit", amount, f"Auto-refund · order update failed · {order_id}",
+            created_by=user["id"], created_by_email=user["email"],
+            meta={"order_id": order_id, "rollback": True})
+        raise HTTPException(500, "Payment could not be completed; wallet refunded")
     return {"ok": True, "status": "paid", "balance": txn["balance_after"], "transaction": txn}
 
 

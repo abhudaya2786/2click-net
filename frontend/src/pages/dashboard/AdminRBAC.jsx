@@ -469,7 +469,7 @@ function AdminWallet() {
             <label className="text-xs text-muted-foreground mb-1 block">User</label>
             <select data-testid="wallet-user" value={form.user_id} onChange={(e) => setForm({ ...form, user_id: e.target.value })} className="w-full bg-background border border-input px-2 h-10 text-sm">
               <option value="">Select user…</option>
-              {users.map((u) => <option key={u.id} value={u.id}>{u.name || u.email} · ₹{Number(u.wallet_balance).toLocaleString("en-IN")}</option>)}
+              {users.map((u) => <option key={u.id} value={u.id}>{`${u.name || u.email} · ₹${Number(u.wallet_balance).toLocaleString("en-IN")}`}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-2">
