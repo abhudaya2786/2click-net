@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
 import AdminBilling from "@/pages/dashboard/AdminBilling";
 import AdminMaterials from "@/pages/dashboard/AdminMaterials";
@@ -18,6 +18,7 @@ const TABS = [
   { id: "branding", label: "White Label", icon: Palette },
   { id: "pricing", label: "Plans & Commission", icon: CreditCard },
   { id: "billing", label: "Billing", icon: Receipt },
+  { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "materials", label: "Super Mart", icon: Store },
   { id: "modules", label: "Modules", icon: Boxes },
   { id: "menus", label: "Menus", icon: MenuIcon },
@@ -47,6 +48,7 @@ export default function AdminRBAC() {
       {tab === "branding" && <Branding />}
       {tab === "pricing" && <PricingCommission />}
       {tab === "billing" && <AdminBilling />}
+      {tab === "wallet" && <AdminWallet />}
       {tab === "materials" && <AdminMaterials />}
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
@@ -431,6 +433,84 @@ function PricingCommission() {
               ))}
             </div>
           </div>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function AdminWallet() {
+  const [users, setUsers] = useState([]);
+  const [txns, setTxns] = useState([]);
+  const [form, setForm] = useState({ user_id: "", type: "credit", amount: "", reason: "" });
+  const [busy, setBusy] = useState(false);
+  const load = () => {
+    api.get(`${A}/wallet/users`).then(({ data }) => setUsers(data));
+    api.get(`${A}/wallet/transactions`).then(({ data }) => setTxns(data));
+  };
+  useEffect(() => { load(); }, []);
+  const submit = async () => {
+    if (!form.user_id) { toast.error("Select a user"); return; }
+    if (!(Number(form.amount) > 0)) { toast.error("Enter a valid amount"); return; }
+    if (!form.reason || form.reason.trim().length < 2) { toast.error("Reason is mandatory"); return; }
+    setBusy(true);
+    try {
+      const { data } = await api.post(`${A}/wallet/adjust`, { user_id: form.user_id, type: form.type, amount: Number(form.amount), reason: form.reason.trim() });
+      toast.success(`Wallet ${form.type} done · new balance ₹${Number(data.balance).toLocaleString("en-IN")}`);
+      setForm({ user_id: "", type: "credit", amount: "", reason: "" });
+      load();
+    } catch (e) { toast.error(e.response?.data?.detail || "Adjustment failed"); } finally { setBusy(false); }
+  };
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <Panel title="Adjust Wallet Balance">
+        <div className="p-5 space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">User</label>
+            <select data-testid="wallet-user" value={form.user_id} onChange={(e) => setForm({ ...form, user_id: e.target.value })} className="w-full bg-background border border-input px-2 h-10 text-sm">
+              <option value="">Select user…</option>
+              {users.map((u) => <option key={u.id} value={u.id}>{u.name || u.email} · ₹{Number(u.wallet_balance).toLocaleString("en-IN")}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <select data-testid="wallet-type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="bg-background border border-input px-2 h-10 text-sm">
+              <option value="credit">Credit (+)</option>
+              <option value="debit">Debit (−)</option>
+            </select>
+            <Input data-testid="wallet-amount" type="number" placeholder="Amount (₹)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="rounded-none" />
+          </div>
+          <Input data-testid="wallet-reason" placeholder="Reason (mandatory)" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} className="rounded-none" />
+          <Button data-testid="wallet-submit" onClick={submit} disabled={busy} className="w-full rounded-none">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply Adjustment"}</Button>
+        </div>
+        <div className="border-t border-border">
+          <div className="px-5 py-2 text-xs uppercase tracking-wider text-muted-foreground">User Balances ({users.length})</div>
+          <div className="max-h-72 overflow-y-auto divide-y divide-border">
+            {users.map((u) => (
+              <div key={u.id} className="px-5 py-2 flex items-center justify-between text-sm">
+                <div><div className="font-medium">{u.name || "—"}</div><div className="text-xs text-muted-foreground font-mono">{u.email}</div></div>
+                <span data-testid={`wallet-bal-${u.id}`} className="font-mono font-bold">₹{Number(u.wallet_balance).toLocaleString("en-IN")}</span>
+              </div>
+            ))}
+            {users.length === 0 && <div className="px-5 py-6 text-center text-muted-foreground text-sm">No users.</div>}
+          </div>
+        </div>
+      </Panel>
+      <Panel title={`Wallet Ledger — all users (${txns.length})`}>
+        <div className="overflow-x-auto max-h-[560px]">
+          <table className="w-full text-xs">
+            <thead><tr className="border-b border-border text-left uppercase tracking-wider text-muted-foreground"><th className="p-2.5">User</th><th className="p-2.5">Type</th><th className="p-2.5">Amount</th><th className="p-2.5">Reason</th><th className="p-2.5">Bal After</th><th className="p-2.5">Time</th></tr></thead>
+            <tbody>{txns.map((t) => (
+              <tr key={t.id} data-testid={`admin-wtx-${t.id}`} className="border-b border-border hover:bg-muted/50">
+                <td className="p-2.5">{t.user_email || t.user_id}</td>
+                <td className="p-2.5"><span className={`font-mono px-2 py-0.5 ${t.type === "credit" ? "bg-solar/10 text-solar" : "bg-destructive/10 text-destructive"}`}>{t.type}</span></td>
+                <td className="p-2.5 font-mono">₹{Number(t.amount).toLocaleString("en-IN")}</td>
+                <td className="p-2.5 text-muted-foreground">{t.reason}</td>
+                <td className="p-2.5 font-mono">₹{Number(t.balance_after).toLocaleString("en-IN")}</td>
+                <td className="p-2.5 font-mono text-[10px]">{new Date(t.created_at).toLocaleString("en-IN")}</td>
+              </tr>))}
+              {txns.length === 0 && <tr><td colSpan="6" className="p-8 text-center text-muted-foreground">No transactions yet.</td></tr>}
+            </tbody>
+          </table>
         </div>
       </Panel>
     </div>

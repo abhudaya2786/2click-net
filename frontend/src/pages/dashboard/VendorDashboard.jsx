@@ -1,18 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { api } from "@/lib/api";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star, CreditCard } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star, CreditCard, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
+import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "products", label: "My Products", icon: Package },
   { id: "orders", label: "Orders", icon: ShoppingBag },
+  { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
 const EMPTY = { name: "", category: "Steel & TMT", price: "", unit: "unit", stock: "", description: "", image: "https://images.unsplash.com/photo-1763926062529-1edf8664c366?crop=entropy&cs=srgb&fm=jpg&q=85&w=800" };
@@ -24,6 +26,7 @@ export default function VendorDashboard() {
   const [form, setForm] = useState(EMPTY);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [openOrder, setOpenOrder] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -101,22 +104,45 @@ export default function VendorDashboard() {
             <div className="bg-card border border-border overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="p-3">Order</th><th className="p-3">Customer</th><th className="p-3">Total</th><th className="p-3">Status</th></tr></thead>
+                  <th className="p-3">Order</th><th className="p-3">Customer</th><th className="p-3">Site / Architect</th><th className="p-3">Total</th><th className="p-3">Status</th><th className="p-3"></th></tr></thead>
                 <tbody>
                   {orders.map((o) => (
-                    <tr key={o.id} className="border-b border-border hover:bg-muted/50">
-                      <td className="p-3 font-mono text-xs">{o.id}</td>
-                      <td className="p-3">{o.user_email}</td>
-                      <td className="p-3 font-mono">₹{o.total.toLocaleString("en-IN")}</td>
-                      <td className="p-3"><span className={`text-xs font-mono px-2 py-0.5 ${o.status === "paid" ? "bg-solar/10 text-solar" : "bg-muted text-muted-foreground"}`}>{o.status}</span></td>
-                    </tr>
+                    <Fragment key={o.id}>
+                      <tr className="border-b border-border hover:bg-muted/50">
+                        <td className="p-3 font-mono text-xs">{o.id}</td>
+                        <td className="p-3">{o.user_email}</td>
+                        <td className="p-3 text-xs">{o.site_location || o.address || "—"}{o.architect_name ? ` · ${o.architect_name}` : ""}</td>
+                        <td className="p-3 font-mono">₹{o.total.toLocaleString("en-IN")}</td>
+                        <td className="p-3"><span className={`text-xs font-mono px-2 py-0.5 ${o.status === "paid" ? "bg-solar/10 text-solar" : "bg-muted text-muted-foreground"}`}>{o.status}</span></td>
+                        <td className="p-3"><button data-testid={`view-order-${o.id}`} onClick={() => setOpenOrder(openOrder === o.id ? null : o.id)} className="text-xs text-primary hover:underline">{openOrder === o.id ? "Hide" : "View"}</button></td>
+                      </tr>
+                      {openOrder === o.id && (
+                        <tr data-testid={`order-details-${o.id}`} className="bg-muted/30 border-b border-border">
+                          <td colSpan="6" className="p-4">
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                              <div><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Site Location</div><div className="font-medium mt-0.5 text-sm">{o.site_location || o.address || "—"}</div></div>
+                              <div><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Architect</div><div className="font-medium mt-0.5 text-sm">{o.architect_name || "—"}</div></div>
+                              <div><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Architect Phone</div><div className="font-medium mt-0.5 text-sm">{o.architect_phone || "—"}</div></div>
+                              <div><div className="text-[10px] uppercase tracking-wider text-muted-foreground">Company</div><div className="font-medium mt-0.5 text-sm">{o.company_name || "—"}</div></div>
+                            </div>
+                            <div className="mt-4">
+                              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Items</div>
+                              <div className="space-y-1">
+                                {o.items.map((it, i) => <div key={i} className="flex justify-between text-sm max-w-md"><span>{it.name} × {it.qty || 1}</span><span className="font-mono">₹{(it.price * (it.qty || 1)).toLocaleString("en-IN")}</span></div>)}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   ))}
-                  {orders.length === 0 && <tr><td colSpan="4" className="p-8 text-center text-muted-foreground">No orders yet.</td></tr>}
+                  {orders.length === 0 && <tr><td colSpan="6" className="p-8 text-center text-muted-foreground">No orders yet.</td></tr>}
                 </tbody>
               </table>
             </div>
           )}
 
+          {active === "wallet" && <WalletSection />}
           {active === "billing" && <BillingSection />}
         </>
       )}
