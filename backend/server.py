@@ -1120,6 +1120,10 @@ async def startup():
     import payments_stripe
     payments_stripe.init(db, get_current_user)
     await payments_stripe.ensure_indexes()
+    import solar_epc
+    solar_epc.init(db, get_current_user)
+    await solar_epc.ensure_indexes()
+    solar_epc.init_storage_safe()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1148,6 +1152,8 @@ import mart as _mart
 _mart.init(db)
 import payments_stripe as _pstripe
 _pstripe.init(db, get_current_user)
+import solar_epc as _solar
+_solar.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1160,6 +1166,7 @@ app.include_router(_phase3c.admin_router)
 app.include_router(_mart.public_router)
 app.include_router(_mart.admin_router)
 app.include_router(_pstripe.router)
+app.include_router(_solar.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
