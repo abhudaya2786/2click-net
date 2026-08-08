@@ -62,7 +62,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "CI=false craco build"
+    "build": "CI=false craco build",
     "test": "craco test"
   },
   "browserslist": {
@@ -93,7 +93,7 @@
     "globals": "15.15.0",
     "postcss": "8.5.10",
     "tailwindcss": "3.4.17"
-  }, 
+  },
   "resolutions": {
     "react-router": "7.15.1",
     "node-forge": "1.4.0",
@@ -138,5 +138,5 @@
     "**/tinyglobby/picomatch": "4.0.4",
     "http-proxy-middleware": "2.0.10"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04cdad64c3997e369242b08807957b1f096d4e5823d0db15f6e8a8a512401f9c07e2"
 }
