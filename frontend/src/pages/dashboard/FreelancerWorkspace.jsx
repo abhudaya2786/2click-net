@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
-import { LayoutDashboard, Briefcase, Inbox, FolderOpen, Loader2, Tag, Star, MapPin, ExternalLink, IndianRupee } from "lucide-react";
+import { LayoutDashboard, Briefcase, Inbox, FolderOpen, Loader2, Tag, Star, MapPin, ExternalLink, IndianRupee, Wallet } from "lucide-react";
+import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "services", label: "My Services", icon: Briefcase },
   { id: "enquiries", label: "Enquiries", icon: Inbox },
   { id: "portfolio", label: "Portfolio", icon: FolderOpen },
+  { id: "wallet", label: "Wallet", icon: Wallet },
 ];
 
 export default function FreelancerWorkspace() {
@@ -91,6 +93,8 @@ export default function FreelancerWorkspace() {
               ) : <div className="text-sm text-muted-foreground">No portfolio URL added.</div>}
             </div>
           )}
+
+          {active === "wallet" && <WalletSection />}
         </>
       )}
     </DashboardLayout>

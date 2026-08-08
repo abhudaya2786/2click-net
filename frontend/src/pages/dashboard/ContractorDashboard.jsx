@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard, Store, Download, LayoutTemplate } from "lucide-react";
+import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard, Store, Download, LayoutTemplate, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
+import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -16,6 +17,7 @@ const NAV = [
   { id: "boq", label: "BOQ", icon: Calculator },
   { id: "dpr", label: "Daily Report", icon: ClipboardList },
   { id: "materials", label: "Material Calc", icon: Store },
+  { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
@@ -277,6 +279,7 @@ export default function ContractorDashboard() {
           )}
 
           {active === "materials" && <MaterialCalculator />}
+          {active === "wallet" && <WalletSection />}
           {active === "billing" && <BillingSection />}
         </>
       )}

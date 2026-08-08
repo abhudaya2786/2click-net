@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package, CreditCard, Store, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package, CreditCard, Store, Zap, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
 import SolarEstimator from "@/components/solar/SolarEstimator";
+import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -15,6 +17,7 @@ const NAV = [
   { id: "quotes", label: "Solar Quotes", icon: Sun },
   { id: "solar-epc", label: "Solar EPC", icon: Zap },
   { id: "materials", label: "Material Calc", icon: Store },
+  { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
 
@@ -25,6 +28,7 @@ export default function CustomerDashboard() {
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
+  const [details, setDetails] = useState({ address: "", architect_name: "", architect_phone: "", company_name: "" });
 
   const readCart = () => setCart(JSON.parse(localStorage.getItem("bs_cart") || "[]"));
   const load = async () => {
@@ -41,18 +45,39 @@ export default function CustomerDashboard() {
   const tax = subtotal * 0.18;
   const total = subtotal + tax;
 
+  const orderBody = () => ({
+    items: cart, address: details.address, site_location: details.address,
+    architect_name: details.architect_name || null, architect_phone: details.architect_phone || null,
+    company_name: details.company_name || null,
+  });
+  const resetDetails = () => setDetails({ address: "", architect_name: "", architect_phone: "", company_name: "" });
+
   const checkout = async () => {
     if (cart.length === 0) return;
+    if (!details.address.trim()) { toast.error("Site location / delivery address is required"); return; }
     setPaying(true);
     try {
-      const { data: order } = await api.post("/orders", { items: cart, address: "Bengaluru, KA" });
+      const { data: order } = await api.post("/orders", orderBody());
       const { data: pay } = await api.post("/payments/create", { order_id: order.id });
       // Razorpay live flow would open checkout here; running in DEMO mode when keys absent
       await api.post("/payments/verify", { order_id: order.id, mode: pay.mode });
-      updateCart([]);
+      updateCart([]); resetDetails();
       toast.success(`Payment successful (${pay.mode} mode) — order confirmed`);
       setActive("orders"); load();
     } catch (e) { toast.error(e.response?.data?.detail || "Checkout failed"); } finally { setPaying(false); }
+  };
+
+  const payWithWallet = async () => {
+    if (cart.length === 0) return;
+    if (!details.address.trim()) { toast.error("Site location / delivery address is required"); return; }
+    setPaying(true);
+    try {
+      const { data: order } = await api.post("/orders", orderBody());
+      const { data } = await api.post(`/orders/${order.id}/pay-wallet`);
+      updateCart([]); resetDetails();
+      toast.success(`Paid via wallet — new balance ₹${Number(data.balance).toLocaleString("en-IN")}`);
+      setActive("orders"); load();
+    } catch (e) { toast.error(e.response?.data?.detail || "Wallet payment failed"); } finally { setPaying(false); }
   };
 
   return (
@@ -84,6 +109,18 @@ export default function CustomerDashboard() {
                   ))}
               </div>
               <div className="bg-card p-6">
+                <h3 className="font-display font-bold text-sm tracking-tight mb-3">Delivery &amp; Site Details</h3>
+                <div className="space-y-2.5 mb-5">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Site location / delivery address *</label>
+                    <Input data-testid="order-address" value={details.address} onChange={(e) => setDetails({ ...details, address: e.target.value })} placeholder="Plot 42, Whitefield, Bengaluru" className="rounded-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input data-testid="order-architect-name" value={details.architect_name} onChange={(e) => setDetails({ ...details, architect_name: e.target.value })} placeholder="Architect name" className="rounded-none" />
+                    <Input data-testid="order-architect-phone" value={details.architect_phone} onChange={(e) => setDetails({ ...details, architect_phone: e.target.value })} placeholder="Architect phone" className="rounded-none" />
+                  </div>
+                  <Input data-testid="order-company-name" value={details.company_name} onChange={(e) => setDetails({ ...details, company_name: e.target.value })} placeholder="Company name (optional)" className="rounded-none" />
+                </div>
                 <h3 className="font-display font-bold text-sm tracking-tight mb-4">Order Summary</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-mono">₹{subtotal.toLocaleString("en-IN")}</span></div>
@@ -93,7 +130,10 @@ export default function CustomerDashboard() {
                 <Button data-testid="checkout-btn" onClick={checkout} disabled={cart.length === 0 || paying} className="w-full rounded-none mt-5">
                   {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Pay with Razorpay"}
                 </Button>
-                <p className="text-[10px] text-muted-foreground mt-2 text-center">Razorpay checkout · demo mode until keys added</p>
+                <Button data-testid="wallet-checkout-btn" onClick={payWithWallet} disabled={cart.length === 0 || paying} variant="outline" className="w-full rounded-none mt-2">
+                  <Wallet className="h-4 w-4 mr-1.5" />Pay with Wallet
+                </Button>
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">Razorpay demo mode · Wallet uses your 2click balance</p>
               </div>
             </div>
           )}
@@ -135,6 +175,7 @@ export default function CustomerDashboard() {
 
           {active === "materials" && <MaterialCalculator />}
           {active === "solar-epc" && <SolarEstimator embedded />}
+          {active === "wallet" && <WalletSection />}
           {active === "billing" && <BillingSection />}
         </>
       )}

@@ -105,3 +105,11 @@ Started, then paused for Super Mart. Built but **NOT yet wired into server.py** 
 - **P1 Auth extras**: JWT refresh rotation, email verification on signup, 2FA setup UI in account settings.
 - **P1 Payments**: go live (claim Stripe account) + `/erp/boq/bulk` batch endpoint to speed up template loading.
 - **P2**: Logistics/Fleet, Architect/3D-LiDAR, CRM/Khatabook, GST/Accounting/E-Way, WhatsApp/SMS/Push, PWA, CI/CD.
+
+## Universal Payment Wallet + Vendor Order Details — Delivered + Verified (2026-06, additive)
+- **Wallet** (`wallet.py`, `wallet_transactions` collection + `users.wallet_balance`): per-user balance + credit/debit ledger. Only Super Admin can adjust (mandatory reason, `AdjustIn` `amount>0`, `reason` min_length=2). Endpoints: `GET /api/wallet/me`, `POST /api/orders/{id}/pay-wallet` (atomic debit, marks order paid; **auto-refunds the debit if the order update fails**), `GET /api/admin/wallet/users`, `POST /api/admin/wallet/adjust`, `GET /api/admin/wallet/transactions`. Atomic `find_one_and_update` with `$gte` guards debit (race-safe, blocks overdraw). `migrate()` backfills balances from legacy `wallet` field.
+- **Frontend**: `WalletSection.jsx` (balance card + ledger) added as a Wallet tab on Customer/Vendor/Contractor/Freelancer dashboards. Admin `AdminRBAC.jsx` → Wallet tab (`AdminWallet`): user-balance list + credit/debit form (mandatory reason) + all-users ledger.
+- **Pay-with-Wallet**: Customer cart checkout has a "Pay with Wallet" button alongside Razorpay demo checkout.
+- **Vendor Order Details**: checkout now captures site location (required), architect name/phone, company name (`OrderIn` fields already persisted in `create_order`). Vendor Dashboard orders table has a "Site / Architect" column + expandable "View" row showing site/architect/company + item list.
+- **Testing**: backend 16/16 (`test_wallet_iter11.py`), frontend 100% — see `/app/test_reports/iteration_11.json`. Permission checks (403 for non-admin on `/api/admin/wallet/*`), insufficient-balance (400), empty-reason (422) all verified.
+- Known low-priority notes: `OrderIn.items` is untyped `List[dict]` (missing price → 500); admin user `<select>` unpaginated; wallet ledger `to_list(500)` no pagination.
