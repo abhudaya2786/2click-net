@@ -138,5 +138,5 @@
     "**/tinyglobby/picomatch": "4.0.4",
     "http-proxy-middleware": "2.0.10"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04cdad64c3997e369242b08807957b1f096d4e5823d0db15f6e8a8a512401f9c07e2"
+  "packageManager": "yarn@1.22.22"
 }
