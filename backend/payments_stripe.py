@@ -86,6 +86,12 @@ async def _mark_paid(session_id: str, rec: dict):
                 sid = (inv.get("metadata") or {}).get("subscription_id")
                 if sid:
                     await _db.subscriptions.update_one({"id": sid}, {"$set": {"status": "active", "updated_at": iso(now_utc())}})
+    if r.modified_count and rec.get("ad_campaign_id"):
+        camp = await _db.ad_campaigns.find_one({"id": rec["ad_campaign_id"]}, {"_id": 0})
+        if camp and camp.get("payment_status") != "paid":
+            await _db.ad_campaigns.update_one({"id": camp["id"]}, {"$set": {
+                "payment_status": "paid", "status": "pending_approval",
+                "paid_at": iso(now_utc()), "payment_mode": "stripe"}})
 
 
 @router.get("/payments/status/{session_id}")

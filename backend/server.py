@@ -1152,6 +1152,10 @@ async def startup():
     wallet.init(db, get_current_user)
     await wallet.ensure_indexes()
     await wallet.migrate()
+    import ads
+    ads.init(db, get_current_user)
+    await ads.ensure_indexes()
+    await ads.seed_placements()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1184,6 +1188,8 @@ import solar_epc as _solar
 _solar.init(db, get_current_user)
 import wallet as _wallet
 _wallet.init(db, get_current_user)
+import ads as _ads
+_ads.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1198,6 +1204,7 @@ app.include_router(_mart.admin_router)
 app.include_router(_pstripe.router)
 app.include_router(_solar.router)
 app.include_router(_wallet.router)
+app.include_router(_ads.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

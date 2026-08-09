@@ -24,6 +24,7 @@ import Register from "@/pages/Register";
 import AuthCallback from "@/pages/AuthCallback";
 import ResetPassword from "@/pages/ResetPassword";
 import PaymentSuccess from "@/pages/PaymentSuccess";
+import AdsPortal from "@/pages/AdsPortal";
 import Dashboard from "@/pages/dashboard/Dashboard";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
@@ -49,6 +50,7 @@ function AppRouter() {
       <Route path="/payment/success" element={<PaymentSuccess />} />
       <Route path="/payment/cancel" element={<PaymentSuccess />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/ads" element={<ProtectedRoute><AdsPortal /></ProtectedRoute>} />
     </Routes>
   );
 }

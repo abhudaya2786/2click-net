@@ -12,6 +12,7 @@ const LINKS = [
   { to: "/tenders", label: "Tender Hub" },
   { to: "/freelancers", label: "Freelancers" },
   { to: "/solar", label: "Solar" },
+  { to: "/ads", label: "Advertise" },
   { to: "/services", label: "Services" },
   { to: "/pricing", label: "Pricing" },
   { to: "/contact", label: "Contact" },
