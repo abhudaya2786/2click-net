@@ -136,6 +136,7 @@ class EpcIn(BaseModel):
     state: str = "Maharashtra"
     discom: Optional[str] = None
     contact: Optional[str] = None
+    brand_selections: Optional[dict] = None   # {category_code: brand_id} — customer-selected brands
 
 
 def _emi(principal: float, annual_rate: float, years: int) -> float:
