@@ -100,6 +100,15 @@ Started, then paused for Super Mart. Built but **NOT yet wired into server.py** 
 - **Frontend routes added**: `/reset-password`, `/payment/success`, `/payment/cancel`. Login rewritten with login|otp|forgot stages.
 - **Testing**: backend verified via curl (lockout 429, Stripe real checkout URL, 2FA requires_otp, templates resolve, images+history, Resend send=True). Frontend 5/5 flows pass — see `/app/test_reports/iteration_8.json`. Stripe is TEST-MODE (real checkout, no live charge).
 
+## Paid Advertisement Portal — Delivered + Verified (2026-08, additive)
+- **Standalone `/ads` portal** (ProtectedRoute) with its own sidebar: Overview · Create Ad · My Campaigns · Analytics · Billing & Invoices · Admin Panel (super_admin only). Reachable via "Advertise" link in the public navbar.
+- **Backend `ads.py`** (prefix `/api/ads`, collections `ad_campaigns` + `ad_placements`): placements list; campaign CRUD; fee = price_per_week×weeks + 18% GST (server-computed); pay-with-Wallet (reuses `wallet.apply_transaction`) and Stripe checkout (reuses `payments_stripe`, `_mark_paid` extended to activate campaigns); banner upload/serve via Emergent object storage; pause/resume; deterministic **simulated** daily impressions/clicks metrics (`_daily_stats`); advertiser `/analytics/me`.
+- **Admin**: approval queue (approve / reject-with-reason → auto wallet-refund if wallet-paid); revenue analytics (monthly bar, top slots, advertisers); placement pricing & enable/disable controls.
+- **Placements seeded**: Header Banner ₹1000/wk, Sidebar Sticky ₹500/wk, In-Feed Native ₹750/wk.
+- **Flow**: create → pay (wallet/stripe) → `pending_approval` → admin approve → `active` (→ `expired` after schedule). Lazy expiry on read.
+- **Frontend** in `pages/AdsPortal.jsx` + `components/ads/*` (AdOverview, CreateAd 4-step wizard, MyCampaigns, AdAnalytics, AdsBilling, AdminAds, adsShared.js). Recharts area/line/bar charts; matches Industrial-Swiss / safety-orange theme.
+- **Testing**: backend fully via curl; frontend E2E 100% → `/app/test_reports/iteration_12.json`. Empty-reason 422, non-admin 403, insufficient-balance handled.
+
 ## Next (approved backlog, priority order)
 - **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id` (marketplace stays cross-company by design).
 - **P1 Auth extras**: JWT refresh rotation, email verification on signup, 2FA setup UI in account settings.
