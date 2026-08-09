@@ -16,6 +16,7 @@ from typing import Optional
 
 import requests
 from fastapi import APIRouter, Request, HTTPException, Query, UploadFile, File, Response
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
 
@@ -92,26 +93,17 @@ async def _maybe_expire(c: dict) -> dict:
 
 
 def _daily_stats(c: dict):
-    """Deterministic simulated impressions/clicks per elapsed day (start..min(end, today))."""
-    if c.get("payment_status") != "paid" or c.get("status") not in ("active", "paused", "expired"):
-        return []
-    start = date.fromisoformat(c["start_date"])
-    last = min(_end_date(c), today())
-    if last < start:
-        return []
-    base = BASE_IMPR.get(c.get("placement_code"), 2500)
-    out, d = [], start
-    while d <= last:
-        rnd = random.Random(f"{c['id']}:{d.isoformat()}")
-        impr = int(base * rnd.uniform(0.6, 1.4))
-        clk = max(0, int(impr * rnd.uniform(0.009, 0.04)))
-        out.append({"date": d.isoformat(), "impressions": impr, "clicks": clk})
-        d += timedelta(days=1)
-    return out
+    return []
 
 
-def _agg(c: dict):
-    s = _daily_stats(c)
+async def _series(cid: str):
+    rows = await _db.ad_stats.find(
+        {"campaign_id": cid}, {"_id": 0, "date": 1, "impressions": 1, "clicks": 1}).sort("date", 1).to_list(400)
+    return [{"date": r["date"], "impressions": r.get("impressions", 0), "clicks": r.get("clicks", 0)} for r in rows]
+
+
+async def _agg(cid: str):
+    s = await _series(cid)
     impr = sum(x["impressions"] for x in s)
     clk = sum(x["clicks"] for x in s)
     ctr = round(clk / impr * 100, 2) if impr else 0.0
@@ -226,7 +218,7 @@ async def list_campaigns(request: Request):
     out = []
     for c in rows:
         await _maybe_expire(c)
-        impr, clk, ctr, _ = _agg(c)
+        impr, clk, ctr, _ = await _agg(c["id"])
         c["impressions"], c["clicks"], c["ctr"] = impr, clk, ctr
         out.append(c)
     return out
@@ -237,7 +229,7 @@ async def get_campaign(cid: str, request: Request):
     user = await _get_current_user(request)
     c = await _owned(cid, user)
     await _maybe_expire(c)
-    impr, clk, ctr, _ = _agg(c)
+    impr, clk, ctr, _ = await _agg(c["id"])
     c["impressions"], c["clicks"], c["ctr"] = impr, clk, ctr
     return c
 
@@ -247,7 +239,7 @@ async def campaign_stats(cid: str, request: Request):
     user = await _get_current_user(request)
     c = await _owned(cid, user)
     await _maybe_expire(c)
-    impr, clk, ctr, series = _agg(c)
+    impr, clk, ctr, series = await _agg(c["id"])
     return {"campaign": {"id": c["id"], "name": c["name"], "status": c["status"], "placement_name": c.get("placement_name")},
             "impressions": impr, "clicks": clk, "ctr": ctr, "series": series}
 
@@ -370,6 +362,60 @@ async def serve_banner(cid: str):
 
 
 # --------------------------------------------------------------------------- #
+# Public ad serving + genuine impression / click tracking
+# --------------------------------------------------------------------------- #
+@router.get("/serve/{placement}")
+async def serve_ads(placement: str, limit: int = Query(1, ge=1, le=5)):
+    pl = await _db.ad_placements.find_one({"code": placement, "enabled": True}, {"_id": 0})
+    if not pl:
+        return {"ads": []}
+    t = today().isoformat()
+    rows = await _db.ad_campaigns.find(
+        {"placement_code": placement, "status": "active", "payment_status": "paid"}, {"_id": 0}).to_list(200)
+    live = [c for c in rows if c["start_date"] <= t <= _end_date(c).isoformat()]
+    random.shuffle(live)
+    live = live[:limit]
+    return {"ads": [{
+        "id": c["id"], "name": c["name"], "banner_url": c.get("banner_url") or "",
+        "destination_url": c["destination_url"], "media_type": c.get("media_type", "image"),
+        "placement": placement,
+    } for c in live]}
+
+
+async def _bump(cid: str, field: str):
+    t = today().isoformat()
+    await _db.ad_stats.update_one(
+        {"campaign_id": cid, "date": t},
+        {"$inc": {field: 1}, "$setOnInsert": {"campaign_id": cid, "date": t}}, upsert=True)
+
+
+class ImpressionIn(BaseModel):
+    campaign_id: str
+
+
+@router.post("/track/impression")
+async def track_impression(body: ImpressionIn):
+    c = await _db.ad_campaigns.find_one({"id": body.campaign_id}, {"_id": 0, "status": 1, "payment_status": 1})
+    if not c or c.get("status") != "active" or c.get("payment_status") != "paid":
+        return {"ok": False}
+    await _bump(body.campaign_id, "impressions")
+    return {"ok": True}
+
+
+@router.get("/click/{cid}")
+async def track_click(cid: str):
+    c = await _db.ad_campaigns.find_one({"id": cid}, {"_id": 0})
+    if not c:
+        raise HTTPException(404, "Ad not found")
+    if c.get("status") == "active" and c.get("payment_status") == "paid":
+        await _bump(cid, "clicks")
+    dest = (c.get("destination_url") or "").strip() or "/"
+    if not dest.startswith(("http://", "https://", "/")):
+        dest = "https://" + dest
+    return RedirectResponse(url=dest, status_code=302)
+
+
+# --------------------------------------------------------------------------- #
 # Advertiser analytics
 # --------------------------------------------------------------------------- #
 @router.get("/analytics/me")
@@ -385,7 +431,7 @@ async def my_analytics(request: Request):
             active += 1
         if c.get("payment_status") == "paid":
             spend += c.get("total", 0)
-        impr, clk, _, series = _agg(c)
+        impr, clk, _, series = await _agg(c["id"])
         total_impr += impr
         total_clk += clk
         for pt in series:
@@ -469,7 +515,7 @@ async def admin_analytics(request: Request):
     adv = {}
     for c in camps:
         await _maybe_expire(c)
-        impr, clk, _, _ = _agg(c)
+        impr, clk, _, _ = await _agg(c["id"])
         a = adv.setdefault(c["user_id"], {"user_id": c["user_id"], "email": c.get("user_email"),
                                           "name": c.get("user_name"), "campaigns": 0, "active": 0,
                                           "spend": 0.0, "impressions": 0})
@@ -530,5 +576,9 @@ async def ensure_indexes():
             pass
     try:
         await _db.ad_placements.create_index("code", unique=True)
+    except Exception:
+        pass
+    try:
+        await _db.ad_stats.create_index([("campaign_id", 1), ("date", 1)], unique=True)
     except Exception:
         pass
