@@ -75,7 +75,7 @@ export default function SolarBrandsManager({ scope = "admin" }) {
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Component</label>
             <select data-testid="brand-category" value={form.category_code} onChange={(e) => set("category_code", e.target.value)} className="w-full bg-background border border-input px-2 h-10 text-sm rounded-none">
-              {comps.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+              {comps.map((c) => <option key={c.code} value={c.code} label={c.label} />)}
             </select>
           </div>
           <div>

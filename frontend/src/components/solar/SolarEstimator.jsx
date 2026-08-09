@@ -171,9 +171,9 @@ export default function SolarEstimator({ embedded = false }) {
                     <select data-testid={`brand-sel-${c.code}`} value={sel[c.code] || ""}
                       onChange={(e) => setSel((p) => ({ ...p, [c.code]: e.target.value }))}
                       className="w-full bg-background border border-input px-2 h-9 text-sm rounded-none">
-                      <option value="">Default ({TIERS.find((t) => t.id === f.tier)?.label})</option>
+                      <option value="" label={`Default (${TIERS.find((t) => t.id === f.tier)?.label || "Standard"})`} />
                       {(brandsByCat[c.code] || []).map((b) => (
-                        <option key={b.id} value={b.id}>{b.brand_name}{b.module_wp ? ` ${b.module_wp}Wp` : ""} — ₹{Number(b.rate).toLocaleString("en-IN")}{c.unit}</option>
+                        <option key={b.id} value={b.id} label={`${b.brand_name}${b.module_wp ? ` ${b.module_wp}Wp` : ""} — ₹${Number(b.rate).toLocaleString("en-IN")}${c.unit}`} />
                       ))}
                     </select>
                   </div>

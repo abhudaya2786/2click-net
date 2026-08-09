@@ -110,10 +110,6 @@ Started, then paused for Super Mart. Built but **NOT yet wired into server.py** 
 - **Testing**: backend fully via curl; frontend E2E 100% → `/app/test_reports/iteration_12.json`. Empty-reason 422, non-admin 403, insufficient-balance handled.
 
 ## Next (approved backlog, priority order)
-- **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id` (marketplace stays cross-company by design).
-- **P1 Auth extras**: JWT refresh rotation, email verification on signup, 2FA setup UI in account settings.
-- **P1 Payments**: go live (claim Stripe account) + `/erp/boq/bulk` batch endpoint to speed up template loading.
-- **P2**: Logistics/Fleet, Architect/3D-LiDAR, CRM/Khatabook, GST/Accounting/E-Way, WhatsApp/SMS/Push, PWA, CI/CD.
 
 ## Universal Payment Wallet + Vendor Order Details — Delivered + Verified (2026-06, additive)
 - **Wallet** (`wallet.py`, `wallet_transactions` collection + `users.wallet_balance`): per-user balance + credit/debit ledger. Only Super Admin can adjust (mandatory reason, `AdjustIn` `amount>0`, `reason` min_length=2). Endpoints: `GET /api/wallet/me`, `POST /api/orders/{id}/pay-wallet` (atomic debit, marks order paid; **auto-refunds the debit if the order update fails**), `GET /api/admin/wallet/users`, `POST /api/admin/wallet/adjust`, `GET /api/admin/wallet/transactions`. Atomic `find_one_and_update` with `$gte` guards debit (race-safe, blocks overdraw). `migrate()` backfills balances from legacy `wallet` field.
@@ -122,3 +118,19 @@ Started, then paused for Super Mart. Built but **NOT yet wired into server.py** 
 - **Vendor Order Details**: checkout now captures site location (required), architect name/phone, company name (`OrderIn` fields already persisted in `create_order`). Vendor Dashboard orders table has a "Site / Architect" column + expandable "View" row showing site/architect/company + item list.
 - **Testing**: backend 16/16 (`test_wallet_iter11.py`), frontend 100% — see `/app/test_reports/iteration_11.json`. Permission checks (403 for non-admin on `/api/admin/wallet/*`), insufficient-balance (400), empty-reason (422) all verified.
 - Known low-priority notes: `OrderIn.items` is untyped `List[dict]` (missing price → 500); admin user `<select>` unpaginated; wallet ledger `to_list(500)` no pagination.
+
+## Solar EPC Dynamic Brand & Price Catalog + Freelancer Dashboard + Security/Deploy fixes — Delivered + Verified (2026-06, additive)
+- **Solar Brands Catalog** (`solar_brands` collection; `solar_epc.py`): Admin + Vendor manage brands/prices per component; Customer only views + selects. 11 component categories (module ₹/Wp incl. module_wp, inverter ₹/kW, battery ₹/kWh, structure/dc_cable/ac_cable/protection/install ₹/kWp, earthing ₹/pit, la ₹/unit, netmeter ₹/set). 18 brands auto-seeded (idempotent).
+- **Endpoints**: public `GET /api/solar/epc/components`, `GET /api/solar/epc/brands` (active only, `?category_code=`); `GET /api/solar/epc/brands/manage` (admin=all, vendor=own, others 403); `POST/PUT/PATCH-{id}/status/DELETE /api/solar/epc/brands` — super_admin edits/deletes ANY, vendor only own (`_get_owned_brand`), customer 403. `POST /estimate` + `/proposals` accept `brand_selections={code: brand_id}` → `_resolve_brand_overrides` → `_build_boq` swaps the brand+rate (module override also changes Wp/count). Verified: standard BOQ ₹2,73,021 → module=Waaree ₹2,96,009.
+- **Super Admin universal control**: super_admin bypasses ownership on brand CRUD (and already on products/orders/tenders/projects/BOQ/solar-proposals). Admin Solar Brands table shows an Owner column and can delete vendor-created brands.
+- **Frontend**: shared `components/solar/SolarBrandsManager.jsx` (scope='admin'|'vendor'); wired as tab in `AdminRBAC.jsx` (`rbac-tab-solar`) and nav in `VendorDashboard.jsx`. `SolarEstimator.jsx` has a "Choose component brands (optional)" collapsible with per-component `<select>` (uses `option label=` attr to avoid visual-edits span-in-option console warning); `brand_selections` sent in payload.
+- **Freelancer category-wise dashboard** (`FreelancerWorkspace.jsx`): profession banner + tailored "Recommended for you" quick-actions keyed on `session.user_type` (architect/engineer/ca/service_provider/freelancer). UI-level personalization; existing tabs unchanged.
+- **Security**: removed hardcoded super-admin credentials + triple-click auto-login hack from `Login.jsx`. Admin now logs in via normal form. Demo-fill buttons no longer carry the admin password.
+- **Deploy fix**: production frontend build was failing (`Unknown keyword formatMinimum` in ajv-keywords). Root cause: global `overrides`/`resolutions` forcing `ajv-keywords@5.1.0` onto `fork-ts-checker-webpack-plugin`'s nested `schema-utils@2.7.0` (needs ajv-keywords@3). Removed the `ajv`/`ajv-keywords` entries from package.json overrides+resolutions so each schema-utils resolves its correct ajv-keywords. `yarn build` now passes.
+- **Testing**: backend 9/9 pytest (`test_solar_brands.py`), frontend E2E 100% — see `/app/test_reports/iteration_14.json`. (Freelancer profession dashboard not E2E'd — no freelancer test account.)
+
+## Next (approved backlog, priority order)
+- **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id` (marketplace stays cross-company by design).
+- **P1 Auth extras**: JWT refresh rotation, email verification on signup, 2FA setup UI in account settings.
+- **P1 Payments**: go live (claim Stripe account) + `/erp/boq/bulk` batch endpoint to speed up template loading.
+- **P2**: Logistics/Fleet, Architect/3D-LiDAR, CRM/Khatabook, GST/Accounting/E-Way, WhatsApp/SMS/Push, PWA, CI/CD.
