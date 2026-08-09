@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -70,24 +70,13 @@ export default function Login() {
     } finally { setBusy(false); }
   };
 
-  // Secret super-admin access: triple-click the "Log in" heading quickly
-  const secret = useRef(0);
-  const onSecret = () => {
-    secret.current += 1;
-    setTimeout(() => { secret.current = 0; }, 1200);
-    if (secret.current >= 3) {
-      secret.current = 0;
-      doLogin({ email: "abbhuadaya@gmail.com", password: "Admin@12345" });
-    }
-  };
-
   const google = () => {
     const redirectUrl = window.location.origin + "/dashboard";
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
-  const demo = (email) => setForm({ email, password: email.includes("abbhu") ? "Admin@12345" : "Demo@12345" });
+  const demo = (email) => setForm({ email, password: "Demo@12345" });
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -111,7 +100,7 @@ export default function Login() {
 
           {stage === "login" && (
             <>
-              <h1 data-testid="login-title" onClick={onSecret} className="font-display font-extrabold text-3xl tracking-tight select-none cursor-default">Log in</h1>
+              <h1 data-testid="login-title" className="font-display font-extrabold text-3xl tracking-tight select-none cursor-default">Log in</h1>
               <p className="text-sm text-muted-foreground mt-1">Welcome back. Enter your credentials.</p>
               <form onSubmit={submit} className="mt-6 space-y-4">
                 <Input data-testid="login-email" type="email" placeholder="Email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-none" />

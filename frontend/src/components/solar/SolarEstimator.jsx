@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -47,7 +47,23 @@ export default function SolarEstimator({ embedded = false }) {
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [proposal, setProposal] = useState(null);
+  const [brands, setBrands] = useState([]);
+  const [components, setComponents] = useState([]);
+  const [sel, setSel] = useState({});
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    Promise.all([api.get("/solar/epc/brands"), api.get("/solar/epc/components")])
+      .then(([b, c]) => { setBrands(b.data || []); setComponents(c.data.components || []); })
+      .catch(() => {});
+  }, []);
+
+  const brandsByCat = useMemo(() => {
+    const m = {};
+    brands.forEach((b) => { (m[b.category_code] = m[b.category_code] || []).push(b); });
+    return m;
+  }, [brands]);
+  const selCount = Object.values(sel).filter(Boolean).length;
 
   const payload = () => ({
     segment: f.segment, system_type: f.system_type, tier: f.tier,
@@ -57,6 +73,7 @@ export default function SolarEstimator({ embedded = false }) {
     tenure_years: Number(f.tenure_years) || 0, interest_rate: f.interest_rate ? Number(f.interest_rate) : null,
     customer_name: f.customer_name, site_address: f.site_address, state: f.state,
     discom: f.discom, contact: f.contact,
+    brand_selections: Object.fromEntries(Object.entries(sel).filter(([, v]) => v)),
   });
 
   const estimate = async () => {
@@ -140,6 +157,30 @@ export default function SolarEstimator({ embedded = false }) {
             {battery && <div><label className="text-xs font-medium text-muted-foreground mb-1.5 block">Backup (days)</label>
               <Input data-testid="epc-autonomy" type="number" step="0.5" value={f.autonomy_days} onChange={(e) => set("autonomy_days", e.target.value)} className="rounded-none" /></div>}
           </div>
+
+          {components.filter((c) => (brandsByCat[c.code] || []).length && (c.code !== "battery" || battery)).length > 0 && (
+            <details className="text-sm" data-testid="brand-select">
+              <summary className="cursor-pointer text-muted-foreground text-xs font-medium">
+                Choose component brands (optional){selCount > 0 ? ` · ${selCount} selected` : ""}
+              </summary>
+              <p className="text-[11px] text-muted-foreground mt-2">Pick specific brands — their live rates replace the default {TIERS.find((t) => t.id === f.tier)?.label} pricing in your BOQ.</p>
+              <div className="mt-2.5 space-y-2.5">
+                {components.filter((c) => (brandsByCat[c.code] || []).length && (c.code !== "battery" || battery)).map((c) => (
+                  <div key={c.code}>
+                    <label className="text-xs text-muted-foreground mb-1 block">{c.label}</label>
+                    <select data-testid={`brand-sel-${c.code}`} value={sel[c.code] || ""}
+                      onChange={(e) => setSel((p) => ({ ...p, [c.code]: e.target.value }))}
+                      className="w-full bg-background border border-input px-2 h-9 text-sm rounded-none">
+                      <option value="">Default ({TIERS.find((t) => t.id === f.tier)?.label})</option>
+                      {(brandsByCat[c.code] || []).map((b) => (
+                        <option key={b.id} value={b.id}>{b.brand_name}{b.module_wp ? ` ${b.module_wp}Wp` : ""} — ₹{Number(b.rate).toLocaleString("en-IN")}{c.unit}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
           <details className="text-sm">
             <summary className="cursor-pointer text-muted-foreground text-xs font-medium">Financing & customer details</summary>

@@ -3,10 +3,11 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet, Sun } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
 import AdminBilling from "@/pages/dashboard/AdminBilling";
 import AdminMaterials from "@/pages/dashboard/AdminMaterials";
+import SolarBrandsManager from "@/components/solar/SolarBrandsManager";
 
 const TABS = [
   { id: "companies", label: "Companies", icon: Building2 },
@@ -20,6 +21,7 @@ const TABS = [
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "materials", label: "Super Mart", icon: Store },
+  { id: "solar", label: "Solar Brands", icon: Sun },
   { id: "modules", label: "Modules", icon: Boxes },
   { id: "menus", label: "Menus", icon: MenuIcon },
   { id: "audit", label: "Audit Logs", icon: ScrollText },
@@ -50,6 +52,7 @@ export default function AdminRBAC() {
       {tab === "billing" && <AdminBilling />}
       {tab === "wallet" && <AdminWallet />}
       {tab === "materials" && <AdminMaterials />}
+      {tab === "solar" && <SolarBrandsManager scope="admin" />}
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
       {tab === "audit" && <Audit />}
