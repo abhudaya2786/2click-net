@@ -16,6 +16,12 @@ export default function AIAssistant() {
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, open]);
 
+  useEffect(() => {
+    const openAssistant = () => setOpen(true);
+    window.addEventListener("open-ai-assistant", openAssistant);
+    return () => window.removeEventListener("open-ai-assistant", openAssistant);
+  }, []);
+
   if (!user) return null;
 
   const send = async () => {
