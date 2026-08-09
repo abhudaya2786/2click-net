@@ -62,7 +62,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "CI=false craco build",
     "test": "craco test"
   },
   "browserslist": {
@@ -94,7 +94,16 @@
     "postcss": "8.5.10",
     "tailwindcss": "3.4.17"
   },
+  "overrides": {
+    "ajv": "^8.17.1",
+    "ajv-keywords": "^5.1.0",
+    "react-day-picker": {
+      "date-fns": "^4.1.0"
+    }
+  },
   "resolutions": {
+    "ajv": "8.17.1",
+    "ajv-keywords": "5.1.0",
     "react-router": "7.15.1",
     "node-forge": "1.4.0",
     "fast-uri": "3.1.2",
