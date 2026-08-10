@@ -26,12 +26,12 @@ export default function Home() {
       {/* Hero */}
       <section className="relative border-b border-border overflow-hidden">
         <div className="mx-auto max-w-[1400px] grid lg:grid-cols-2">
-          <div className="px-5 md:px-10 py-16 md:py-28 flex flex-col justify-center">
+          <div className="px-4 md:px-10 py-10 md:py-28 flex flex-col justify-center order-2 lg:order-1">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <span className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-primary border border-primary/30 px-3 py-1.5 mb-6">
                 <span className="h-1.5 w-1.5 bg-primary" /> Enterprise Construction OS
               </span>
-              <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05]">
+              <h1 className="font-display font-extrabold text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.08]">
                 Build. Bid. <span className="text-primary">Procure.</span><br />All in one platform.
               </h1>
               <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">
@@ -44,7 +44,7 @@ export default function Home() {
               </div>
             </motion.div>
           </div>
-          <div className="relative min-h-[320px] lg:min-h-0">
+          <div className="relative min-h-[220px] sm:min-h-[320px] lg:min-h-0 order-1 lg:order-2">
             <img src={HERO} alt="Construction" className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0 bg-slate-950/40" />
             <div className="absolute bottom-0 left-0 right-0 p-6 grid grid-cols-3 gap-px bg-border">

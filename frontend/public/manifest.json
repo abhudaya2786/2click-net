@@ -1,0 +1,20 @@
+{
+  "short_name": "2click",
+  "name": "2click.in — Construction Super App",
+  "description": "Tenders, marketplace, solar, ERP and AI for construction",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#FF5A1F",
+  "background_color": "#F8F9FB",
+  "scope": "/",
+  "categories": ["business", "productivity"]
+}
