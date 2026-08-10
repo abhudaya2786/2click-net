@@ -8,6 +8,8 @@ import RegionalLanding from "@/components/marketing/RegionalLanding";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
+import { useLang } from "@/context/LanguageContext";
+import { HOME_COPY } from "@/lib/homeCopy";
 
 const HERO = "https://images.unsplash.com/photo-1527335988388-b40ee248d80c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjBzaXRlJTIwY3JhbmUlMjBtb2Rlcm4lMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzg2MDc3Mzc4fDA&ixlib=rb-4.1.0&q=85";
 
@@ -17,7 +19,8 @@ const MODULE_LINKS = ["/tenders", "/marketplace", "/solar", "/login", "/services
 
 export default function Home() {
   const { hero_layout } = useBranding();
-  const waMsg = "नमस्ते 2click.in — मुझे construction platform के बारे में जानकारी चाहिए।";
+  const { lang } = useLang();
+  const c = HOME_COPY[lang] || HOME_COPY.en;
   const centered = hero_layout === "centered";
 
   return (
@@ -36,9 +39,9 @@ export default function Home() {
               <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">{c.heroSub}</p>
               <TrustBadges className="mt-6" />
               <div className={`mt-8 flex flex-wrap gap-3 ${centered ? "justify-center" : ""}`}>
-                <Link to="/register"><Button data-testid="hero-cta" size="lg" className="btn-premium">मुफ़्त शुरू करें <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
-                <Link to="/tenders"><Button data-testid="hero-tenders" size="lg" variant="outline" className="btn-premium">Live Tenders देखें</Button></Link>
-                <WhatsAppShare message={waMsg} label="WhatsApp" size="lg" />
+                <Link to="/register"><Button data-testid="hero-cta" size="lg" className="btn-premium">{c.ctaStart} <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+                <Link to="/tenders"><Button data-testid="hero-tenders" size="lg" variant="outline" className="btn-premium">{c.ctaTenders}</Button></Link>
+                <WhatsAppShare message={c.waMsg} label={c.waLabel} size="lg" />
               </div>
             </motion.div>
           </div>
