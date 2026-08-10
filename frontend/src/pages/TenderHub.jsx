@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Gavel, Clock, Users, Loader2, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import PageSEO from "@/components/marketing/PageSEO";
 
 function Countdown({ closesAt }) {
   const [left, setLeft] = useState("");
@@ -26,6 +27,11 @@ export default function TenderHub() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-10">
+      <PageSEO
+        title="Tender Hub — Live Reverse Auction & Bidding"
+        description="Construction tender bidding platform with live reverse auction, auto-ranking and AI tender summary — 2click.in Tender Hub"
+        path="/tenders"
+      />
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <span className="text-xs font-mono uppercase tracking-widest text-tender">Tender Hub</span>

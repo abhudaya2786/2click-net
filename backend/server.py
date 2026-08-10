@@ -548,6 +548,8 @@ class ContactIn(BaseModel):
     email: EmailStr
     message: str
     phone: Optional[str] = None
+    source: Optional[str] = "contact"
+    interest: Optional[str] = None
 
 
 @api.post("/contact")
