@@ -20,7 +20,15 @@ export default function Freelancers() {
   const [msg, setMsg] = useState("");
   const [sending, setSending] = useState(false);
 
-  const load = () => { setLoading(true); api.get("/freelancers", { params: { q } }).then(({ data }) => setList(data)).finally(() => setLoading(false)); };
+  const [rates, setRates] = useState(null);
+
+  const load = () => {
+    setLoading(true);
+    Promise.all([
+      api.get("/freelancers", { params: { q } }),
+      api.get("/commission/freelancer-rates").catch(() => ({ data: null })),
+    ]).then(([fl, rt]) => { setList(fl.data); setRates(rt.data); }).finally(() => setLoading(false));
+  };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
   const contact = (f) => {
@@ -43,6 +51,11 @@ export default function Freelancers() {
         <span className="text-xs font-mono uppercase tracking-widest text-primary">Talent Network</span>
         <h1 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight mt-2">Hire verified professionals & freelancers.</h1>
         <p className="mt-2 text-muted-foreground text-sm">Architects, engineers, CAs and specialists — browse freely, log in to connect.</p>
+        {rates && (
+          <p className="mt-2 text-xs text-muted-foreground border border-border inline-block px-3 py-1.5 bg-card">
+            Commission-based: platform fee from <strong>{rates.order_platform_percent}%</strong> per order (varies by service/product — freelancer receives net payout).
+          </p>
+        )}
       </div>
 
       <div className="flex gap-2 mb-6 max-w-xl">

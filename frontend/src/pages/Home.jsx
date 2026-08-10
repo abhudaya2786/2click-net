@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import TrustBadges from "@/components/marketing/TrustBadges";
 import PageSEO from "@/components/marketing/PageSEO";
 import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
+import RegionalLanding from "@/components/marketing/RegionalLanding";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users } from "lucide-react";
 
@@ -71,6 +72,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <RegionalLanding />
 
       <section className="mx-auto max-w-[1400px] px-4 md:px-10 py-16 md:py-24">
         <div className="max-w-2xl mb-12">

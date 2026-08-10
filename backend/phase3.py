@@ -180,8 +180,34 @@ async def delete_plan(pid: str, request: Request, user=Depends(rbac.rbac_admin))
 async def get_commission_config():
     doc = await _db.app_settings.find_one({"key": "commission"}, {"_id": 0})
     if not doc:
-        return {"default_percent": 5.0, "per_category": []}
-    return doc.get("value", {"default_percent": 5.0, "per_category": []})
+        return {"default_percent": 5.0, "per_category": [], "freelancer": _default_freelancer_commission()}
+    val = doc.get("value", {"default_percent": 5.0, "per_category": []})
+    if "freelancer" not in val:
+        val["freelancer"] = _default_freelancer_commission()
+    return val
+
+
+def _default_freelancer_commission():
+    return {
+        "default_percent": 12.0,
+        "order_platform_percent": 12.0,
+        "per_category": [
+            {"category": "Architecture", "percent": 10.0},
+            {"category": "BOQ", "percent": 15.0},
+            {"category": "CAD Design", "percent": 12.0},
+            {"category": "3D Design", "percent": 12.0},
+            {"category": "Estimation", "percent": 14.0},
+            {"category": "Interior Design", "percent": 11.0},
+        ],
+        "per_product": [
+            {"product_key": "site_visit", "label": "Site Visit", "percent": 8.0},
+            {"product_key": "boq_draft", "label": "BOQ Draft", "percent": 15.0},
+            {"product_key": "cad_2d", "label": "2D CAD Drawing", "percent": 12.0},
+            {"product_key": "render_3d", "label": "3D Render", "percent": 12.0},
+            {"product_key": "supervision", "label": "Site Supervision (monthly)", "percent": 10.0},
+        ],
+    }
+
 
 def commission_for(config, category=None):
     if category:
@@ -190,6 +216,29 @@ def commission_for(config, category=None):
                 return float(row.get("percent", config.get("default_percent", 5.0)))
     return float(config.get("default_percent", 5.0))
 
+
+def freelancer_commission_for(config, category=None, product_key=None, order_amount=None):
+    """Product-wise first, then category, then order default %."""
+    fl = config.get("freelancer") or _default_freelancer_commission()
+    if product_key:
+        for row in fl.get("per_product", []):
+            if row.get("product_key") == product_key:
+                return float(row.get("percent", fl.get("default_percent", 12.0)))
+    if category:
+        for row in fl.get("per_category", []):
+            if row.get("category") == category:
+                return float(row.get("percent", fl.get("default_percent", 12.0)))
+    if order_amount is not None and fl.get("order_platform_percent") is not None:
+        return float(fl.get("order_platform_percent", fl.get("default_percent", 12.0)))
+    return float(fl.get("default_percent", 12.0))
+
+
+def split_freelancer_order(amount: float, config, category=None, product_key=None):
+    pct = freelancer_commission_for(config, category=category, product_key=product_key, order_amount=amount)
+    platform = round(amount * pct / 100, 2)
+    payout = round(amount - platform, 2)
+    return {"commission_percent": pct, "platform_commission": platform, "freelancer_payout": payout}
+
 @admin_router.get("/commission")
 async def get_commission(user=Depends(rbac.rbac_admin)):
     return await get_commission_config()
@@ -197,14 +246,30 @@ async def get_commission(user=Depends(rbac.rbac_admin)):
 @admin_router.put("/commission")
 async def set_commission(body: dict, request: Request, user=Depends(rbac.rbac_admin)):
     old = await get_commission_config()
-    value = {"default_percent": float(body.get("default_percent", 5.0)),
-             "per_category": body.get("per_category", [])}
+    value = {
+        "default_percent": float(body.get("default_percent", 5.0)),
+        "per_category": body.get("per_category", []),
+        "freelancer": body.get("freelancer") or old.get("freelancer") or _default_freelancer_commission(),
+    }
     await _db.app_settings.update_one({"key": "commission"},
                                       {"$set": {"key": "commission", "value": value, "updated_at": iso(now_utc())}},
                                       upsert=True)
     await rbac.audit_log("MANAGE", "settings", "commission", old, value, user=user, request=request,
                          metadata={"section": "commission"})
     return {"ok": True, "value": value}
+
+
+@public_router.get("/commission/freelancer-rates")
+async def public_freelancer_rates():
+    cfg = await get_commission_config()
+    fl = cfg.get("freelancer") or _default_freelancer_commission()
+    return {
+        "default_percent": fl.get("default_percent", 12.0),
+        "order_platform_percent": fl.get("order_platform_percent", 12.0),
+        "per_category": fl.get("per_category", []),
+        "per_product": fl.get("per_product", []),
+        "note": "Platform fee deducted from order total; freelancer receives net payout.",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -261,6 +326,7 @@ async def seed_phase3():
         await _db.app_settings.insert_one({"key": "commission", "value": {
             "default_percent": 5.0,
             "per_category": [{"category": "Solar", "percent": 3.0}, {"category": "Steel & TMT", "percent": 2.5}],
+            "freelancer": _default_freelancer_commission(),
         }, "updated_at": iso(now_utc())})
 
     # Ensure default company branding

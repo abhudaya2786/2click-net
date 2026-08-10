@@ -1189,6 +1189,10 @@ async def startup():
     ads.init(db, get_current_user)
     await ads.ensure_indexes()
     await ads.seed_placements()
+    import landing as _landing
+    _landing.init(db)
+    await _landing.ensure_indexes()
+    await _landing.seed_landing()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1225,6 +1229,8 @@ import ads as _ads
 _ads.init(db, get_current_user)
 import home_build as _home
 _home.init(db, get_current_user)
+import landing as _landing
+_landing.init(db)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1242,6 +1248,7 @@ app.include_router(_wallet.router)
 app.include_router(_ads.router)
 app.include_router(_home.router)
 app.include_router(_home.admin_router)
+app.include_router(_landing.public_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

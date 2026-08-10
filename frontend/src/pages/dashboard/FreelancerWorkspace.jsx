@@ -8,12 +8,15 @@ import {
   IndianRupee, Wallet, Compass, Ruler, HardHat, Calculator, Sun, Store, Gavel, ShoppingBag,
   FileText, Users, ArrowRight,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "services", label: "My Services", icon: Briefcase },
   { id: "enquiries", label: "Enquiries", icon: Inbox },
+  { id: "orders", label: "Orders", icon: IndianRupee },
   { id: "portfolio", label: "Portfolio", icon: FolderOpen },
   { id: "wallet", label: "Wallet", icon: Wallet },
 ];
@@ -71,6 +74,9 @@ export default function FreelancerWorkspace() {
   const [active, setActive] = useState("overview");
   const [session, setSession] = useState(null);
   const [enq, setEnq] = useState({ received: [], sent: [], unread: 0 });
+  const [orders, setOrders] = useState({ as_freelancer: [], as_customer: [] });
+  const [rates, setRates] = useState(null);
+  const [orderForm, setOrderForm] = useState({});
   const [loading, setLoading] = useState(true);
   const seen = useRef(null);
 
@@ -88,10 +94,31 @@ export default function FreelancerWorkspace() {
 
   useEffect(() => {
     api.get("/auth/session").then((s) => setSession(s.data)).catch(() => {});
+    api.get("/commission/freelancer-rates").then(({ data }) => setRates(data)).catch(() => {});
+    api.get("/freelancers/me/orders").then(({ data }) => setOrders(data)).catch(() => {});
     loadEnq().finally(() => setLoading(false));
     const t = setInterval(loadEnq, 15000);
     return () => clearInterval(t);
   }, [loadEnq]);
+
+  const createOrderFromEnquiry = async (eid) => {
+    const f = orderForm[eid] || {};
+    if (!f.amount || !f.service_name) { toast.error("Amount and service name required"); return; }
+    try {
+      await api.post(`/freelancers/enquiries/${eid}/create-order`, {
+        amount: Number(f.amount),
+        service_name: f.service_name,
+        category: f.category || undefined,
+        product_key: f.product_key || undefined,
+      });
+      toast.success("Order created — customer can pay");
+      const { data } = await api.get("/freelancers/me/orders");
+      setOrders(data);
+      loadEnq();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed");
+    }
+  };
 
   useEffect(() => {
     if (active !== "enquiries") return;
@@ -181,20 +208,63 @@ export default function FreelancerWorkspace() {
           )}
 
           {active === "enquiries" && (
+            <div className="space-y-4">
+              {rates && (
+                <div className="text-xs text-muted-foreground border border-border bg-card p-3">
+                  Platform commission: order default <strong>{rates.order_platform_percent}%</strong> — product/category rates apply when set.
+                </div>
+              )}
             <div className="bg-card border border-border overflow-x-auto">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="p-3">From</th><th className="p-3">Message</th><th className="p-3">Category</th><th className="p-3">Date</th></tr></thead>
+                  <th className="p-3">From</th><th className="p-3">Message</th><th className="p-3">Create order</th><th className="p-3">Date</th></tr></thead>
                 <tbody>
                   {enq.received.map((e) => (
-                    <tr key={e.id} className="border-b border-border hover:bg-muted/50">
+                    <tr key={e.id} className="border-b border-border hover:bg-muted/50 align-top">
                       <td className="p-3"><div className="font-medium">{e.from_name}</div><div className="text-xs text-muted-foreground font-mono">{e.from_email}</div></td>
-                      <td className="p-3 max-w-md">{e.message}</td>
-                      <td className="p-3">{e.category || "—"}</td>
+                      <td className="p-3 max-w-xs"><div>{e.message}</div><div className="text-xs text-muted-foreground mt-1">{e.category || "—"}</div></td>
+                      <td className="p-3 min-w-[220px]">
+                        {e.status === "ordered" ? (
+                          <span className="text-xs font-mono text-solar">Order created</span>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <Input placeholder="Service name" value={orderForm[e.id]?.service_name || ""} onChange={(ev) => setOrderForm({ ...orderForm, [e.id]: { ...orderForm[e.id], service_name: ev.target.value, category: e.category } })} className="rounded-none h-8 text-xs" />
+                            <Input type="number" placeholder="Amount ₹" value={orderForm[e.id]?.amount || ""} onChange={(ev) => setOrderForm({ ...orderForm, [e.id]: { ...orderForm[e.id], amount: ev.target.value } })} className="rounded-none h-8 text-xs" />
+                            <select value={orderForm[e.id]?.product_key || ""} onChange={(ev) => setOrderForm({ ...orderForm, [e.id]: { ...orderForm[e.id], product_key: ev.target.value } })} className="w-full h-8 border text-xs px-2">
+                              <option value="">Product package (optional)</option>
+                              {(rates?.per_product || []).map((p) => <option key={p.product_key} value={p.product_key}>{p.label} ({p.percent}%)</option>)}
+                            </select>
+                            <Button size="sm" onClick={() => createOrderFromEnquiry(e.id)} className="rounded-none h-8 w-full text-xs">Create order</Button>
+                          </div>
+                        )}
+                      </td>
                       <td className="p-3 text-xs text-muted-foreground">{new Date(e.created_at).toLocaleDateString("en-IN")}</td>
                     </tr>
                   ))}
                   {enq.received.length === 0 && <tr><td colSpan="4" className="p-8 text-center text-muted-foreground">No enquiries yet.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+            </div>
+          )}
+
+          {active === "orders" && (
+            <div className="bg-card border border-border overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead><tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="p-3">Service</th><th className="p-3">Customer</th><th className="p-3">Amount</th><th className="p-3">Commission</th><th className="p-3">Your payout</th><th className="p-3">Status</th></tr></thead>
+                <tbody>
+                  {(orders.as_freelancer || []).map((o) => (
+                    <tr key={o.id} className="border-b border-border">
+                      <td className="p-3 font-medium">{o.service_name}</td>
+                      <td className="p-3">{o.customer_name}</td>
+                      <td className="p-3">₹{o.amount?.toLocaleString("en-IN")}</td>
+                      <td className="p-3 text-muted-foreground">{o.commission_percent}% (₹{o.platform_commission})</td>
+                      <td className="p-3 text-solar font-medium">₹{o.freelancer_payout?.toLocaleString("en-IN")}</td>
+                      <td className="p-3"><span className="text-xs font-mono uppercase">{o.status}</span></td>
+                    </tr>
+                  ))}
+                  {(orders.as_freelancer || []).length === 0 && <tr><td colSpan="6" className="p-8 text-center text-muted-foreground">No orders yet.</td></tr>}
                 </tbody>
               </table>
             </div>
