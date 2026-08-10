@@ -400,19 +400,28 @@ function Branding() {
 
 function PricingCommission() {
   const [plans, setPlans] = useState([]);
-  const [comm, setComm] = useState({ default_percent: 5, per_category: [] });
+  const [comm, setComm] = useState({ default_percent: 5, per_category: [], freelancer: { default_percent: 12, order_platform_percent: 12, per_category: [], per_product: [] } });
   const [saving, setSaving] = useState(false);
-  const load = () => { api.get(`${A}/plans`).then(({ data }) => setPlans(data)); api.get(`${A}/commission`).then(({ data }) => setComm(data)); };
+  const fl = comm.freelancer || { default_percent: 12, per_category: [], per_product: [] };
+  const load = () => { api.get(`${A}/plans`).then(({ data }) => setPlans(data)); api.get(`${A}/commission`).then(({ data }) => setComm({ ...data, freelancer: data.freelancer || { default_percent: 12, per_category: [], per_product: [] } })); };
   useEffect(() => { load(); }, []);
   const saveComm = async () => {
     setSaving(true);
-    try { await api.put(`${A}/commission`, { default_percent: Number(comm.default_percent), per_category: comm.per_category }); toast.success("Commission saved"); }
+    try { await api.put(`${A}/commission`, comm); toast.success("Commission saved"); }
     catch { toast.error("Save failed"); } finally { setSaving(false); }
   };
-  const addRow = () => setComm({ ...comm, per_category: [...comm.per_category, { category: "", percent: 0 }] });
-  const setRow = (i, k, v) => { const pc = [...comm.per_category]; pc[i] = { ...pc[i], [k]: k === "percent" ? Number(v) : v }; setComm({ ...comm, per_category: pc }); };
-  const delRow = (i) => setComm({ ...comm, per_category: comm.per_category.filter((_, x) => x !== i) });
+  const addRow = (key) => setComm({ ...comm, [key]: [...(comm[key] || []), { category: "", percent: 0 }] });
+  const setRow = (key, i, k, v) => { const pc = [...(comm[key] || [])]; pc[i] = { ...pc[i], [k]: k === "percent" ? Number(v) : v }; setComm({ ...comm, [key]: pc }); };
+  const delRow = (key, i) => setComm({ ...comm, [key]: (comm[key] || []).filter((_, x) => x !== i) });
+  const setFl = (k, v) => setComm({ ...comm, freelancer: { ...fl, [k]: v } });
+  const addFlProd = () => setFl("per_product", [...(fl.per_product || []), { product_key: "", label: "", percent: 12 }]);
+  const setFlProd = (i, k, v) => { const arr = [...(fl.per_product || [])]; arr[i] = { ...arr[i], [k]: k === "percent" ? Number(v) : v }; setFl("per_product", arr); };
+  const delFlProd = (i) => setFl("per_product", (fl.per_product || []).filter((_, x) => x !== i));
+  const addFlCat = () => setFl("per_category", [...(fl.per_category || []), { category: "", percent: 12 }]);
+  const setFlCat = (i, k, v) => { const arr = [...(fl.per_category || [])]; arr[i] = { ...arr[i], [k]: k === "percent" ? Number(v) : v }; setFl("per_category", arr); };
+  const delFlCat = (i) => setFl("per_category", (fl.per_category || []).filter((_, x) => x !== i));
   return (
+    <div className="space-y-6">
     <div className="grid lg:grid-cols-2 gap-6">
       <Panel title={`Subscription Plans (${plans.length})`}>
         <div className="divide-y divide-border">
@@ -425,29 +434,68 @@ function PricingCommission() {
           ))}
         </div>
       </Panel>
-      <Panel title="Commission Engine" action={<Button data-testid="comm-save" onClick={saveComm} disabled={saving} size="sm" className="rounded-none">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}</Button>}>
+      <Panel title="Vendor Marketplace Commission" action={<Button data-testid="comm-save" onClick={saveComm} disabled={saving} size="sm" className="rounded-none">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save all"}</Button>}>
         <div className="p-5 space-y-4">
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium">Default platform commission</label>
+            <label className="text-sm font-medium">Default vendor commission</label>
             <Input data-testid="comm-default" type="number" value={comm.default_percent} onChange={(e) => setComm({ ...comm, default_percent: e.target.value })} className="rounded-none w-24 h-9" />
             <span className="text-sm text-muted-foreground">%</span>
           </div>
           <div>
-            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Per-category overrides</span>
-              <Button data-testid="comm-add-row" onClick={addRow} size="sm" variant="outline" className="rounded-none"><Plus className="h-3.5 w-3.5" /></Button></div>
+            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Per-category (marketplace)</span>
+              <Button data-testid="comm-add-row" onClick={() => addRow("per_category")} size="sm" variant="outline" className="rounded-none"><Plus className="h-3.5 w-3.5" /></Button></div>
             <div className="space-y-2">
-              {comm.per_category.map((r, i) => (
+              {(comm.per_category || []).map((r, i) => (
                 <div key={i} className="flex gap-2 items-center">
-                  <Input value={r.category} onChange={(e) => setRow(i, "category", e.target.value)} placeholder="Category" className="rounded-none h-9 flex-1" />
-                  <Input type="number" value={r.percent} onChange={(e) => setRow(i, "percent", e.target.value)} className="rounded-none h-9 w-24" />
+                  <Input value={r.category} onChange={(e) => setRow("per_category", i, "category", e.target.value)} placeholder="Category" className="rounded-none h-9 flex-1" />
+                  <Input type="number" value={r.percent} onChange={(e) => setRow("per_category", i, "percent", e.target.value)} className="rounded-none h-9 w-24" />
                   <span className="text-sm text-muted-foreground">%</span>
-                  <button onClick={() => delRow(i)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => delRow("per_category", i)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
             </div>
           </div>
         </div>
       </Panel>
+    </div>
+
+    <Panel title="Freelancer Commission (product-wise & order-wise)" action={<Button onClick={saveComm} disabled={saving} size="sm" className="rounded-none">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}</Button>}>
+      <div className="p-5 grid lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">Platform fee on freelancer orders. Product key match first, then category, then order default %.</p>
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium">Order default %</label>
+            <Input type="number" value={fl.order_platform_percent ?? fl.default_percent} onChange={(e) => setFl("order_platform_percent", Number(e.target.value))} className="rounded-none w-24 h-9" />
+            <span className="text-sm text-muted-foreground">%</span>
+          </div>
+          <div>
+            <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Per service category</span>
+              <Button onClick={addFlCat} size="sm" variant="outline" className="rounded-none"><Plus className="h-3.5 w-3.5" /></Button></div>
+            {(fl.per_category || []).map((r, i) => (
+              <div key={i} className="flex gap-2 items-center mb-2">
+                <Input value={r.category} onChange={(e) => setFlCat(i, "category", e.target.value)} placeholder="e.g. BOQ" className="rounded-none h-9 flex-1" />
+                <Input type="number" value={r.percent} onChange={(e) => setFlCat(i, "percent", e.target.value)} className="rounded-none h-9 w-20" />
+                <span className="text-sm">%</span>
+                <button onClick={() => delFlCat(i)}><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="flex items-center justify-between mb-2"><span className="text-sm font-medium">Per product / package</span>
+            <Button onClick={addFlProd} size="sm" variant="outline" className="rounded-none"><Plus className="h-3.5 w-3.5" /></Button></div>
+          {(fl.per_product || []).map((r, i) => (
+            <div key={i} className="flex gap-2 items-center mb-2 flex-wrap">
+              <Input value={r.product_key} onChange={(e) => setFlProd(i, "product_key", e.target.value)} placeholder="product_key" className="rounded-none h-9 w-28" />
+              <Input value={r.label} onChange={(e) => setFlProd(i, "label", e.target.value)} placeholder="Label" className="rounded-none h-9 flex-1 min-w-[120px]" />
+              <Input type="number" value={r.percent} onChange={(e) => setFlProd(i, "percent", e.target.value)} className="rounded-none h-9 w-16" />
+              <span className="text-sm">%</span>
+              <button onClick={() => delFlProd(i)}><Trash2 className="h-4 w-4" /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Panel>
     </div>
   );
 }

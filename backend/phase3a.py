@@ -322,6 +322,23 @@ class EnquiryIn(BaseModel):
     category: Optional[str] = None
 
 
+class FreelancerOrderIn(BaseModel):
+    freelancer_id: str
+    service_name: str
+    amount: float
+    category: Optional[str] = None
+    product_key: Optional[str] = None
+    enquiry_id: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class EnquiryOrderIn(BaseModel):
+    amount: float
+    service_name: str
+    category: Optional[str] = None
+    product_key: Optional[str] = None
+
+
 @public_router.post("/freelancers/{fid}/enquiry")
 async def freelancer_enquiry(fid: str, body: EnquiryIn, request: Request):
     user = await _get_current_user(request)  # LOGIN REQUIRED for protected action
@@ -355,6 +372,114 @@ async def mark_enquiries_read(request: Request):
     res = await _db.freelancer_enquiries.update_many(
         {"freelancer_id": user["id"], "is_read": False}, {"$set": {"is_read": True}})
     return {"ok": True, "marked": res.modified_count}
+
+
+@public_router.post("/freelancers/orders")
+async def create_freelancer_order(body: FreelancerOrderIn, request: Request):
+    """Customer books a freelancer service — commission split computed product/order wise."""
+    user = await _get_current_user(request)
+    return await _insert_freelancer_order(body, customer_user=user, request=request)
+
+
+async def _insert_freelancer_order(body: FreelancerOrderIn, customer_user: dict, request: Request):
+    import phase3
+    fr = await _db.users.find_one({"id": body.freelancer_id}, {"_id": 0})
+    if not fr or fr.get("user_type") not in FREELANCER_TYPES:
+        raise HTTPException(404, "Freelancer not found")
+    if body.amount <= 0:
+        raise HTTPException(400, "Amount must be positive")
+    cfg = await phase3.get_commission_config()
+    split = phase3.split_freelancer_order(body.amount, cfg, category=body.category, product_key=body.product_key)
+    doc = {
+        "id": new_id("flord"),
+        "type": "freelancer",
+        "freelancer_id": body.freelancer_id,
+        "freelancer_name": fr.get("name"),
+        "customer_id": customer_user["id"],
+        "customer_name": customer_user.get("name"),
+        "customer_email": customer_user.get("email"),
+        "service_name": body.service_name,
+        "category": body.category,
+        "product_key": body.product_key,
+        "enquiry_id": body.enquiry_id,
+        "notes": body.notes,
+        "amount": round(body.amount, 2),
+        "commission_percent": split["commission_percent"],
+        "platform_commission": split["platform_commission"],
+        "freelancer_payout": split["freelancer_payout"],
+        "status": "pending",
+        "created_at": iso(now_utc()),
+    }
+    await _db.freelancer_orders.insert_one(dict(doc))
+    if body.enquiry_id:
+        await _db.freelancer_enquiries.update_one(
+            {"id": body.enquiry_id},
+            {"$set": {"status": "ordered", "order_id": doc["id"], "quoted_amount": doc["amount"]}},
+        )
+    await rbac.audit_log("CREATE", "orders", doc["id"], None, {"freelancer": body.freelancer_id},
+                         user=customer_user, request=request)
+    doc.pop("_id", None)
+    return doc
+
+
+@public_router.post("/freelancers/enquiries/{eid}/create-order")
+async def enquiry_to_order(eid: str, body: EnquiryOrderIn, request: Request):
+    """Freelancer converts an enquiry into a billable order with fixed commission."""
+    user = await _get_current_user(request)
+    enq = await _db.freelancer_enquiries.find_one({"id": eid}, {"_id": 0})
+    if not enq:
+        raise HTTPException(404, "Enquiry not found")
+    if enq.get("freelancer_id") != user["id"] and user.get("role") != "super_admin":
+        raise HTTPException(403, "Only the freelancer can create order from this enquiry")
+    cust = await _db.users.find_one({"id": enq["from_user_id"]}, {"_id": 0})
+    if not cust:
+        raise HTTPException(400, "Customer account not found")
+    return await _insert_freelancer_order(
+        FreelancerOrderIn(
+            freelancer_id=enq["freelancer_id"],
+            service_name=body.service_name,
+            amount=body.amount,
+            category=body.category or enq.get("category"),
+            product_key=body.product_key,
+            enquiry_id=eid,
+        ),
+        customer_user=cust,
+        request=request,
+    )
+
+
+@public_router.get("/freelancers/me/orders")
+async def my_freelancer_orders(request: Request):
+    user = await _get_current_user(request)
+    if user.get("user_type") in FREELANCER_TYPES or user.get("role") == "super_admin":
+        as_provider = await _db.freelancer_orders.find(
+            {"freelancer_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    else:
+        as_provider = []
+    as_customer = await _db.freelancer_orders.find(
+        {"customer_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return {"as_freelancer": as_provider, "as_customer": as_customer}
+
+
+@public_router.post("/freelancers/orders/{oid}/pay")
+async def pay_freelancer_order(oid: str, request: Request):
+    user = await _get_current_user(request)
+    order = await _db.freelancer_orders.find_one({"id": oid}, {"_id": 0})
+    if not order:
+        raise HTTPException(404, "Order not found")
+    if order.get("customer_id") != user["id"] and user.get("role") != "super_admin":
+        raise HTTPException(403, "Not your order")
+    if order.get("status") == "paid":
+        return {"ok": True, "status": "paid"}
+    await _db.freelancer_orders.update_one(
+        {"id": oid},
+        {"$set": {"status": "paid", "paid_at": iso(now_utc())}},
+    )
+    await _db.users.update_one(
+        {"id": order["freelancer_id"]},
+        {"$inc": {"wallet": order.get("freelancer_payout", 0)}},
+    )
+    return {"ok": True, "status": "paid", "freelancer_payout": order.get("freelancer_payout")}
 
 
 # ---------------------------------------------------------------------------
@@ -413,6 +538,7 @@ async def ensure_indexes():
         "user_types": ["code", "status"],
         "users": ["user_type", "primary_category_id", "company_id", "department_id"],
         "freelancer_enquiries": ["freelancer_id", "from_user_id"],
+        "freelancer_orders": ["freelancer_id", "customer_id", "status"],
     }.items():
         for f in fields:
             try:

@@ -17,7 +17,7 @@ const PRIMARY_LINKS = [
 ];
 
 const MORE_LINKS = [
-  { to: "/become-vendor", label: "Become Vendor", labelHi: "Vendor बनें" },
+  { to: "/become-vendor", label: "Become Vendor", labelHi: "विक्रेता बनें" },
   { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
   { to: "/ads", label: "Advertise", labelHi: "विज्ञापन" },
   { to: "/services", label: "Services", labelHi: "सेवाएँ" },
@@ -58,7 +58,7 @@ export default function Navbar() {
               onClick={() => setMoreOpen((v) => !v)}
               className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              More <ChevronDown className={`h-4 w-4 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
+              {navCopy.more} <ChevronDown className={`h-4 w-4 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
             </button>
             {moreOpen && (
               <div className="absolute top-full right-0 mt-2 w-44 rounded-lg border border-border bg-card shadow-lg py-1 z-50">
@@ -86,7 +86,7 @@ export default function Navbar() {
             className="h-9 px-2 flex items-center justify-center border border-border hover:bg-accent transition-colors rounded-lg text-xs font-mono uppercase"
             title="Switch language"
           >
-            {lang === "en" ? "हि" : "EN"}
+            {navCopy.langSwitch}
           </button>
           )}
           <button data-testid="theme-toggle" onClick={toggle}
@@ -95,13 +95,13 @@ export default function Navbar() {
           </button>
           {user ? (
             <Button data-testid="nav-dashboard-btn" onClick={() => nav("/dashboard")}
-              className="btn-premium hidden sm:inline-flex h-9">Dashboard</Button>
+              className="btn-premium hidden sm:inline-flex h-9">{navCopy.dashboard}</Button>
           ) : (
             <>
               <Button variant="ghost" data-testid="nav-login-btn" onClick={() => nav("/login")}
-                className="rounded-lg hidden sm:inline-flex h-9">Log in</Button>
+                className="rounded-lg hidden sm:inline-flex h-9">{navCopy.login}</Button>
               <Button data-testid="nav-signup-btn" onClick={() => nav("/register")}
-                className="btn-premium hidden sm:inline-flex h-9 text-sm px-3">Join</Button>
+                className="btn-premium hidden sm:inline-flex h-9 text-sm px-3">{navCopy.join}</Button>
             </>
           )}
           <button className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg border border-border" onClick={() => setOpen(!open)} data-testid="nav-mobile-toggle">
@@ -111,9 +111,9 @@ export default function Navbar() {
       </div>
       {open && (
         <div className="lg:hidden border-t border-border bg-background px-4 py-3 flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-1">Menu</p>
-          {ALL_LINKS.filter((l) => !["/marketplace", "/tenders", "/solar"].includes(l.to)).map((l) => (
-            <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-medium py-2 px-1 active:text-primary">{l.label}</Link>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-1">{navCopy.menu}</p>
+          {ALL_LINKS.map((l) => (
+            <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-medium py-2 px-1 active:text-primary">{lbl(l)}</Link>
           ))}
         </div>
       )}
