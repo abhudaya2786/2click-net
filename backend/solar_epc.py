@@ -1115,10 +1115,12 @@ async def download_kyc(file_id: str, request: Request, auth: Optional[str] = Que
         raise HTTPException(404, "Not found")
     try:
         data, ct = await asyncio.to_thread(_get_object, rec["storage_path"])
+        return Response(content=data, media_type=rec.get("content_type", ct),
+                        headers={"Content-Disposition": f'inline; filename="{rec["original_filename"]}"'})
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(502, "Could not fetch file")
-    return Response(content=data, media_type=rec.get("content_type", ct),
-                    headers={"Content-Disposition": f'inline; filename="{rec["original_filename"]}"'})
 
 
 async def ensure_indexes():
