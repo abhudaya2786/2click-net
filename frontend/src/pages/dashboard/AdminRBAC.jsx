@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet, Sun, Home, Globe } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet, Sun, Home, Globe, Database, Download } from "lucide-react";
 import AdminHomeBuild from "@/components/homebuild/AdminHomeBuild";
 import SiteCustomizer from "@/components/admin/SiteCustomizer";
 import { useBranding } from "@/context/BrandingContext";
