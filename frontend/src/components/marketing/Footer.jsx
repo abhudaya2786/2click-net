@@ -13,7 +13,7 @@ export default function Footer() {
       <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 grid gap-10 md:grid-cols-5">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="h-9 w-9 bg-primary flex items-center justify-center">
+            <div className="h-9 w-9 bg-primary flex items-center justify-center rounded-lg shadow-sm">
               <HardHat className="h-5 w-5 text-white" strokeWidth={1.75} />
             </div>
             <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>

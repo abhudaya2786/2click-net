@@ -14,33 +14,33 @@ body {
 
 @layer base {
   :root {
-    --background: 210 17% 98%;
+    --background: 220 20% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 16 100% 56%;
+    --primary: 25 52% 52%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 17% 95%;
+    --secondary: 220 16% 94%;
     --secondary-foreground: 222 47% 11%;
-    --muted: 210 17% 95%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 17% 93%;
+    --muted: 220 16% 94%;
+    --muted-foreground: 215 16% 40%;
+    --accent: 220 14% 92%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 16 100% 56%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 25 52% 52%;
     --solar: 160 84% 39%;
     --tender: 217 91% 60%;
-    --chart-1: 16 100% 56%;
+    --chart-1: 25 52% 52%;
     --chart-2: 160 84% 39%;
     --chart-3: 217 91% 60%;
     --chart-4: 43 96% 56%;
     --chart-5: 280 65% 60%;
-    --radius: 0.25rem;
+    --radius: 0.5rem;
   }
   .dark {
     --background: 222 42% 7%;
@@ -49,7 +49,7 @@ body {
     --card-foreground: 210 40% 96%;
     --popover: 222 34% 13%;
     --popover-foreground: 210 40% 96%;
-    --primary: 16 100% 56%;
+    --primary: 28 58% 58%;
     --primary-foreground: 0 0% 100%;
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 96%;
@@ -61,14 +61,23 @@ body {
     --destructive-foreground: 0 0% 100%;
     --border: 217 33% 17%;
     --input: 217 33% 20%;
-    --ring: 16 100% 56%;
+    --ring: 28 58% 58%;
     --solar: 160 84% 39%;
     --tender: 217 91% 60%;
-    --chart-1: 16 100% 56%;
+    --chart-1: 28 58% 58%;
     --chart-2: 160 84% 45%;
     --chart-3: 217 91% 60%;
     --chart-4: 43 96% 56%;
     --chart-5: 280 65% 65%;
+  }
+}
+
+@layer components {
+  .btn-premium {
+    @apply rounded-lg shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all;
+  }
+  .card-premium {
+    @apply rounded-lg border border-border bg-card shadow-sm hover:shadow-md transition-all duration-200;
   }
 }
 

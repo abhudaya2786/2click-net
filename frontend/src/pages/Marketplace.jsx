@@ -61,9 +61,9 @@ export default function Marketplace() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input data-testid="market-search" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()}
-            placeholder="Search steel, cement, solar…" className="rounded-none pl-9" />
+            placeholder="Search steel, cement, solar…" className="rounded-lg pl-9" />
         </div>
-        <Button data-testid="market-search-btn" onClick={load} className="rounded-none">Search</Button>
+        <Button data-testid="market-search-btn" onClick={load} className="btn-premium">Search</Button>
       </div>
 
       <div className="grid lg:grid-cols-[220px_1fr] gap-8">
