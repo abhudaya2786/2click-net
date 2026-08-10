@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import LayoutViewer from "@/components/homebuild/LayoutViewer";
 import SegmentCatalog from "@/components/homebuild/SegmentCatalog";
+import LocationPicker from "@/components/location/LocationPicker";
 
 const STAGE_LABELS = {
   planning: "Planning",
@@ -41,7 +42,7 @@ export default function HomeBuildSection() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
   const [tab, setTab] = useState("journey");
-  const [form, setForm] = useState({ name: "", location: "", budget: "", segment: "new_home", pincode: "", plot_area_sqft: "", floors: 1 });
+  const [form, setForm] = useState({ name: "", location: "", budget: "", segment: "new_home", pincode: "", state: "", city: "", lat: null, lng: null, plot_area_sqft: "", floors: 1 });
   const [rfqForm, setRfqForm] = useState({ trade: "electrical", material_description: "", quantity: 1, unit: "unit", radius_km: 10 });
   const [rfqs, setRfqs] = useState([]);
 
@@ -86,11 +87,13 @@ export default function HomeBuildSection() {
         budget: Number(form.budget || 0),
         segment: form.segment,
         pincode: form.pincode,
+        lat: form.lat,
+        lng: form.lng,
         plot_area_sqft: Number(form.plot_area_sqft || 0) || null,
         floors: Number(form.floors) || 1,
       });
       toast.success("आपका घर प्रोजेक्ट बन गया!");
-      setForm({ name: "", location: "", budget: "", segment: "new_home", pincode: "", plot_area_sqft: "", floors: 1 });
+      setForm({ name: "", location: "", budget: "", segment: "new_home", pincode: "", state: "", city: "", lat: null, lng: null, plot_area_sqft: "", floors: 1 });
       setSelected(data.id);
       load();
     } catch (e) {
@@ -195,8 +198,12 @@ export default function HomeBuildSection() {
           <p className="text-sm text-muted-foreground mt-1">Naksha se Griha Pravesh tak — ek jagah poora process</p>
           <div className="grid sm:grid-cols-2 gap-3 mt-4">
             <Input placeholder="Project name (e.g. Sharma Villa)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-none" />
-            <Input placeholder="Location / City" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="rounded-none" />
-            <Input placeholder="Pincode" value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} className="rounded-none" />
+            <div className="sm:col-span-2">
+              <LocationPicker
+                value={{ state: form.state, city: form.city, pincode: form.pincode, lat: form.lat, lng: form.lng }}
+                onChange={(loc) => setForm({ ...form, ...loc, location: loc.location || form.location })}
+              />
+            </div>
             <Input type="number" placeholder="Budget (₹)" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className="rounded-none" />
             <select value={form.segment} onChange={(e) => setForm({ ...form, segment: e.target.value })} className="border border-input bg-background px-3 py-2 text-sm rounded-none">
               {SEGMENTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}

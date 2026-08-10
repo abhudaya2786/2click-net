@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { HardHat } from "lucide-react";
+import { useBranding } from "@/context/BrandingContext";
+import BrandLogo from "@/components/marketing/BrandLogo";
 
 const COLS = [
   {
@@ -33,18 +34,17 @@ const COLS = [
 ];
 
 export default function Footer() {
+  const { brand_name, tagline, footer_text } = useBranding();
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 grid gap-10 md:grid-cols-5">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="h-9 w-9 bg-primary flex items-center justify-center rounded-lg shadow-sm">
-              <HardHat className="h-5 w-5 text-white" strokeWidth={1.75} />
-            </div>
-            <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
+            <BrandLogo className="h-9 w-9" iconClass="h-5 w-5" />
+            <span className="font-display font-extrabold text-lg tracking-tight">{brand_name}</span>
           </div>
           <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-            SaaS + ERP + Marketplace + Solar + Tender Bidding — India's construction super-app, ek hi login par.
+            {footer_text || tagline || "SaaS + ERP + Marketplace + Solar + Tender Bidding — India's construction super-app, ek hi login par."}
           </p>
           <div className="mt-5 space-y-1.5 text-sm">
             <a href="tel:+917007254932" data-testid="footer-phone" className="block text-muted-foreground hover:text-primary transition-colors">+91 70072 54932</a>
