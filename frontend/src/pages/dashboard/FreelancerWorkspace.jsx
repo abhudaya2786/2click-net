@@ -94,10 +94,13 @@ export default function FreelancerWorkspace() {
   }, [loadEnq]);
 
   useEffect(() => {
-    if (active === "enquiries" && enq.unread > 0) {
-      api.post("/freelancers/me/enquiries/mark-read").then(() => setEnq((p) => ({ ...p, unread: 0 }))).catch(() => {});
-    }
-  }, [active, enq.unread]);
+    if (active !== "enquiries") return;
+    (async () => {
+      await loadEnq();                          // always fetch fresh when opening the tab
+      try { await api.post("/freelancers/me/enquiries/mark-read"); } catch { /* ignore */ }
+      setEnq((p) => ({ ...p, unread: 0 }));
+    })();
+  }, [active, loadEnq]);
 
   const nav = NAV.map((n) => (n.id === "enquiries" ? { ...n, badge: enq.unread } : n));
 

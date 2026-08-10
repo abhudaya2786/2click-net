@@ -25,13 +25,18 @@ export default function SolarPackagesManager({ scope = "admin" }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [c, b, p] = await Promise.all([
+      const [c, bMine, bPublic, p] = await Promise.all([
         api.get("/solar/epc/components"),
         api.get("/solar/epc/brands/manage"),
+        api.get("/solar/epc/brands"),
         api.get("/solar/epc/packages/manage"),
       ]);
+      // vendor can bundle their own brands (any status) + all approved public brands
+      const merged = [...(bMine.data || [])];
+      const ids = new Set(merged.map((x) => x.id));
+      (bPublic.data || []).forEach((x) => { if (!ids.has(x.id)) merged.push(x); });
       setComps(c.data.components || []);
-      setBrands(b.data || []);
+      setBrands(merged);
       setPkgs(p.data || []);
     } catch (e) { toast.error(e.response?.data?.detail || "Could not load packages"); }
     finally { setLoading(false); }
