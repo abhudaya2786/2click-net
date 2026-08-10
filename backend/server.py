@@ -136,6 +136,10 @@ async def get_current_user(request: Request) -> dict:
     return user
 
 
+async def get_current_user_optional(request: Request) -> Optional[dict]:
+    return await resolve_user(request)
+
+
 def require_roles(*roles):
     async def checker(request: Request) -> dict:
         user = await get_current_user(request)
@@ -212,6 +216,79 @@ class TenderIn(BaseModel):
     emd: float = 0
     closes_in_minutes: int = 60
     auction: bool = True
+    subject: str = "material_supply"
+    material_type: str = "general"
+    quantity: Optional[float] = None
+    unit: Optional[str] = "unit"
+    location: Optional[str] = ""
+    published: bool = True
+
+
+class TenderUpdateIn(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    budget: Optional[float] = None
+    emd: Optional[float] = None
+    closes_in_minutes: Optional[int] = None
+    auction: Optional[bool] = None
+    subject: Optional[str] = None
+    material_type: Optional[str] = None
+    quantity: Optional[float] = None
+    unit: Optional[str] = None
+    location: Optional[str] = None
+    published: Optional[bool] = None
+    status: Optional[str] = None
+
+
+TENDER_SUBJECTS = [
+    "material_supply", "civil_construction", "mep", "solar_epc",
+    "interior_finishing", "logistics", "consultancy", "labour_services",
+]
+
+MATERIAL_TYPES = [
+    "steel_tmt", "cement_concrete", "sand_aggregate", "bricks_blocks",
+    "electrical", "plumbing", "tiles_flooring", "paint_chemicals",
+    "plywood_wood", "solar", "waterproofing", "general",
+]
+
+SUBJECT_LABELS = {
+    "material_supply": "Material Supply",
+    "civil_construction": "Civil & Construction",
+    "mep": "MEP (Electrical / Plumbing)",
+    "solar_epc": "Solar EPC",
+    "interior_finishing": "Interior & Finishing",
+    "logistics": "Logistics & Transport",
+    "consultancy": "Consultancy & Design",
+    "labour_services": "Labour & Services",
+}
+
+MATERIAL_LABELS = {
+    "steel_tmt": "Steel & TMT",
+    "cement_concrete": "Cement & Concrete",
+    "sand_aggregate": "Sand & Aggregate",
+    "bricks_blocks": "Bricks & Blocks",
+    "electrical": "Electrical",
+    "plumbing": "Plumbing",
+    "tiles_flooring": "Tiles & Flooring",
+    "paint_chemicals": "Paint & Chemicals",
+    "plywood_wood": "Plywood & Wood",
+    "solar": "Solar Equipment",
+    "waterproofing": "Waterproofing",
+    "general": "General / Mixed",
+}
+
+
+def _enrich_tender(t):
+    if not t.get("subject"):
+        t["subject"] = "material_supply"
+    if not t.get("material_type"):
+        t["material_type"] = "general"
+    if t.get("published") is None:
+        t["published"] = True
+    t["subject_label"] = SUBJECT_LABELS.get(t.get("subject"), t.get("subject", "General"))
+    t["material_type_label"] = MATERIAL_LABELS.get(t.get("material_type"), t.get("material_type", "General"))
+    return t
 
 
 class BidIn(BaseModel):
@@ -769,12 +846,47 @@ async def verify_payment(body: dict, user=Depends(get_current_user)):
 # ---------------------------------------------------------------------------
 # Tenders + Reverse Auction
 # ---------------------------------------------------------------------------
+@api.get("/tenders/meta")
+async def tender_meta():
+    return {
+        "subjects": [{"id": s, "label": SUBJECT_LABELS[s]} for s in TENDER_SUBJECTS],
+        "material_types": [{"id": m, "label": MATERIAL_LABELS[m]} for m in MATERIAL_TYPES],
+    }
+
+
 @api.get("/tenders")
-async def list_tenders():
-    tenders = await db.tenders.find({}, {"_id": 0}).sort("created_at", -1).to_list(200)
+async def list_tenders(
+    subject: Optional[str] = None,
+    material_type: Optional[str] = None,
+    status: Optional[str] = None,
+    q: Optional[str] = None,
+    published_only: bool = True,
+    mine: bool = False,
+    user: Optional[dict] = Depends(get_current_user_optional),
+):
+    filt = {}
+    if published_only and not mine:
+        filt["published"] = {"$ne": False}
+    if mine and user:
+        filt["owner_id"] = user["id"]
+    if subject:
+        filt["subject"] = subject
+    if material_type:
+        filt["material_type"] = material_type
+    if status:
+        filt["status"] = status
+    tenders = await db.tenders.find(filt, {"_id": 0}).sort("created_at", -1).to_list(200)
+    if q:
+        ql = q.lower()
+        tenders = [t for t in tenders if ql in t.get("title", "").lower() or ql in t.get("description", "").lower()]
     for t in tenders:
         t["bid_count"] = await db.bids.count_documents({"tender_id": t["id"]})
-    return tenders
+        _enrich_tender(t)
+    grouped = {}
+    for t in tenders:
+        key = t.get("material_type") or "general"
+        grouped.setdefault(key, []).append(t)
+    return {"tenders": tenders, "grouped_by_material": grouped, "total": len(tenders)}
 
 
 @api.get("/tenders/{tid}")
@@ -787,20 +899,62 @@ async def get_tender(tid: str):
         b["rank"] = i + 1
     t["bids"] = bids
     t["lowest_bid"] = bids[0]["amount"] if bids else None
+    t["bid_count"] = len(bids)
+    _enrich_tender(t)
     return t
 
 
 @api.post("/tenders")
 async def create_tender(body: TenderIn, user=Depends(require_roles("customer", "contractor", "super_admin"))):
+    if body.subject not in TENDER_SUBJECTS:
+        raise HTTPException(status_code=400, detail="Invalid subject")
+    if body.material_type not in MATERIAL_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid material_type")
     doc = body.model_dump()
     doc.update({
         "id": new_id("tender"), "owner_id": user["id"], "owner_name": user.get("name"),
         "status": "open", "created_at": iso(now_utc()),
         "closes_at": iso(now_utc() + timedelta(minutes=body.closes_in_minutes)),
+        "updated_at": iso(now_utc()),
     })
     await db.tenders.insert_one(dict(doc))
     await audit(user, "create_tender", {"tender_id": doc["id"]})
-    return clean(doc)
+    return clean(_enrich_tender(doc))
+
+
+@api.patch("/tenders/{tid}")
+async def update_tender(tid: str, body: TenderUpdateIn, user=Depends(get_current_user)):
+    t = await db.tenders.find_one({"id": tid}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tender not found")
+    if user["role"] != "super_admin" and t.get("owner_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="Only owner or admin can edit")
+    if t.get("status") in ("awarded", "closed") and user["role"] != "super_admin":
+        raise HTTPException(status_code=400, detail="Cannot edit closed/awarded tender")
+    upd = body.model_dump(exclude_unset=True)
+    if "subject" in upd and upd["subject"] not in TENDER_SUBJECTS:
+        raise HTTPException(status_code=400, detail="Invalid subject")
+    if "material_type" in upd and upd["material_type"] not in MATERIAL_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid material_type")
+    if "closes_in_minutes" in upd:
+        upd["closes_at"] = iso(now_utc() + timedelta(minutes=upd.pop("closes_in_minutes")))
+    upd["updated_at"] = iso(now_utc())
+    await db.tenders.update_one({"id": tid}, {"$set": upd})
+    doc = await db.tenders.find_one({"id": tid}, {"_id": 0})
+    await audit(user, "update_tender", {"tender_id": tid, "fields": list(upd.keys())})
+    return clean(_enrich_tender(doc))
+
+
+@api.delete("/tenders/{tid}")
+async def delete_tender(tid: str, user=Depends(get_current_user)):
+    t = await db.tenders.find_one({"id": tid}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tender not found")
+    if user["role"] != "super_admin" and t.get("owner_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    await db.tenders.update_one({"id": tid}, {"$set": {"status": "closed", "published": False, "updated_at": iso(now_utc())}})
+    await audit(user, "close_tender", {"tender_id": tid})
+    return {"ok": True}
 
 
 @api.post("/tenders/{tid}/bids")
@@ -1133,19 +1287,34 @@ async def seed():
         cust = await db.users.find_one({"email": "customer@2click.in"})
         tenders = [
             ("Supply of 200MT TMT Steel Bars", "Steel & TMT", 12500000, 125000,
-             "Requirement of Fe500D TMT bars for a G+12 residential tower in Pune. Delivery in 3 phases over 45 days."),
+             "Requirement of Fe500D TMT bars for a G+12 residential tower in Pune. Delivery in 3 phases over 45 days.",
+             "material_supply", "steel_tmt", 200, "MT", "Pune, Maharashtra"),
             ("Rooftop Solar 500kW EPC", "Solar", 27500000, 275000,
-             "Design, supply and installation of 500kW grid-tied rooftop solar plant for an industrial shed in Nashik."),
+             "Design, supply and installation of 500kW grid-tied rooftop solar plant for an industrial shed in Nashik.",
+             "solar_epc", "solar", 500, "kW", "Nashik, Maharashtra"),
             ("RMC Supply for Metro Project", "Concrete", 45000000, 450000,
-             "Ready mix concrete M40/M50 grade supply for metro viaduct construction. AAC certified plants only."),
+             "Ready mix concrete M40/M50 grade supply for metro viaduct construction. AAC certified plants only.",
+             "civil_construction", "cement_concrete", 5000, "cum", "Delhi NCR"),
+            ("CPVC Plumbing Package — 120 Units", "Plumbing", 3200000, 32000,
+             "Complete CPVC plumbing material for a residential township. ISI marked pipes and fittings.",
+             "material_supply", "plumbing", 120, "units", "Lucknow, UP"),
+            ("Vitrified Tiles 45,000 sqft", "Tiles", 2800000, 28000,
+             "600x600 vitrified tiles for commercial complex. Sample approval mandatory before dispatch.",
+             "interior_finishing", "tiles_flooring", 45000, "sqft", "Gurugram, Haryana"),
+            ("Electrical Wiring — 85,000 sqft", "Electrical", 4100000, 41000,
+             "Concealed electrical wiring, MCB panel, earthing for G+8 apartment. IS 732 compliant wire.",
+             "mep", "electrical", 85000, "sqft", "Gorakhpur, UP"),
         ]
-        for title, cat, budget, emd, desc in tenders:
+        for title, cat, budget, emd, desc, subject, material_type, qty, unit, loc in tenders:
             await db.tenders.insert_one({
                 "id": new_id("tender"), "title": title, "description": desc, "category": cat,
                 "budget": budget, "emd": emd, "auction": True, "closes_in_minutes": 1440,
+                "subject": subject, "material_type": material_type,
+                "quantity": qty, "unit": unit, "location": loc, "published": True,
                 "owner_id": cust["id"] if cust else None, "owner_name": "Priya Sharma",
                 "status": "open", "created_at": iso(now_utc()),
                 "closes_at": iso(now_utc() + timedelta(hours=24)),
+                "updated_at": iso(now_utc()),
             })
 
     logger.info("Seed complete")

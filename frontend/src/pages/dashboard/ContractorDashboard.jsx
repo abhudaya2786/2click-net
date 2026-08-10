@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard, Store, Download, LayoutTemplate, Wallet, Home } from "lucide-react";
+import { LayoutDashboard, Building2, Calculator, ClipboardList, Plus, Loader2, IndianRupee, HardHat, CreditCard, Store, Download, LayoutTemplate, Wallet, Home, Gavel } from "lucide-react";
 import HomeBuildSection from "@/components/homebuild/HomeBuildSection";
+import TenderManageSection from "@/components/tenders/TenderManageSection";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
@@ -16,6 +17,7 @@ const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "projects", label: "Projects", icon: Building2 },
   { id: "lifecycle", label: "Home Lifecycle", icon: Home },
+  { id: "tenders", label: "My Tenders", icon: Gavel },
   { id: "boq", label: "BOQ", icon: Calculator },
   { id: "dpr", label: "Daily Report", icon: ClipboardList },
   { id: "materials", label: "Material Calc", icon: Store },
@@ -148,6 +150,8 @@ export default function ContractorDashboard() {
           )}
 
           {active === "lifecycle" && <HomeBuildSection />}
+
+          {active === "tenders" && <TenderManageSection />}
 
           {active === "projects" && (
             <div>
