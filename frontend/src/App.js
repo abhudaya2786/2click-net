@@ -7,6 +7,7 @@ import { PermissionProvider } from "@/context/PermissionContext";
 import { BrandingProvider } from "@/context/BrandingContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
 
 import Home from "@/pages/Home";
@@ -57,19 +58,21 @@ function AppRouter() {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <ThemeProvider>
-        <BrandingProvider>
-          <AuthProvider>
-            <PermissionProvider>
-              <BrowserRouter>
-                <AppRouter />
-                <Toaster position="top-right" />
-              </BrowserRouter>
-            </PermissionProvider>
-          </AuthProvider>
-        </BrandingProvider>
-      </ThemeProvider>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <ThemeProvider>
+          <BrandingProvider>
+            <AuthProvider>
+              <PermissionProvider>
+                <BrowserRouter>
+                  <AppRouter />
+                  <Toaster position="top-right" />
+                </BrowserRouter>
+              </PermissionProvider>
+            </AuthProvider>
+          </BrandingProvider>
+        </ThemeProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }

@@ -17,14 +17,27 @@ export default function Marketplace() {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState("");
+
   const load = async () => {
     setLoading(true);
-    const { data } = await api.get("/products", { params: { category: active, q } });
-    setProducts(data);
-    setLoading(false);
+    setError("");
+    try {
+      const { data } = await api.get("/products", { params: { category: active, q } });
+      setProducts(Array.isArray(data) ? data : []);
+    } catch {
+      setProducts([]);
+      setError("Could not load products. Check backend URL and try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { api.get("/products/categories").then(({ data }) => setCats(data)); }, []);
+  useEffect(() => {
+    api.get("/products/categories")
+      .then(({ data }) => setCats(Array.isArray(data) ? data : []))
+      .catch(() => setCats([]));
+  }, []);
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [active]);
 
   const addToCart = (p) => {
@@ -65,6 +78,9 @@ export default function Marketplace() {
         </aside>
 
         <div>
+          {error && (
+            <div className="mb-4 border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">{error}</div>
+          )}
           {loading ? (
             <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
           ) : products.length === 0 ? (
