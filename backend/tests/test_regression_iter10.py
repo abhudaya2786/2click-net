@@ -1,21 +1,11 @@
 """Iteration 10 regression suite — covers auth, contact, mart, solar EPC, marketplace, billing, tenders."""
-import os
 import pytest
 import requests
-from pathlib import Path
+from conftest import get_backend_url
 
 
 def _load_base_url():
-    url = os.environ.get("REACT_APP_BACKEND_URL", "").strip()
-    if not url:
-        envp = Path("/app/frontend/.env")
-        if envp.exists():
-            for line in envp.read_text().splitlines():
-                if line.startswith("REACT_APP_BACKEND_URL="):
-                    url = line.split("=", 1)[1].strip()
-                    break
-    assert url, "REACT_APP_BACKEND_URL not set"
-    return url.rstrip("/")
+    return get_backend_url()
 
 
 BASE_URL = _load_base_url()

@@ -1217,12 +1217,30 @@ async def ai_chat(body: AIChatIn, user=Depends(get_current_user)):
 
 @api.post("/ai/tender-summary")
 async def tender_summary(body: TenderSummaryIn, user=Depends(get_current_user)):
-    from emergentintegrations.llm.chat import UserMessage
-    chat = get_chat(new_id("summary"),
-                    "You summarize tender/RFP documents. Return a crisp summary with: Scope, "
-                    "Key Deliverables, Eligibility, EMD, Timeline, and Red Flags. Use short bullet points.")
-    result = await chat.send_message(UserMessage(text=f"Summarize this tender:\n\n{body.text}"))
-    return {"summary": result}
+    fallback = _demo_tender_summary(body.text)
+    if not EMERGENT_LLM_KEY:
+        return {"summary": fallback, "demo": True}
+    try:
+        from emergentintegrations.llm.chat import UserMessage
+        chat = get_chat(new_id("summary"),
+                        "You summarize tender/RFP documents. Return a crisp summary with: Scope, "
+                        "Key Deliverables, Eligibility, EMD, Timeline, and Red Flags. Use short bullet points.")
+        result = await chat.send_message(UserMessage(text=f"Summarize this tender:\n\n{body.text}"))
+        return {"summary": result}
+    except Exception as exc:
+        logger.warning("tender-summary AI fallback: %s", exc)
+        return {"summary": fallback, "demo": True}
+
+
+def _demo_tender_summary(text: str) -> str:
+    snippet = (text or "").strip()[:400]
+    return (
+        "Scope\n- " + (snippet or "Construction supply tender") + "\n\n"
+        "Key Deliverables\n- Materials/services per tender document\n- GST invoice and delivery schedule\n\n"
+        "Eligibility\n- Registered vendor with relevant experience\n\n"
+        "EMD & Timeline\n- As stated in tender notice\n\n"
+        "Red Flags\n- Verify site visit, payment terms, and penalty clauses before bidding."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1251,10 +1269,23 @@ async def seed():
         ("Anil Steel Traders", "vendor@2click.in", "vendor", "Anil Steel Traders"),
         ("Priya Sharma", "customer@2click.in", "customer", None),
         ("Rajesh Constructions", "contractor@2click.in", "contractor", "Rajesh Constructions Pvt Ltd"),
+        ("Aarav Mehta", "architect@2click.in", "architect", "Aarav Design Studio"),
     ]
     vendor_id = None
     for name, email, role, company in demo:
         u = await db.users.find_one({"email": email})
+        extra = {}
+        if role == "architect":
+            extra = {
+                "user_type": "architect",
+                "default_dashboard": "freelancer",
+                "skills": ["Architecture", "CAD", "BOQ"],
+                "service_area": "Pune, Mumbai",
+                "portfolio_url": "https://2click.in",
+                "expected_pricing": "₹500/sqft design",
+                "availability": "Available",
+                "rating": 4.8,
+            }
         if not u:
             uid = new_id("user")
             await db.users.insert_one({
@@ -1262,11 +1293,20 @@ async def seed():
                 "password_hash": hash_password("Demo@12345"), "role": role,
                 "company": company, "picture": None, "auth": "jwt",
                 "kyc_status": "verified", "wallet": 25000.0, "created_at": iso(now_utc()),
+                "user_type": extra.get("user_type", role),
+                "default_dashboard": extra.get("default_dashboard", role),
+                **{k: v for k, v in extra.items() if k not in ("user_type", "default_dashboard")},
             })
             if role == "vendor":
                 vendor_id = uid
-        elif role == "vendor":
-            vendor_id = u["id"]
+        else:
+            patch = {"password_hash": hash_password("Demo@12345"), **extra}
+            if role == "architect":
+                patch["user_type"] = "architect"
+                patch["default_dashboard"] = "freelancer"
+            await db.users.update_one({"email": email}, {"$set": patch})
+            if role == "vendor":
+                vendor_id = u["id"]
 
     if await db.products.count_documents({}) == 0 and vendor_id:
         prods = [

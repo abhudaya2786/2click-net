@@ -1,16 +1,8 @@
 """Iteration 11 — Wallet + order-details E2E backend tests."""
-import os, re, uuid, pytest, requests
+import re, uuid, pytest, requests
+from conftest import get_backend_url
 
-def _base():
-    v = os.environ.get("REACT_APP_BACKEND_URL")
-    if not v:
-        with open("/app/frontend/.env") as f:
-            for l in f:
-                if l.startswith("REACT_APP_BACKEND_URL="):
-                    v = l.split("=", 1)[1].strip()
-    return v.rstrip("/")
-
-BASE = _base()
+BASE = get_backend_url()
 
 def _login(email, pw):
     r = requests.post(f"{BASE}/api/auth/login", json={"email": email, "password": pw}, timeout=30)

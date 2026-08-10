@@ -1,22 +1,9 @@
 """Backend regression test for Solar EPC dynamic brand catalog + BOQ override."""
-import os
 import requests
 import pytest
+from conftest import get_backend_url
 
-def _load_base():
-    v = os.environ.get("REACT_APP_BACKEND_URL")
-    if not v:
-        try:
-            with open("/app/frontend/.env") as f:
-                for line in f:
-                    if line.startswith("REACT_APP_BACKEND_URL="):
-                        v = line.strip().split("=", 1)[1]
-                        break
-        except Exception:
-            pass
-    return (v or "").rstrip("/")
-
-BASE = _load_base()
+BASE = get_backend_url()
 API = f"{BASE}/api"
 
 ADMIN = {"email": "abbhuadaya@gmail.com", "password": "Admin@12345"}

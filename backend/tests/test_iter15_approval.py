@@ -1,15 +1,8 @@
 """Iteration 15 backend regression: brand approval, package approval, freelancer enquiries unread."""
-import os, time, requests, pytest
-from pathlib import Path
+import time, requests, pytest
+from conftest import get_backend_url
 
-def _load_frontend_env():
-    p = Path("/app/frontend/.env")
-    for line in p.read_text().splitlines():
-        if line.startswith("REACT_APP_BACKEND_URL="):
-            return line.split("=", 1)[1].strip()
-    raise RuntimeError("REACT_APP_BACKEND_URL missing")
-
-BASE = _load_frontend_env().rstrip("/") + "/api"
+BASE = get_backend_url() + "/api"
 
 ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
 VENDOR = ("vendor@2click.in", "Demo@12345")

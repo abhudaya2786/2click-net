@@ -30,6 +30,7 @@ const ALL_TABS = [
   { id: "modules", label: "Modules", icon: Boxes },
   { id: "menus", label: "Menus", icon: MenuIcon },
   { id: "audit", label: "Audit Logs", icon: ScrollText },
+  { id: "backup", label: "Data Backup", icon: Database },
 ];
 const R = "/admin/rbac";
 const A = "/admin";
@@ -66,6 +67,7 @@ export default function AdminRBAC() {
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
       {tab === "audit" && <Audit />}
+      {tab === "backup" && <BackupPanel />}
     </div>
   );
 }
@@ -605,6 +607,95 @@ function Audit() {
             <td className="p-2.5 font-mono text-[10px]">{new Date(l.timestamp || l.created_at).toLocaleString("en-IN")}</td>
           </tr>))}</tbody>
       </table></div>
+    </Panel>
+  );
+}
+
+function BackupPanel() {
+  const [rows, setRows] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [dir, setDir] = useState("");
+
+  const load = useCallback(() => {
+    api.get("/admin/backup/list").then(({ data }) => {
+      setRows(data.backups || []);
+      setDir(data.backup_dir || "");
+    }).catch(() => toast.error("Could not load backups"));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const create = async () => {
+    setBusy(true);
+    try {
+      const { data } = await api.post("/admin/backup/create");
+      toast.success(`Backup created: ${data.backup?.id}`);
+      load();
+    } catch (e) {
+      toast.error(e.response?.data?.detail || "Backup failed");
+    } finally { setBusy(false); }
+  };
+
+  const fmt = (n) => (n ? `${(n / 1024).toFixed(1)} KB` : "—");
+
+  return (
+    <Panel title="Database Backup & Restore" action={
+      <Button data-testid="backup-create" onClick={create} disabled={busy} className="rounded-none">
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Database className="h-4 w-4 mr-1" />Create backup now</>}
+      </Button>
+    }>
+      <p className="px-5 py-3 text-sm text-muted-foreground border-b border-border">
+        MongoDB dump + config snapshot. Store archives off-server for disaster recovery. Directory: <span className="font-mono text-xs">{dir || "backups/"}</span>
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+              <th className="p-2.5">Backup ID</th>
+              <th className="p-2.5">Created</th>
+              <th className="p-2.5">Collections</th>
+              <th className="p-2.5">Size</th>
+              <th className="p-2.5">Download</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 && (
+              <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No backups yet. Click Create backup now.</td></tr>
+            )}
+            {rows.map((b) => (
+              <tr key={b.id} className="border-b border-border hover:bg-muted/50">
+                <td className="p-2.5 font-mono text-xs">{b.id}</td>
+                <td className="p-2.5 text-xs">{b.created_at ? new Date(b.created_at).toLocaleString("en-IN") : "—"}</td>
+                <td className="p-2.5">{b.collections ?? "—"}</td>
+                <td className="p-2.5">{fmt(b.size_bytes)}</td>
+                <td className="p-2.5">
+                  {b.archive ? (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
+                      onClick={() => {
+                        api.get(`/admin/backup/download/${b.id}`, { responseType: "blob" }).then((res) => {
+                          const url = URL.createObjectURL(res.data);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `${b.id}.tar.gz`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        });
+                      }}
+                    >
+                      <Download className="h-3.5 w-3.5" /> .tar.gz
+                    </button>
+                  ) : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="px-5 py-3 text-xs text-muted-foreground">
+        CLI: <code className="bg-muted px-1">./scripts/backup.sh</code> · Restore: <code className="bg-muted px-1">./scripts/restore-backup.sh dump_YYYYMMDD_HHMMSS</code>
+      </p>
     </Panel>
   );
 }

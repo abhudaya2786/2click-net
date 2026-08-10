@@ -1,0 +1,21 @@
+{
+  "date": "2026-08-10",
+  "branch": "cursor/testing-backup-4cd6",
+  "backend_tests": { "passed": 192, "failed": 0, "skipped": 2 },
+  "ui_smoke": {
+    "home": "PASS",
+    "marketplace": "PASS",
+    "tenders": "PASS",
+    "solar": "PASS",
+    "login_vendor": "PASS",
+    "dashboard": "PASS",
+    "download_app": "PASS",
+    "logout": "PASS",
+    "admin_backup_tab": "PASS"
+  },
+  "backup": {
+    "script": "scripts/backup.sh",
+    "api": "/api/admin/backup/*",
+    "latest": "dump_20260810_133410.tar.gz"
+  }
+}
