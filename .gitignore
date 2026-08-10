@@ -99,6 +99,11 @@ frontend/node_modules/.cache/default-development/0.pack
 credentials.json
 *.key
 .credentials
+# Database backups (generated locally / CI — do not commit dumps)
+backups/dump_*/
+backups/*.tar.gz
+backups/manifest.json
+!backups/.gitkeep
 frontend/node_modules/.cache/default-development/4.pack
 frontend/node_modules/.cache/default-development/5.pack
 frontend/node_modules/.cache/default-development/2.pack

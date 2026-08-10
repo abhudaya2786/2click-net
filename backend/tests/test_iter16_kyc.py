@@ -1,14 +1,8 @@
 """Iteration 16 backend regression: Solar KYC upload/download refactor + catalog & enquiry regressions."""
-import io, os, requests, pytest
-from pathlib import Path
+import io, requests, pytest
+from conftest import get_backend_url
 
-def _load_frontend_env():
-    for line in Path("/app/frontend/.env").read_text().splitlines():
-        if line.startswith("REACT_APP_BACKEND_URL="):
-            return line.split("=", 1)[1].strip()
-    raise RuntimeError("REACT_APP_BACKEND_URL missing")
-
-BASE = _load_frontend_env().rstrip("/") + "/api"
+BASE = get_backend_url() + "/api"
 
 ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
 VENDOR = ("vendor@2click.in", "Demo@12345")
@@ -167,7 +161,8 @@ def test_freelancer_enquiries_shape_and_mark_read(tokens):
     assert isinstance(js["unread"], int)
 
     # Create a fresh enquiry from customer to architect to guarantee unread >=1
-    arch_id = "user_101810beb884"
+    me = requests.get(f"{BASE}/auth/me", headers=_h(tokens["architect"]), timeout=30).json()
+    arch_id = me["id"]
     payload = {"message": "TEST_ITER16 KYC regression enquiry"}
     post = requests.post(f"{BASE}/freelancers/{arch_id}/enquiry", json=payload,
                         headers=_h(tokens["customer"]), timeout=30)

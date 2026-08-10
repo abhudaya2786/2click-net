@@ -186,6 +186,13 @@ async def rbac_admin(request: Request):
         raise HTTPException(status_code=403, detail="Administration access required")
     return user
 
+
+async def rbac_super_admin(request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(status_code=403, detail="Super admin only")
+    return user
+
 # ---------------------------------------------------------------------------
 # Routers
 # ---------------------------------------------------------------------------
