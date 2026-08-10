@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { api } from "@/lib/api";
 
-const STRINGS = {
+const FALLBACK = {
   en: {
     create_account: "Create your 2Click.in Account",
     onboarding_sub: "A few quick steps to set up your workspace",
@@ -35,7 +36,15 @@ const STRINGS = {
     login: "Log in",
     choose_at_least_one: "Please select at least one category",
     accept_required: "Please accept the terms to continue",
-    lang_toggle_label: "हिन्दी",
+    "location.state": "State",
+    "location.city": "City",
+    "location.pincode": "Pincode",
+    "location.gps": "Use GPS",
+    "nav.marketplace": "Marketplace",
+    "nav.tenders": "Tenders",
+    "nav.solar": "Solar",
+    "nav.mart": "Super Mart",
+    "nav.pricing": "Pricing",
   },
   hi: {
     create_account: "अपना 2Click.in खाता बनाएँ",
@@ -71,59 +80,56 @@ const STRINGS = {
     login: "लॉग इन",
     choose_at_least_one: "कृपया कम से कम एक श्रेणी चुनें",
     accept_required: "जारी रखने के लिए कृपया नियम स्वीकार करें",
-    lang_toggle_label: "English",
+    "location.state": "राज्य",
+    "location.city": "शहर",
+    "location.pincode": "पिनकोड",
+    "location.gps": "GPS लोकेशन",
+    "nav.marketplace": "मार्केट",
+    "nav.tenders": "टेंडर",
+    "nav.solar": "सोलर",
+    "nav.mart": "सुपर मार्ट",
+    "nav.pricing": "प्लान",
   },
 };
 
 const LanguageContext = createContext(null);
-
-export const useLang = () => {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) {
-    return {
-      lang: "en",
-      isHi: false,
-      t: (k) => STRINGS.en[k] || k,
-      pick: (en) => en,
-      toggle: () => {},
-    };
-  }
-  return ctx;
-};
+export const useLang = () => useContext(LanguageContext) || { lang: "en", t: (k) => FALLBACK.en[k] || k, toggle: () => {}, enabled: ["en", "hi"] };
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem("bs_lang") || "en");
+  const [remote, setRemote] = useState({ enabled: ["en", "hi"], default: "en", strings: {} });
 
   useEffect(() => {
-    document.documentElement.lang = lang === "hi" ? "hi" : "en";
-  }, [lang]);
+    api.get("/locales").then(({ data }) => {
+      setRemote(data);
+      const stored = localStorage.getItem("bs_lang");
+      if (!stored && data.default) {
+        setLang(data.default);
+        localStorage.setItem("bs_lang", data.default);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const enabled = remote.enabled || ["en", "hi"];
 
   const toggle = useCallback(() => {
     setLang((l) => {
-      const n = l === "en" ? "hi" : "en";
+      const idx = enabled.indexOf(l);
+      const n = enabled[(idx + 1) % enabled.length] || (l === "en" ? "hi" : "en");
       localStorage.setItem("bs_lang", n);
       return n;
     });
-  }, []);
+  }, [enabled]);
 
-  const t = useCallback(
-    (k) => (STRINGS[lang] && STRINGS[lang][k]) || STRINGS.en[k] || k,
-    [lang],
+  const t = useCallback((k) => {
+    const fromRemote = remote.strings?.[k]?.[lang];
+    if (fromRemote) return fromRemote;
+    return (FALLBACK[lang] && FALLBACK[lang][k]) || FALLBACK.en[k] || k;
+  }, [lang, remote]);
+
+  return (
+    <LanguageContext.Provider value={{ lang, t, toggle, enabled, setLang }}>
+      {children}
+    </LanguageContext.Provider>
   );
-
-  const pick = useCallback((en, hi) => (lang === "hi" ? hi : en), [lang]);
-
-  const value = {
-    lang,
-    isHi: lang === "hi",
-    t,
-    pick,
-    toggle,
-    setLang: (l) => {
-      localStorage.setItem("bs_lang", l);
-      setLang(l);
-    },
-  };
-
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
