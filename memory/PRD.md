@@ -137,6 +137,8 @@ Started, then paused for Super Mart. Built but **NOT yet wired into server.py** 
 - **Test account added**: `architect@2click.in` / `Demo@12345` (Freelancer Workspace; id `user_101810beb884`).
 
 ## Next (approved backlog, priority order)
+- **Code review (2026-06) outcome**: `download_kyc()` restructured to be correct-by-construction (return inside try; `except HTTPException: raise`; else 502) — verified 9/9 pytest (`iteration_16.json`). Reviewer's other "critical" items were false positives: (a) mart.py `_gen_history` intentionally uses seeded `random.Random(seed_str)` for a DETERMINISTIC price-trend chart — must NOT switch to `secrets` (would break reproducibility; not security-sensitive); (b) no unsafe `is`-vs-`==` literal comparisons exist (grep-verified; count was correct `is None/True/False`).
+- **P2 tech-debt (deferred — refactors on a tested app, no user-facing benefit, regression risk)**: reduce complexity of `phase3.get_branding`, `phase3c.run_commission`, `rbac.seed_rbac`, `phase3a.build_session`, `server.resolve_user`, `ads.admin_analytics`; extract `phase3c._render_invoice_pdf` sections; group `rbac.audit_log`/`server.audit` params into a dataclass; split `server.py` imports/routes into modules. Also: `upload_kyc` size-check-after-read (stream/limit at router) and `?auth=` token-in-querystring → short-lived signed URL.
 - **P1 Multi-tenant isolation**: `company_id` backfill + query guards across orders/products/users; scope `run-commission` by tenant `company_id` (marketplace stays cross-company by design).
 - **P1 Auth extras**: JWT refresh rotation, email verification on signup, 2FA setup UI in account settings.
 - **P1 Payments**: go live (claim Stripe account) + `/erp/boq/bulk` batch endpoint to speed up template loading.
