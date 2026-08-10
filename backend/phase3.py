@@ -102,6 +102,7 @@ async def get_branding(company_id: Optional[str] = None, slug: Optional[str] = N
     if not c:
         c = await _db.companies.find_one({"id": DEFAULT_COMPANY_ID}, {"_id": 0})
     b = (c or {}).get("branding") or {}
+    theme = b.get("theme") or {}
     return {
         "company_id": (c or {}).get("id", DEFAULT_COMPANY_ID),
         "slug": (c or {}).get("slug") or "",
@@ -112,10 +113,22 @@ async def get_branding(company_id: Optional[str] = None, slug: Optional[str] = N
         "primary_color": b.get("primary_color") or "#FF5A1F",
         "accent_color": b.get("accent_color") or "#10B981",
         "tagline": b.get("tagline") or "The operating system for construction",
+        "theme": {
+            "default_theme": theme.get("default_theme", "light"),
+            "layout": theme.get("layout", "standard"),
+            "navbar_style": theme.get("navbar_style", "sticky"),
+            "icon_mode": theme.get("icon_mode", "hardhat"),
+            "support_badge_url": theme.get("support_badge_url", ""),
+            "footer_text": theme.get("footer_text", ""),
+            "hero_layout": theme.get("hero_layout", "split"),
+            "card_style": theme.get("card_style", "rounded"),
+            "enabled_languages": theme.get("enabled_languages", ["en", "hi"]),
+            "default_language": theme.get("default_language", "en"),
+        },
     }
 
 @admin_router.patch("/branding")
-async def update_branding(body: dict, request: Request, user=Depends(rbac.rbac_admin)):
+async def update_branding(body: dict, request: Request, user=Depends(rbac.rbac_super_admin)):
     company_id = body.pop("company_id", DEFAULT_COMPANY_ID)
     old = await _db.companies.find_one({"id": company_id}, {"_id": 0})
     root = {}

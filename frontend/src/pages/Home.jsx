@@ -6,6 +6,7 @@ import PageSEO from "@/components/marketing/PageSEO";
 import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users } from "lucide-react";
+import { useBranding } from "@/context/BrandingContext";
 
 const HERO = "https://images.unsplash.com/photo-1527335988388-b40ee248d80c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjBzaXRlJTIwY3JhbmUlMjBtb2Rlcm4lMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzg2MDc3Mzc4fDA&ixlib=rb-4.1.0&q=85";
 
@@ -25,7 +26,9 @@ const STATS = [
 ];
 
 export default function Home() {
+  const { hero_layout } = useBranding();
   const waMsg = "नमस्ते 2click.in — मुझे construction platform के बारे में जानकारी चाहिए।";
+  const centered = hero_layout === "centered";
 
   return (
     <div>
@@ -35,8 +38,8 @@ export default function Home() {
         path="/"
       />
       <section className="relative border-b border-border overflow-hidden bg-gradient-to-b from-background to-secondary/30">
-        <div className="mx-auto max-w-[1400px] grid lg:grid-cols-2">
-          <div className="px-4 md:px-10 py-10 md:py-28 flex flex-col justify-center order-2 lg:order-1">
+        <div className={`mx-auto max-w-[1400px] ${centered ? "px-4 md:px-10 py-10 md:py-20 text-center" : "grid lg:grid-cols-2"}`}>
+          <div className={`px-4 md:px-10 py-10 md:py-28 flex flex-col justify-center ${centered ? "max-w-3xl mx-auto" : "order-2 lg:order-1"}`}>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <span className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-primary border border-primary/25 bg-primary/5 px-3 py-1.5 rounded-full mb-6">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary" /> Enterprise Construction OS
@@ -49,13 +52,14 @@ export default function Home() {
                 India की construction economy के लिए पूरा operating system।
               </p>
               <TrustBadges className="mt-6" />
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className={`mt-8 flex flex-wrap gap-3 ${centered ? "justify-center" : ""}`}>
                 <Link to="/register"><Button data-testid="hero-cta" size="lg" className="btn-premium">मुफ़्त शुरू करें <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
                 <Link to="/tenders"><Button data-testid="hero-tenders" size="lg" variant="outline" className="btn-premium">Live Tenders देखें</Button></Link>
                 <WhatsAppShare message={waMsg} label="WhatsApp" size="lg" />
               </div>
             </motion.div>
           </div>
+          {!centered && (
           <div className="relative min-h-[220px] sm:min-h-[320px] lg:min-h-0 order-1 lg:order-2">
             <img src={HERO} alt="Construction" className="absolute inset-0 h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
@@ -69,6 +73,7 @@ export default function Home() {
               ))}
             </div>
           </div>
+          )}
         </div>
       </section>
 
