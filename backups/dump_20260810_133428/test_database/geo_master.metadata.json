@@ -1,1 +1,0 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"pincode":{"$numberInt":"1"}},"name":"pincode_1","unique":true},{"v":{"$numberInt":"2"},"key":{"state":{"$numberInt":"1"}},"name":"state_1"}],"uuid":"944c064467c34b439311d5dc4515d869","collectionName":"geo_master","type":"collection"}
