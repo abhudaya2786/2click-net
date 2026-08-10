@@ -3,7 +3,8 @@ import { api } from "@/lib/api";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package, CreditCard, Store, Zap, Wallet } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, ReceiptText, Sun, Trash2, Loader2, IndianRupee, Package, CreditCard, Store, Zap, Wallet, Home } from "lucide-react";
+import HomeBuildSection from "@/components/homebuild/HomeBuildSection";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
@@ -12,6 +13,7 @@ import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
+  { id: "mera-ghar", label: "Mera Ghar", icon: Home },
   { id: "cart", label: "Cart & Checkout", icon: ShoppingCart },
   { id: "orders", label: "My Orders", icon: ReceiptText },
   { id: "quotes", label: "Solar Quotes", icon: Sun },
@@ -92,6 +94,8 @@ export default function CustomerDashboard() {
               <StatCard icon={Sun} label="Solar Quotes" value={quotes.length} color="text-solar" />
             </div>
           )}
+
+          {active === "mera-ghar" && <HomeBuildSection />}
 
           {active === "cart" && (
             <div className="grid lg:grid-cols-[1fr_320px] gap-px bg-border border border-border">

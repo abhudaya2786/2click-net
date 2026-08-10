@@ -13,7 +13,7 @@ const MODULES = [
   { icon: Gavel, title: "Tender & Reverse Auction", desc: "Publish tenders, run live reverse auctions with auto-ranking and AI bid evaluation.", color: "text-tender", to: "/tenders" },
   { icon: Store, title: "B2B/B2C Marketplace", desc: "Multi-vendor procurement of steel, cement, solar & more with GST invoicing.", color: "text-primary", to: "/marketplace" },
   { icon: Sun, title: "Solar Energy Portal", desc: "Capacity & ROI calculators, subsidy estimation and instant quotations.", color: "text-solar", to: "/solar" },
-  { icon: Building2, title: "Construction ERP", desc: "BOQ, DPR, labour, equipment and project scheduling in one workspace.", color: "text-primary", to: "/services" },
+  { icon: Building2, title: "Construction ERP + Mera Ghar", desc: "Naksha se Griha Pravesh — BOQ, agreement, 3D layout unlock, milestone payments.", color: "text-primary", to: "/login" },
   { icon: Bot, title: "AI Platform", desc: "AI assistant, tender summarization, cost estimation & recommendations.", color: "text-tender", to: "/services" },
   { icon: ShieldCheck, title: "RBAC & Admin", desc: "Unlimited roles, granular permissions and enterprise audit logging.", color: "text-solar", to: "/pricing" },
 ];

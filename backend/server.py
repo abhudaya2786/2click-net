@@ -249,6 +249,12 @@ class ProjectIn(BaseModel):
     client: str
     budget: float
     location: str = ""
+    segment: str = "new_home"
+    pincode: str = ""
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    plot_area_sqft: Optional[float] = None
+    floors: int = 1
 
 
 class BOQIn(BaseModel):
@@ -868,26 +874,51 @@ async def list_quotes(user=Depends(get_current_user)):
 # Construction ERP
 # ---------------------------------------------------------------------------
 @api.get("/erp/projects")
-async def list_projects(user=Depends(require_roles("contractor", "super_admin"))):
-    q = {} if user["role"] == "super_admin" else {"owner_id": user["id"]}
+async def list_projects(user=Depends(get_current_user)):
+    if user["role"] == "super_admin":
+        q = {}
+    elif user["role"] == "customer":
+        q = {"$or": [{"customer_id": user["id"]}, {"owner_id": user["id"]}]}
+    else:
+        q = {"owner_id": user["id"]}
     return await db.projects.find(q, {"_id": 0}).sort("created_at", -1).to_list(100)
 
 
 @api.post("/erp/projects")
-async def create_project(body: ProjectIn, user=Depends(require_roles("contractor", "super_admin"))):
+async def create_project(body: ProjectIn, user=Depends(get_current_user)):
+    if user["role"] not in ("contractor", "super_admin", "customer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
     doc = body.model_dump()
-    doc.update({"id": new_id("proj"), "owner_id": user["id"], "progress": 0,
-                "status": "active", "created_at": iso(now_utc())})
+    doc.update({
+        "id": new_id("proj"),
+        "owner_id": user["id"],
+        "customer_id": user["id"] if user["role"] == "customer" else None,
+        "lifecycle_stage": "planning",
+        "segment": doc.get("segment") or "new_home",
+        "progress": 0,
+        "status": "active",
+        "created_at": iso(now_utc()),
+    })
     await db.projects.insert_one(dict(doc))
     return clean(doc)
 
 
+def _can_access_project(proj, user):
+    if user["role"] == "super_admin":
+        return True
+    if proj.get("owner_id") == user["id"] or proj.get("customer_id") == user["id"]:
+        return True
+    if proj.get("assigned_architect_id") == user["id"] or proj.get("assigned_engineer_id") == user["id"]:
+        return True
+    return False
+
+
 @api.get("/erp/boq/{project_id}")
-async def list_boq(project_id: str, user=Depends(require_roles("contractor", "super_admin"))):
+async def list_boq(project_id: str, user=Depends(get_current_user)):
     proj = await db.projects.find_one({"id": project_id}, {"_id": 0})
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
-    if user["role"] != "super_admin" and proj.get("owner_id") != user["id"]:
+    if not _can_access_project(proj, user):
         raise HTTPException(status_code=403, detail="Forbidden")
     items = await db.boq.find({"project_id": project_id}, {"_id": 0}).to_list(500)
     total = sum(i["amount"] for i in items)
@@ -1192,6 +1223,8 @@ import wallet as _wallet
 _wallet.init(db, get_current_user)
 import ads as _ads
 _ads.init(db, get_current_user)
+import home_build as _home
+_home.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1207,6 +1240,8 @@ app.include_router(_pstripe.router)
 app.include_router(_solar.router)
 app.include_router(_wallet.router)
 app.include_router(_ads.router)
+app.include_router(_home.router)
+app.include_router(_home.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
