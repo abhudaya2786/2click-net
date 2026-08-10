@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useBranding } from "@/context/BrandingContext";
@@ -17,6 +17,8 @@ export default function Register() {
   const { brand_name } = useBranding();
   const { t, lang, toggle } = useLang();
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const typeFromUrl = searchParams.get("type");
 
   const [step, setStep] = useState(0);
   const [userTypes, setUserTypes] = useState([]);
@@ -30,7 +32,15 @@ export default function Register() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { api.get("/user-types").then(({ data }) => setUserTypes(data)); }, []);
+  useEffect(() => {
+    api.get("/user-types").then(({ data }) => {
+      setUserTypes(data);
+      if (typeFromUrl) {
+        const match = data.find((u) => u.code === typeFromUrl);
+        if (match) setUt(match);
+      }
+    });
+  }, [typeFromUrl]);
 
   useEffect(() => {
     if (step === 1 && ut) {
