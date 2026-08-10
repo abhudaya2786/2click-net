@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star, CreditCard, Wallet, Sun } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star, CreditCard, Wallet, Sun, Gavel } from "lucide-react";
+import VendorRFQInbox from "@/components/homebuild/VendorRFQInbox";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import WalletSection from "@/components/dashboard/WalletSection";
@@ -15,6 +16,7 @@ const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "products", label: "My Products", icon: Package },
   { id: "orders", label: "Orders", icon: ShoppingBag },
+  { id: "rfq", label: "RFQ Inbox", icon: Gavel },
   { id: "solar", label: "Solar Brands", icon: Sun },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "billing", label: "Billing", icon: CreditCard },
@@ -153,6 +155,8 @@ export default function VendorDashboard() {
               <SolarCatalogManager scope="vendor" />
             </div>
           )}
+
+          {active === "rfq" && <VendorRFQInbox />}
 
           {active === "wallet" && <WalletSection />}
           {active === "billing" && <BillingSection />}
