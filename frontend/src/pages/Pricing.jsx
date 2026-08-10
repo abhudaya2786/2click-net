@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import PageSEO from "@/components/marketing/PageSEO";
 
 function fmtPrice(p) {
   if (p === -1 || p === "Custom") return "Custom";
@@ -33,6 +34,11 @@ export default function Pricing() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24">
+      <PageSEO
+        title="Pricing — SaaS Plans for Construction Businesses"
+        description="Starter, Business and Enterprise SaaS plans for vendors, contractors and builders on 2click.in — transparent pricing, cancel anytime"
+        path="/pricing"
+      />
       <div className="max-w-2xl mb-14">
         <span className="text-xs font-mono uppercase tracking-widest text-primary">Pricing</span>
         <h1 className="font-display font-extrabold text-4xl md:text-5xl tracking-tight mt-3">Plans that scale with your projects.</h1>

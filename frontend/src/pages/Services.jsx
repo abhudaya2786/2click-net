@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import PageSEO from "@/components/marketing/PageSEO";
 import { Gavel, Store, Sun, Building2, Bot, Truck, Boxes, Calculator, ArrowUpRight, Clock } from "lucide-react";
 
 const SERVICES = [
@@ -42,6 +43,11 @@ export default function Services() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24">
+      <PageSEO
+        title="Services — Construction ERP, Marketplace, Solar & AI"
+        description="Tender management, B2B marketplace, construction ERP, solar EPC, AI assistant and SaaS billing — full capabilities on 2click.in"
+        path="/services"
+      />
       <div className="max-w-2xl mb-14">
         <span className="text-xs font-mono uppercase tracking-widest text-primary">Capabilities</span>
         <h1 className="font-display font-extrabold text-4xl md:text-5xl tracking-tight mt-3">Everything the construction industry runs on.</h1>

@@ -26,6 +26,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import ResetPassword from "@/pages/ResetPassword";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import AdsPortal from "@/pages/AdsPortal";
+import BecomeVendor from "@/pages/BecomeVendor";
 import Dashboard from "@/pages/dashboard/Dashboard";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
@@ -45,6 +46,7 @@ function AppRouter() {
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />
       <Route path="/freelancers" element={M(<Freelancers />)} />
+      <Route path="/become-vendor" element={M(<BecomeVendor />)} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />

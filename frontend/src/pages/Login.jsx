@@ -4,8 +4,16 @@ import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HardHat, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
+import { HardHat, Loader2, ArrowLeft, ShieldCheck, Gavel, Store, Sun, Building2, Bot } from "lucide-react";
 import { toast } from "sonner";
+
+const MODULES = [
+  { icon: Gavel, label: "Tender Bidding" },
+  { icon: Store, label: "Marketplace" },
+  { icon: Sun, label: "Solar EPC" },
+  { icon: Building2, label: "Construction ERP" },
+  { icon: Bot, label: "AI Assistant" },
+];
 
 export default function Login() {
   const { setSession } = useAuth();
@@ -88,8 +96,16 @@ export default function Login() {
             <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
           </Link>
           <div>
-            <h2 className="font-display font-extrabold text-4xl tracking-tight leading-tight">The operating system for<br />India's construction economy.</h2>
-            <p className="mt-4 text-slate-400 max-w-md">Tenders, marketplace, ERP, solar and AI — unified in one enterprise platform.</p>
+            <h2 className="font-display font-extrabold text-4xl tracking-tight leading-tight">SaaS + ERP + Marketing<br />+ Solar + Bidding</h2>
+            <p className="mt-4 text-slate-400 max-w-md">एक login — tenders, marketplace, solar calculator, construction ERP और AI। India's construction super-app।</p>
+            <div className="mt-8 flex flex-wrap gap-2">
+              {MODULES.map((m) => (
+                <span key={m.label} className="inline-flex items-center gap-1.5 text-xs bg-white/10 border border-white/15 px-3 py-1.5 rounded-full">
+                  <m.icon className="h-3.5 w-3.5 text-primary" />
+                  {m.label}
+                </span>
+              ))}
+            </div>
           </div>
           <p className="text-xs font-mono text-slate-500">ISO 27001 · GST Ready · SOC 2</p>
         </div>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Star, ShoppingCart, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
 import AdSlot from "@/components/ads/AdSlot";
+import PageSEO from "@/components/marketing/PageSEO";
 
 export default function Marketplace() {
   const { user } = useAuth();
@@ -53,6 +54,11 @@ export default function Marketplace() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-10">
+      <PageSEO
+        title="B2B Construction Marketplace — Steel, Cement, Solar"
+        description="Multi-vendor B2B marketplace for building materials — steel, cement, solar panels with GST invoicing and cart checkout on 2click.in"
+        path="/marketplace"
+      />
       <div className="mb-8">
         <span className="text-xs font-mono uppercase tracking-widest text-primary">Marketplace</span>
         <h1 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight mt-2">Building materials, sourced smart.</h1>

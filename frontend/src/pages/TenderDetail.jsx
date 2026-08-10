@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Gavel, Clock, Loader2, TrendingDown, Trophy, ArrowLeft, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import PageSEO from "@/components/marketing/PageSEO";
+import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 
 function Countdown({ closesAt }) {
   const [left, setLeft] = useState("");
@@ -67,9 +69,15 @@ export default function TenderDetail() {
   if (!tender) return <div className="flex justify-center py-32"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   const canBid = user && ["vendor", "contractor", "super_admin"].includes(user.role);
+  const shareMsg = `2click.in Tender: ${tender.title} — Budget ₹${(tender.budget / 100000).toFixed(1)}L. Bid now: ${window.location.href}`;
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-10">
+      <PageSEO
+        title={tender.title}
+        description={`${tender.description?.slice(0, 140) || "Construction tender"} — Budget ₹${(tender.budget / 100000).toFixed(1)}L. Live reverse auction on 2click.in`}
+        path={`/tenders/${id}`}
+      />
       <Link to="/tenders" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="h-4 w-4" />Back to tenders</Link>
 
       <div className="grid lg:grid-cols-[1fr_380px] gap-px bg-border border border-border">
@@ -77,6 +85,9 @@ export default function TenderDetail() {
           <span className="text-[10px] font-mono uppercase tracking-wider bg-tender/10 text-tender px-2 py-1">{tender.category}</span>
           <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight mt-4">{tender.title}</h1>
           <p className="mt-3 text-muted-foreground leading-relaxed">{tender.description}</p>
+          <div className="mt-4">
+            <WhatsAppShare message={shareMsg} label="Tender WhatsApp पर शेयर करें" size="sm" />
+          </div>
           <div className="mt-6 grid grid-cols-3 gap-px bg-border border border-border">
             {[["Budget",`₹${(tender.budget/100000).toFixed(1)}L`],["EMD",`₹${(tender.emd/1000).toFixed(0)}K`],["Bids",tender.bids.length]].map(([l,v]) => (
               <div key={l} className="bg-card p-4"><div className="text-xs text-muted-foreground">{l}</div><div className="font-mono font-bold text-lg">{v}</div></div>

@@ -2,9 +2,34 @@ import { Link } from "react-router-dom";
 import { HardHat } from "lucide-react";
 
 const COLS = [
-  { h: "Platform", items: ["Marketplace", "Tender Hub", "Reverse Auction", "Solar Portal", "Construction ERP"] },
-  { h: "Company", items: ["About", "Careers", "Press", "Partners", "Contact"] },
-  { h: "Resources", items: ["Documentation", "API", "Blog", "Support", "Status"] },
+  {
+    h: "Platform",
+    items: [
+      { label: "Marketplace", to: "/marketplace" },
+      { label: "Tender Hub", to: "/tenders" },
+      { label: "Solar Portal", to: "/solar" },
+      { label: "Super Mart", to: "/mart" },
+      { label: "Become Vendor", to: "/become-vendor" },
+    ],
+  },
+  {
+    h: "Company",
+    items: [
+      { label: "Services", to: "/services" },
+      { label: "Pricing", to: "/pricing" },
+      { label: "Freelancers", to: "/freelancers" },
+      { label: "Contact", to: "/contact" },
+      { label: "Advertise", to: "/ads" },
+    ],
+  },
+  {
+    h: "Account",
+    items: [
+      { label: "Log in", to: "/login" },
+      { label: "Register", to: "/register" },
+      { label: "Dashboard", to: "/dashboard" },
+    ],
+  },
 ];
 
 export default function Footer() {
@@ -19,7 +44,7 @@ export default function Footer() {
             <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
           </div>
           <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-            The enterprise operating system for construction — tenders, marketplace, ERP, solar and AI in one platform.
+            SaaS + ERP + Marketplace + Solar + Tender Bidding — India's construction super-app, ek hi login par.
           </p>
           <div className="mt-5 space-y-1.5 text-sm">
             <a href="tel:+917007254932" data-testid="footer-phone" className="block text-muted-foreground hover:text-primary transition-colors">+91 70072 54932</a>
@@ -36,7 +61,9 @@ export default function Footer() {
             <h4 className="font-display font-bold text-sm mb-4">{c.h}</h4>
             <ul className="space-y-2.5">
               {c.items.map((i) => (
-                <li key={i}><Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">{i}</Link></li>
+                <li key={i.label}>
+                  <Link to={i.to} className="text-sm text-muted-foreground hover:text-primary transition-colors">{i.label}</Link>
+                </li>
               ))}
             </ul>
           </div>

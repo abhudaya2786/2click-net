@@ -5,20 +5,22 @@ import { Button } from "@/components/ui/button";
 import { HardHat, Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
+import { useLang } from "@/context/LanguageContext";
 
 const PRIMARY_LINKS = [
-  { to: "/marketplace", label: "Marketplace" },
-  { to: "/tenders", label: "Tenders" },
-  { to: "/solar", label: "Solar" },
-  { to: "/mart", label: "Super Mart" },
-  { to: "/pricing", label: "Pricing" },
+  { to: "/marketplace", label: "Marketplace", labelHi: "मार्केट" },
+  { to: "/tenders", label: "Tenders", labelHi: "टेंडर" },
+  { to: "/solar", label: "Solar", labelHi: "सोलर" },
+  { to: "/mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
+  { to: "/pricing", label: "Pricing", labelHi: "प्लान" },
 ];
 
 const MORE_LINKS = [
-  { to: "/freelancers", label: "Freelancers" },
-  { to: "/ads", label: "Advertise" },
-  { to: "/services", label: "Services" },
-  { to: "/contact", label: "Contact" },
+  { to: "/become-vendor", label: "Become Vendor", labelHi: "Vendor बनें" },
+  { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
+  { to: "/ads", label: "Advertise", labelHi: "विज्ञापन" },
+  { to: "/services", label: "Services", labelHi: "सेवाएँ" },
+  { to: "/contact", label: "Contact", labelHi: "संपर्क" },
 ];
 
 const ALL_LINKS = [...PRIMARY_LINKS, ...MORE_LINKS];
@@ -27,9 +29,11 @@ export default function Navbar() {
   const { user } = useAuth();
   const { theme, toggle } = useTheme();
   const { brand_name } = useBranding();
+  const { lang, toggle: toggleLang } = useLang();
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const nav = useNavigate();
+  const lbl = (l) => (lang === "hi" ? l.labelHi : l.label);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur-xl shadow-sm">
@@ -45,7 +49,7 @@ export default function Navbar() {
           {PRIMARY_LINKS.map((l) => (
             <Link key={l.to} to={l.to} data-testid={`nav-${l.label.toLowerCase().replace(/\s+/g, "-")}`}
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              {l.label}
+              {lbl(l)}
             </Link>
           ))}
           <div className="relative">
@@ -66,7 +70,7 @@ export default function Navbar() {
                     onClick={() => setMoreOpen(false)}
                     className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                   >
-                    {l.label}
+                    {lbl(l)}
                   </Link>
                 ))}
               </div>
@@ -75,6 +79,15 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            data-testid="lang-toggle"
+            onClick={toggleLang}
+            className="h-9 px-2 flex items-center justify-center border border-border hover:bg-accent transition-colors rounded-lg text-xs font-mono uppercase"
+            title="Switch language"
+          >
+            {lang === "en" ? "हि" : "EN"}
+          </button>
           <button data-testid="theme-toggle" onClick={toggle}
             className="h-9 w-9 flex items-center justify-center border border-border hover:bg-accent transition-colors rounded-lg">
             {theme === "dark" ? <Sun className="h-4 w-4" strokeWidth={1.5} /> : <Moon className="h-4 w-4" strokeWidth={1.5} />}

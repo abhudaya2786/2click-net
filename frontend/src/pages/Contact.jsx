@@ -5,17 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Mail, Phone, MapPin, Loader2 } from "lucide-react";
+import PageSEO from "@/components/marketing/PageSEO";
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [busy, setBusy] = useState(false);
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
     try {
-      await api.post("/contact", form);
+      await api.post("/contact", { ...form, source: "contact", interest: "general" });
       toast.success("Message sent! Our team will reach out within 24 hours.");
-      setForm({ name: "", email: "", message: "" });
+      setForm({ name: "", email: "", phone: "", message: "" });
     } catch { toast.error("Could not send. Please try again."); } finally { setBusy(false); }
   };
 
@@ -26,6 +27,12 @@ export default function Contact() {
   ];
 
   return (
+    <>
+      <PageSEO
+        title="Contact — Sales, Partnerships & Support"
+        description="Contact 2click.in — Gorakhpur head office, Gurugram corporate office. Sales, enterprise plans and partnerships."
+        path="/contact"
+      />
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24 grid lg:grid-cols-2 gap-px bg-border border border-border">
       <div className="bg-card p-10">
         <span className="text-xs font-mono uppercase tracking-widest text-primary">Get in touch</span>
@@ -56,10 +63,13 @@ export default function Contact() {
           <Input data-testid="contact-name" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-none" /></div>
         <div><label className="text-sm font-medium mb-1.5 block">Email</label>
           <Input data-testid="contact-email" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-none" /></div>
+        <div><label className="text-sm font-medium mb-1.5 block">Phone</label>
+          <Input data-testid="contact-phone" type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="rounded-none" placeholder="+91" /></div>
         <div><label className="text-sm font-medium mb-1.5 block">Message</label>
           <Textarea data-testid="contact-message" required rows={5} value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="rounded-none" /></div>
         <Button type="submit" data-testid="contact-submit" disabled={busy} className="rounded-none w-full">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send message"}</Button>
       </form>
     </div>
+    </>
   );
 }
