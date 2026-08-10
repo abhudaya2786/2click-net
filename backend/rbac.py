@@ -188,9 +188,10 @@ async def rbac_admin(request: Request):
 
 
 async def rbac_super_admin(request: Request):
+    """Platform-wide theme, branding, languages — super_admin only."""
     user = await _get_current_user(request)
     if user.get("role") != "super_admin":
-        raise HTTPException(status_code=403, detail="Super admin only")
+        raise HTTPException(status_code=403, detail="Super admin access required")
     return user
 
 # ---------------------------------------------------------------------------

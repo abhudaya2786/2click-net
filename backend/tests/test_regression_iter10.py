@@ -120,7 +120,8 @@ class TestTenders:
     def test_tenders_list(self):
         r = requests.get(f"{API}/tenders")
         assert r.status_code == 200
-        assert isinstance(r.json(), list)
+        d = r.json()
+        assert "tenders" in d and isinstance(d["tenders"], list)
 
 
 # --------- BILLING ----------

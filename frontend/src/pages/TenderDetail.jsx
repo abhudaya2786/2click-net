@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Gavel, Clock, Loader2, TrendingDown, Trophy, ArrowLeft, Sparkles } from "lucide-react";
+import { Gavel, Clock, Loader2, TrendingDown, Trophy, ArrowLeft, Sparkles, MapPin, Package, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import PageSEO from "@/components/marketing/PageSEO";
@@ -69,6 +69,7 @@ export default function TenderDetail() {
   if (!tender) return <div className="flex justify-center py-32"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   const canBid = user && ["vendor", "contractor", "super_admin"].includes(user.role);
+  const canEdit = user && (user.role === "super_admin" || tender.owner_id === user.id);
   const shareMsg = `2click.in Tender: ${tender.title} — Budget ₹${(tender.budget / 100000).toFixed(1)}L. Bid now: ${window.location.href}`;
 
   return (
@@ -82,11 +83,28 @@ export default function TenderDetail() {
 
       <div className="grid lg:grid-cols-[1fr_380px] gap-px bg-border border border-border">
         <div className="bg-card p-8">
-          <span className="text-[10px] font-mono uppercase tracking-wider bg-tender/10 text-tender px-2 py-1">{tender.category}</span>
-          <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight mt-4">{tender.title}</h1>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <span className="text-[10px] font-mono uppercase tracking-wider bg-tender/10 text-tender px-2 py-1">{tender.subject_label || tender.subject}</span>
+            <span className="text-[10px] font-mono uppercase tracking-wider bg-primary/10 text-primary px-2 py-1">{tender.material_type_label || tender.category}</span>
+            {tender.published === false && <span className="text-[10px] font-mono bg-muted px-2 py-1">draft</span>}
+          </div>
+          <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight">{tender.title}</h1>
           <p className="mt-3 text-muted-foreground leading-relaxed">{tender.description}</p>
-          <div className="mt-4">
-            <WhatsAppShare message={shareMsg} label="Tender WhatsApp पर शेयर करें" size="sm" />
+          {(tender.location || tender.quantity) && (
+            <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
+              {tender.location && <span className="flex items-center gap-1"><MapPin className="h-4 w-4" />{tender.location}</span>}
+              {tender.quantity && <span className="flex items-center gap-1"><Package className="h-4 w-4" />{tender.quantity} {tender.unit}</span>}
+            </div>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <WhatsAppShare message={shareMsg} label="WhatsApp Share" size="sm" />
+            {canEdit && (
+              <Link to="/dashboard">
+                <Button size="sm" variant="outline" className="rounded-none">
+                  <Pencil className="h-3.5 w-3.5 mr-1" /> Edit in Dashboard
+                </Button>
+              </Link>
+            )}
           </div>
           <div className="mt-6 grid grid-cols-3 gap-px bg-border border border-border">
             {[["Budget",`₹${(tender.budget/100000).toFixed(1)}L`],["EMD",`₹${(tender.emd/1000).toFixed(0)}K`],["Bids",tender.bids.length]].map(([l,v]) => (

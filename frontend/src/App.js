@@ -64,8 +64,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <LanguageProvider>
-        <ThemeProvider>
-          <BrandingProvider>
+        <BrandingProvider>
+          <ThemeProvider>
             <AuthProvider>
               <PermissionProvider>
                 <BrowserRouter>
@@ -74,8 +74,8 @@ export default function App() {
                 </BrowserRouter>
               </PermissionProvider>
             </AuthProvider>
-          </BrandingProvider>
-        </ThemeProvider>
+          </ThemeProvider>
+        </BrandingProvider>
       </LanguageProvider>
     </ErrorBoundary>
   );

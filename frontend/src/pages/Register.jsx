@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useBranding } from "@/context/BrandingContext";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { HardHat, Loader2, Check, Star, Search, X, ArrowLeft, ArrowRight, Languages } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import LocationPicker from "@/components/location/LocationPicker";
 
 const STEPS = ["step_type", "step_category", "step_business", "step_account"];
 
@@ -17,6 +18,8 @@ export default function Register() {
   const { brand_name } = useBranding();
   const { t, lang, toggle } = useLang();
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const typeFromUrl = searchParams.get("type");
 
   const [step, setStep] = useState(0);
   const [userTypes, setUserTypes] = useState([]);
@@ -26,11 +29,20 @@ export default function Register() {
   const [selected, setSelected] = useState([]);   // [{id,name}]
   const [primaryId, setPrimaryId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", company: "", business_type: "", skills: "", service_area: "", portfolio_url: "", expected_pricing: "", availability: "" });
+  const [location, setLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
   const [terms, setTerms] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { api.get("/user-types").then(({ data }) => setUserTypes(data)); }, []);
+  useEffect(() => {
+    api.get("/user-types").then(({ data }) => {
+      setUserTypes(data);
+      if (typeFromUrl) {
+        const match = data.find((u) => u.code === typeFromUrl);
+        if (match) setUt(match);
+      }
+    });
+  }, [typeFromUrl]);
 
   useEffect(() => {
     if (step === 1 && ut) {
@@ -72,7 +84,13 @@ export default function Register() {
         business_type: form.business_type || null,
         primary_category_id: primaryId, category_ids: selected.map((s) => s.id),
         skills: form.skills ? form.skills.split(",").map((x) => x.trim()).filter(Boolean) : [],
-        service_area: form.service_area || null, portfolio_url: form.portfolio_url || null,
+        service_area: location.location || form.service_area || null,
+        state: location.state || null,
+        city: location.city || null,
+        pincode: location.pincode || null,
+        lat: location.lat,
+        lng: location.lng,
+        portfolio_url: form.portfolio_url || null,
         expected_pricing: form.expected_pricing || null, availability: form.availability || null,
       };
       const { data } = await api.post("/auth/register", payload);
@@ -188,8 +206,12 @@ export default function Register() {
                 <Input data-testid="biz-type" value={form.business_type} onChange={(e) => setForm({ ...form, business_type: e.target.value })} className="rounded-none" /></div>}
               {hasField("skills") && <div><label className="text-sm font-medium mb-1.5 block">{t("skills")}</label>
                 <Input data-testid="biz-skills" value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} placeholder="AutoCAD, BOQ, Estimation" className="rounded-none" /></div>}
-              {hasField("service_area") && <div><label className="text-sm font-medium mb-1.5 block">{t("service_area")}</label>
-                <Input data-testid="biz-area" value={form.service_area} onChange={(e) => setForm({ ...form, service_area: e.target.value })} className="rounded-none" /></div>}
+              {hasField("service_area") && (
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium mb-1.5 block">{t("service_area")}</label>
+                  <LocationPicker value={location} onChange={setLocation} />
+                </div>
+              )}
               {hasField("portfolio") && <div><label className="text-sm font-medium mb-1.5 block">{t("portfolio")}</label>
                 <Input data-testid="biz-portfolio" value={form.portfolio_url} onChange={(e) => setForm({ ...form, portfolio_url: e.target.value })} placeholder="https://…" className="rounded-none" /></div>}
               {hasField("pricing") && <div><label className="text-sm font-medium mb-1.5 block">{t("pricing")}</label>

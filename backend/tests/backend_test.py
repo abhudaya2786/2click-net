@@ -192,8 +192,9 @@ class TestTenders:
         r = requests.get(f"{API}/tenders")
         assert r.status_code == 200
         d = r.json()
-        assert len(d) >= 3
-        assert all("bid_count" in t for t in d)
+        tenders = d["tenders"] if isinstance(d, dict) else d
+        assert len(tenders) >= 3
+        assert all("bid_count" in t for t in tenders)
 
     def test_bid_ranking(self, tokens):
         vtok = tokens["vendor"][0]
@@ -221,7 +222,7 @@ class TestTenders:
         assert d["bids"][1]["rank"] == 2
 
     def test_customer_forbidden_bid(self, tokens):
-        tenders = requests.get(f"{API}/tenders").json()
+        tenders = requests.get(f"{API}/tenders").json()["tenders"]
         r = requests.post(f"{API}/tenders/{tenders[0]['id']}/bids",
                           headers=hdr(tokens["customer"][0]), json={"amount": 1})
         assert r.status_code == 403
