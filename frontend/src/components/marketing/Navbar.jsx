@@ -7,6 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
 import BrandLogo from "@/components/marketing/BrandLogo";
+import { NAV_COPY } from "@/lib/homeCopy";
 
 const PRIMARY_LINKS = [
   { to: "/marketplace", key: "nav.marketplace", label: "Marketplace", labelHi: "मार्केट" },
@@ -32,6 +33,7 @@ export default function Navbar() {
   const { theme, toggle } = useTheme();
   const { brand_name, navbar_style } = useBranding();
   const { lang, toggle: toggleLang, t, enabled } = useLang();
+  const navCopy = NAV_COPY[lang] || NAV_COPY.en;
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const nav = useNavigate();

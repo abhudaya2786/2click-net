@@ -1,6 +1,21 @@
 import axios from "axios";
 
-const BACKEND_URL = (process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "");
+const PRODUCTION_API = "https://wallet-vendor-mvp.emergent.host";
+
+function resolveBackendUrl() {
+  let url = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/$/, "");
+  if (!url) return process.env.NODE_ENV === "production" ? PRODUCTION_API : "";
+  // Fix misconfigured Vercel env (e.g. doubled URLs)
+  if (url.includes("2click.in") || url.includes("vercel.app")) {
+    console.warn("REACT_APP_BACKEND_URL points to frontend host; using production API fallback.");
+    return PRODUCTION_API;
+  }
+  const httpsIdx = url.lastIndexOf("https://");
+  if (httpsIdx > 0) url = url.slice(httpsIdx);
+  return url.replace(/\/$/, "");
+}
+
+const BACKEND_URL = resolveBackendUrl();
 if (!BACKEND_URL && process.env.NODE_ENV === "production") {
   console.error(
     "REACT_APP_BACKEND_URL is not set. Add it in Vercel → Settings → Environment Variables, then redeploy."
