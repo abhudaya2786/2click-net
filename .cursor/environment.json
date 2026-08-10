@@ -1,0 +1,32 @@
+{
+  "name": "2click-net",
+  "user": "ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "install": "./scripts/cloud-agent-install.sh",
+  "start": "./scripts/cloud-agent-start.sh",
+  "ports": [
+    {
+      "name": "frontend",
+      "port": 3000
+    },
+    {
+      "name": "backend",
+      "port": 8001
+    }
+  ],
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "cd backend && source .venv/bin/activate && uvicorn server:app --host 0.0.0.0 --port 8001 --reload",
+      "description": "FastAPI backend on port 8001"
+    },
+    {
+      "name": "frontend",
+      "command": "cd frontend && npm start",
+      "description": "React dev server on port 3000"
+    }
+  ]
+}
