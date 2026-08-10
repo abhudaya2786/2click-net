@@ -87,7 +87,13 @@ export default function Login() {
   const demo = (email) => setForm({ email, password: "Demo@12345" });
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-screen grid lg:grid-cols-2 mobile-app-shell">
+      <div className="lg:hidden sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur px-4 h-14 flex items-center">
+        <Link to="/" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" />
+          2click.in
+        </Link>
+      </div>
       <div className="hidden lg:block relative bg-slate-950">
         <div className="absolute inset-0 grid-lines opacity-20" />
         <div className="relative h-full flex flex-col justify-between p-12 text-white">

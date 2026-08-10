@@ -1,0 +1,58 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/build-android-apk.yml"
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web app
+        env:
+          REACT_APP_BACKEND_URL: https://wallet-vendor-mvp.emergent.host
+          CI: "false"
+        run: npm run build
+
+      - name: Sync Capacitor Android
+        run: npx cap add android 2>/dev/null || true && npx cap sync android
+
+      - name: Build debug APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+
+      - name: Copy APK to public folder
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk public/2click.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2click-android-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

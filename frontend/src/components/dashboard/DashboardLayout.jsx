@@ -3,6 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
 import { HardHat, LogOut, Sun, Moon, Globe } from "lucide-react";
+import { isNativeCapacitor } from "@/lib/pwa";
 
 const ROLE_LABEL = { super_admin: "Super Admin", vendor: "Vendor", customer: "Customer", contractor: "Contractor" };
 
@@ -10,10 +11,54 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
   const { user, logout } = useAuth();
   const { theme, toggle } = useTheme();
   const { brand_name } = useBranding();
+  const nativeApp = isNativeCapacitor();
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <aside className="w-16 md:w-60 border-r border-border flex flex-col shrink-0 bg-card">
+    <div className={`min-h-screen flex flex-col md:flex-row bg-background ${nativeApp ? "pt-[env(safe-area-inset-top)]" : ""}`}>
+      {/* Mobile top tab bar */}
+      <div className="md:hidden border-b border-border bg-card sticky top-0 z-30">
+        <div className="h-14 flex items-center justify-between px-4">
+          <Link to="/" className="flex items-center gap-2">
+            <div className="h-8 w-8 bg-primary flex items-center justify-center shrink-0">
+              <HardHat className="h-4 w-4 text-white" strokeWidth={1.75} />
+            </div>
+            <span className="font-display font-extrabold text-sm tracking-tight truncate max-w-[140px]">{title}</span>
+          </Link>
+          <div className="flex items-center gap-1">
+            <Link to="/" className="h-10 w-10 flex items-center justify-center border border-border" title="View site">
+              <Globe className="h-4 w-4" strokeWidth={1.5} />
+            </Link>
+            <button onClick={toggle} className="h-10 w-10 flex items-center justify-center border border-border">
+              {theme === "dark" ? <Sun className="h-4 w-4" strokeWidth={1.5} /> : <Moon className="h-4 w-4" strokeWidth={1.5} />}
+            </button>
+            <button data-testid="dash-logout-mobile" onClick={logout} className="h-10 w-10 flex items-center justify-center border border-border text-muted-foreground hover:text-destructive" title="Log out">
+              <LogOut className="h-4 w-4" strokeWidth={1.5} />
+            </button>
+          </div>
+        </div>
+        <nav className="dashboard-mobile-nav flex gap-1 overflow-x-auto px-2 pb-2" aria-label="Dashboard sections">
+          {nav.map((n) => (
+            <button
+              key={n.id}
+              data-testid={`nav-mobile-${n.id}`}
+              onClick={() => setActive(n.id)}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-full transition-colors touch-target ${
+                active === n.id ? "bg-primary text-white" : "bg-muted text-muted-foreground"
+              }`}
+            >
+              <n.icon className="h-3.5 w-3.5" strokeWidth={1.5} />
+              {n.label}
+              {n.badge > 0 && (
+                <span className="ml-0.5 min-w-[16px] h-4 px-1 text-[9px] font-bold rounded-full bg-white/20">
+                  {n.badge > 99 ? "99+" : n.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      <aside className="hidden md:flex w-60 border-r border-border flex-col shrink-0 bg-card">
         <Link to="/" className="h-16 flex items-center gap-2.5 px-4 border-b border-border">
           <div className="h-8 w-8 bg-primary flex items-center justify-center shrink-0"><HardHat className="h-4.5 w-4.5 text-white" strokeWidth={1.75} /></div>
           <span className="font-display font-extrabold tracking-tight hidden md:inline">{brand_name}</span>
@@ -41,7 +86,7 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border flex items-center justify-between px-5 md:px-8 bg-card">
+        <header className="hidden md:flex h-16 border-b border-border items-center justify-between px-5 md:px-8 bg-card">
           <div>
             <h1 className="font-display font-extrabold text-lg tracking-tight leading-none">{title}</h1>
             <span className="text-xs text-muted-foreground font-mono uppercase tracking-wider">{ROLE_LABEL[user?.role]} workspace</span>
@@ -57,7 +102,7 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-5 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <PersonalBanner user={user} />
           {children}
         </main>
