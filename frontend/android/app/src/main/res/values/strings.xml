@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">2click</string>
+    <string name="title_activity_main">2click</string>
+    <string name="package_name">in.twoclick.app</string>
+    <string name="custom_url_scheme">in.twoclick.app</string>
+</resources>

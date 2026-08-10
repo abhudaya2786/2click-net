@@ -17,6 +17,7 @@ const PRIMARY_LINKS = [
 ];
 
 const MORE_LINKS = [
+  { to: "/download-app", label: "Get App", labelHi: "ऐप डाउनलोड" },
   { to: "/become-vendor", label: "Become Vendor", labelHi: "विक्रेता बनें" },
   { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
   { to: "/ads", label: "Advertise", labelHi: "विज्ञापन" },
