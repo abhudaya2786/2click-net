@@ -6,13 +6,14 @@ import { HardHat, Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
+import BrandLogo from "@/components/marketing/BrandLogo";
 
 const PRIMARY_LINKS = [
-  { to: "/marketplace", label: "Marketplace", labelHi: "मार्केट" },
-  { to: "/tenders", label: "Tenders", labelHi: "टेंडर" },
-  { to: "/solar", label: "Solar", labelHi: "सोलर" },
-  { to: "/mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
-  { to: "/pricing", label: "Pricing", labelHi: "प्लान" },
+  { to: "/marketplace", key: "nav.marketplace", label: "Marketplace", labelHi: "मार्केट" },
+  { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
+  { to: "/solar", key: "nav.solar", label: "Solar", labelHi: "सोलर" },
+  { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
+  { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
 ];
 
 const MORE_LINKS = [
@@ -28,20 +29,18 @@ const ALL_LINKS = [...PRIMARY_LINKS, ...MORE_LINKS];
 export default function Navbar() {
   const { user } = useAuth();
   const { theme, toggle } = useTheme();
-  const { brand_name } = useBranding();
-  const { lang, toggle: toggleLang } = useLang();
+  const { brand_name, navbar_style } = useBranding();
+  const { lang, toggle: toggleLang, t, enabled } = useLang();
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const nav = useNavigate();
-  const lbl = (l) => (lang === "hi" ? l.labelHi : l.label);
+  const lbl = (l) => t(l.key) || (lang === "hi" ? l.labelHi : l.label);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/80 bg-background/95 backdrop-blur-xl shadow-sm">
+    <header className={`z-50 border-b border-border/80 bg-background/95 backdrop-blur-xl shadow-sm ${navbar_style === "sticky" ? "sticky top-0" : ""}`}>
       <div className="mx-auto max-w-[1400px] px-4 md:px-10 h-14 md:h-16 flex items-center justify-between">
         <Link to="/" data-testid="nav-logo" className="flex items-center gap-2.5">
-          <div className="h-8 w-8 md:h-9 md:w-9 bg-primary flex items-center justify-center rounded-lg shadow-sm">
-            <HardHat className="h-4 w-4 md:h-5 md:w-5 text-white" strokeWidth={1.75} />
-          </div>
+          <BrandLogo className="h-8 w-8 md:h-9 md:w-9" iconClass="h-4 w-4 md:h-5 md:w-5" />
           <span className="font-display font-extrabold text-base md:text-lg tracking-tight">{brand_name}</span>
         </Link>
 
@@ -79,6 +78,7 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {enabled.length > 1 && (
           <button
             type="button"
             data-testid="lang-toggle"
@@ -88,6 +88,7 @@ export default function Navbar() {
           >
             {lang === "en" ? "हि" : "EN"}
           </button>
+          )}
           <button data-testid="theme-toggle" onClick={toggle}
             className="h-9 w-9 flex items-center justify-center border border-border hover:bg-accent transition-colors rounded-lg">
             {theme === "dark" ? <Sun className="h-4 w-4" strokeWidth={1.5} /> : <Moon className="h-4 w-4" strokeWidth={1.5} />}

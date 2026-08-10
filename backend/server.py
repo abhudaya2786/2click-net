@@ -188,6 +188,11 @@ class RegisterIn(BaseModel):
     department_id: Optional[str] = None
     skills: Optional[List[str]] = None
     service_area: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    pincode: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
     portfolio_url: Optional[str] = None
     expected_pricing: Optional[str] = None
     availability: Optional[str] = None
@@ -391,7 +396,10 @@ async def register(body: RegisterIn, response: Response):
         "interests": body.interests or [], "business_type": body.business_type,
         "primary_category": body.primary_category, "primary_category_id": body.primary_category_id,
         "department_id": body.department_id, "skills": body.skills or [],
-        "service_area": body.service_area, "portfolio_url": body.portfolio_url,
+        "service_area": body.service_area or (f"{body.city}, {body.state}" if body.city and body.state else body.city or body.state),
+        "state": body.state, "city": body.city, "pincode": body.pincode,
+        "lat": body.lat, "lng": body.lng,
+        "portfolio_url": body.portfolio_url,
         "expected_pricing": body.expected_pricing, "availability": body.availability,
         "onboarding_completed": True,
         "kyc_status": "pending", "wallet": 0.0, "created_at": iso(now_utc()),
@@ -1358,6 +1366,10 @@ async def startup():
     ads.init(db, get_current_user)
     await ads.ensure_indexes()
     await ads.seed_placements()
+    import site_config as _sc
+    _sc.init(db)
+    await _sc.ensure_indexes()
+    await _sc.seed_geo()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1394,6 +1406,8 @@ import ads as _ads
 _ads.init(db, get_current_user)
 import home_build as _home
 _home.init(db, get_current_user)
+import site_config as _site
+_site.init(db)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1411,6 +1425,8 @@ app.include_router(_wallet.router)
 app.include_router(_ads.router)
 app.include_router(_home.router)
 app.include_router(_home.admin_router)
+app.include_router(_site.public_router)
+app.include_router(_site.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

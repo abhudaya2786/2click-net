@@ -1,23 +1,26 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet, Sun, Home } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet, Sun, Home, Globe } from "lucide-react";
 import AdminHomeBuild from "@/components/homebuild/AdminHomeBuild";
+import SiteCustomizer from "@/components/admin/SiteCustomizer";
 import { useBranding } from "@/context/BrandingContext";
 import AdminBilling from "@/pages/dashboard/AdminBilling";
 import AdminMaterials from "@/pages/dashboard/AdminMaterials";
 import SolarCatalogManager from "@/components/solar/SolarCatalogManager";
 
-const TABS = [
+const ALL_TABS = [
   { id: "companies", label: "Companies", icon: Building2 },
   { id: "departments", label: "Departments", icon: Network },
   { id: "roles", label: "Roles", icon: Shield },
   { id: "matrix", label: "Permission Matrix", icon: Grid3x3 },
   { id: "assign", label: "Users & Assignments", icon: UserCog },
   { id: "categories", label: "Categories", icon: Tag },
-  { id: "branding", label: "White Label", icon: Palette },
+  { id: "site", label: "Website Theme", icon: Globe, superAdminOnly: true },
+  { id: "branding", label: "White Label", icon: Palette, superAdminOnly: true },
   { id: "pricing", label: "Plans & Commission", icon: CreditCard },
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "wallet", label: "Wallet", icon: Wallet },
@@ -32,6 +35,9 @@ const R = "/admin/rbac";
 const A = "/admin";
 
 export default function AdminRBAC() {
+  const { user } = useAuth();
+  const isSuper = user?.role === "super_admin";
+  const TABS = ALL_TABS.filter((t) => !t.superAdminOnly || isSuper);
   const [tab, setTab] = useState("departments");
   return (
     <div>
@@ -49,7 +55,8 @@ export default function AdminRBAC() {
       {tab === "matrix" && <Matrix />}
       {tab === "assign" && <Assignments />}
       {tab === "categories" && <Categories />}
-      {tab === "branding" && <Branding />}
+      {tab === "site" && isSuper && <SiteCustomizer />}
+      {tab === "branding" && isSuper && <Branding />}
       {tab === "pricing" && <PricingCommission />}
       {tab === "billing" && <AdminBilling />}
       {tab === "wallet" && <AdminWallet />}
