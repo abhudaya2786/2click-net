@@ -3,9 +3,14 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Sun, Plus, Loader2, Trash2, Pencil, X, Eye, EyeOff } from "lucide-react";
+import { Sun, Plus, Loader2, Trash2, Pencil, X, Eye, EyeOff, CheckCircle2, XCircle, Clock } from "lucide-react";
 
 const EMPTY = { category_code: "module", brand_name: "", model: "", spec: "", rate: "", module_wp: "", is_active: true };
+const STATUS = {
+  approved: { label: "approved", cls: "bg-solar/10 text-solar", icon: CheckCircle2 },
+  pending: { label: "pending review", cls: "bg-tender/10 text-tender", icon: Clock },
+  rejected: { label: "rejected", cls: "bg-destructive/10 text-destructive", icon: XCircle },
+};
 
 export default function SolarBrandsManager({ scope = "admin" }) {
   const [comps, setComps] = useState([]);
@@ -14,6 +19,7 @@ export default function SolarBrandsManager({ scope = "admin" }) {
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [filter, setFilter] = useState("all");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -61,6 +67,12 @@ export default function SolarBrandsManager({ scope = "admin" }) {
   };
   const toggle = async (b) => { try { await api.patch(`/solar/epc/brands/${b.id}/status`); load(); } catch (e) { toast.error(e.response?.data?.detail || "Failed"); } };
   const del = async (b) => { if (!window.confirm(`Delete brand "${b.brand_name}"?`)) return; try { await api.delete(`/solar/epc/brands/${b.id}`); toast.success("Deleted"); load(); } catch (e) { toast.error(e.response?.data?.detail || "Failed"); } };
+  const approve = async (b) => { try { await api.post(`/solar/epc/brands/${b.id}/approve`); toast.success("Brand approved & live"); load(); } catch (e) { toast.error(e.response?.data?.detail || "Failed"); } };
+  const reject = async (b) => { const reason = window.prompt(`Reason for rejecting "${b.brand_name}"?`); if (!reason || !reason.trim()) return; try { await api.post(`/solar/epc/brands/${b.id}/reject`, { reason: reason.trim() }); toast.success("Brand rejected"); load(); } catch (e) { toast.error(e.response?.data?.detail || "Failed"); } };
+
+  const pendingCount = brands.filter((b) => b.status === "pending").length;
+  const shown = filter === "pending" ? brands.filter((b) => b.status === "pending") : brands;
+  const cols = scope === "admin" ? 7 : 6;
 
   return (
     <div className="space-y-6" data-testid={`solar-brands-${scope}`}>
@@ -111,6 +123,14 @@ export default function SolarBrandsManager({ scope = "admin" }) {
 
       {/* list */}
       <div className="border border-border bg-card overflow-x-auto">
+        {scope === "admin" && (
+          <div className="flex items-center gap-2 p-3 border-b border-border">
+            <button data-testid="brand-filter-all" onClick={() => setFilter("all")} className={`text-xs px-3 py-1.5 border ${filter === "all" ? "bg-primary text-white border-primary" : "border-border hover:bg-accent"}`}>All ({brands.length})</button>
+            <button data-testid="brand-filter-pending" onClick={() => setFilter("pending")} className={`text-xs px-3 py-1.5 border flex items-center gap-1.5 ${filter === "pending" ? "bg-tender text-white border-tender" : "border-border hover:bg-accent"}`}>
+              <Clock className="h-3.5 w-3.5" />Pending approval ({pendingCount})
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
         ) : (
@@ -120,11 +140,14 @@ export default function SolarBrandsManager({ scope = "admin" }) {
                 <th className="p-3">Component</th><th className="p-3">Brand / Model</th>
                 <th className="p-3 text-right">Rate</th>
                 {scope === "admin" && <th className="p-3">Owner</th>}
-                <th className="p-3">Status</th><th className="p-3 text-right">Actions</th>
+                <th className="p-3">Approval</th><th className="p-3">Visibility</th><th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {brands.map((b) => (
+              {shown.map((b) => {
+                const st = STATUS[b.status] || STATUS.approved;
+                const SIcon = st.icon;
+                return (
                 <tr key={b.id} data-testid={`brand-row-${b.id}`} className="border-b border-border hover:bg-muted/40 align-top">
                   <td className="p-3"><span className="text-xs font-mono bg-solar/10 text-solar px-1.5 py-0.5">{labelFor(b.category_code)}</span></td>
                   <td className="p-3">
@@ -134,19 +157,29 @@ export default function SolarBrandsManager({ scope = "admin" }) {
                   <td className="p-3 text-right font-mono whitespace-nowrap">₹{Number(b.rate).toLocaleString("en-IN")}<span className="text-muted-foreground text-xs">{unitFor(b.category_code)}</span></td>
                   {scope === "admin" && <td className="p-3 text-xs">{b.created_by_name || "—"}<div className="text-[10px] text-muted-foreground uppercase">{b.created_by_role}</div></td>}
                   <td className="p-3">
-                    <span className={`text-xs font-mono px-2 py-0.5 ${b.is_active ? "bg-solar/10 text-solar" : "bg-muted text-muted-foreground"}`}>{b.is_active ? "active" : "hidden"}</span>
+                    <span data-testid={`brand-status-${b.id}`} className={`inline-flex items-center gap-1 text-xs font-mono px-2 py-0.5 ${st.cls}`}><SIcon className="h-3 w-3" />{st.label}</span>
+                    {b.status === "rejected" && b.rejection_reason && <div className="text-[10px] text-destructive mt-1 max-w-[160px]">{b.rejection_reason}</div>}
+                  </td>
+                  <td className="p-3">
+                    <span className={`text-xs font-mono px-2 py-0.5 ${b.is_active ? "bg-solar/10 text-solar" : "bg-muted text-muted-foreground"}`}>{b.is_active ? "shown" : "hidden"}</span>
                   </td>
                   <td className="p-3">
                     <div className="flex items-center justify-end gap-2">
+                      {scope === "admin" && b.status === "pending" && (
+                        <>
+                          <button data-testid={`brand-approve-${b.id}`} onClick={() => approve(b)} title="Approve" className="text-solar hover:opacity-70"><CheckCircle2 className="h-4 w-4" /></button>
+                          <button data-testid={`brand-reject-${b.id}`} onClick={() => reject(b)} title="Reject" className="text-destructive hover:opacity-70"><XCircle className="h-4 w-4" /></button>
+                        </>
+                      )}
                       <button data-testid={`brand-toggle-${b.id}`} onClick={() => toggle(b)} title={b.is_active ? "Hide from customers" : "Show to customers"} className="text-muted-foreground hover:text-primary">{b.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}</button>
                       <button data-testid={`brand-edit-${b.id}`} onClick={() => edit(b)} className="text-muted-foreground hover:text-primary"><Pencil className="h-4 w-4" /></button>
                       <button data-testid={`brand-del-${b.id}`} onClick={() => del(b)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
                     </div>
                   </td>
                 </tr>
-              ))}
-              {brands.length === 0 && (
-                <tr><td colSpan={scope === "admin" ? 6 : 5} className="p-10 text-center text-muted-foreground">No solar brands yet. Add your first component brand above.</td></tr>
+              ); })}
+              {shown.length === 0 && (
+                <tr><td colSpan={cols} className="p-10 text-center text-muted-foreground">{filter === "pending" ? "No brands pending approval." : "No solar brands yet. Add your first component brand above."}</td></tr>
               )}
             </tbody>
           </table>

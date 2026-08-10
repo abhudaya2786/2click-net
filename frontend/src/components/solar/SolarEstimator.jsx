@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Sun, Loader2, Zap, IndianRupee, TrendingUp, Leaf, Ruler, FileText, FileCheck2,
-  Upload, CheckCircle2, Download, Save, Building2, Home, BatteryCharging, Trash2,
+  Upload, CheckCircle2, Download, Save, Building2, Home, BatteryCharging, Trash2, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -50,11 +50,13 @@ export default function SolarEstimator({ embedded = false }) {
   const [brands, setBrands] = useState([]);
   const [components, setComponents] = useState([]);
   const [sel, setSel] = useState({});
+  const [packages, setPackages] = useState([]);
+  const [appliedPkg, setAppliedPkg] = useState(null);
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
 
   useEffect(() => {
-    Promise.all([api.get("/solar/epc/brands"), api.get("/solar/epc/components")])
-      .then(([b, c]) => { setBrands(b.data || []); setComponents(c.data.components || []); })
+    Promise.all([api.get("/solar/epc/brands"), api.get("/solar/epc/components"), api.get("/solar/epc/packages")])
+      .then(([b, c, p]) => { setBrands(b.data || []); setComponents(c.data.components || []); setPackages(p.data || []); })
       .catch(() => {});
   }, []);
 
@@ -64,6 +66,15 @@ export default function SolarEstimator({ embedded = false }) {
     return m;
   }, [brands]);
   const selCount = Object.values(sel).filter(Boolean).length;
+
+  const applyPackage = (p) => {
+    const next = {};
+    (p.items || []).forEach((it) => { if (it.available && it.brand_id) next[it.category_code] = it.brand_id; });
+    setSel(next);
+    setAppliedPkg(p.id);
+    toast.success(`Applied "${p.name}" — now generate your estimate`);
+  };
+  const clearPackage = () => { setSel({}); setAppliedPkg(null); };
 
   const payload = () => ({
     segment: f.segment, system_type: f.system_type, tier: f.tier,
@@ -157,6 +168,25 @@ export default function SolarEstimator({ embedded = false }) {
             {battery && <div><label className="text-xs font-medium text-muted-foreground mb-1.5 block">Backup (days)</label>
               <Input data-testid="epc-autonomy" type="number" step="0.5" value={f.autonomy_days} onChange={(e) => set("autonomy_days", e.target.value)} className="rounded-none" /></div>}
           </div>
+
+          {packages.length > 0 && (
+            <div data-testid="solar-packages">
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5"><Layers className="h-3.5 w-3.5" />Ready-made packages (1-tap)</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {packages.map((p) => (
+                  <button key={p.id} type="button" data-testid={`pkg-pick-${p.id}`} onClick={() => applyPackage(p)}
+                    className={`text-left border p-2.5 transition-colors ${appliedPkg === p.id ? "border-primary bg-primary/5" : "border-border hover:bg-accent"}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-sm">{p.name}</span>
+                      <span className="text-[10px] font-mono uppercase bg-solar/10 text-solar px-1.5 py-0.5">{p.tier_label}</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{(p.items || []).filter((i) => i.available).length} components{p.description ? ` · ${p.description}` : ""}</div>
+                  </button>
+                ))}
+              </div>
+              {appliedPkg && <button type="button" data-testid="pkg-clear" onClick={clearPackage} className="text-xs text-muted-foreground hover:text-destructive mt-1.5">Clear package & choose manually</button>}
+            </div>
+          )}
 
           {components.filter((c) => (brandsByCat[c.code] || []).length && (c.code !== "battery" || battery)).length > 0 && (
             <details className="text-sm" data-testid="brand-select">

@@ -444,7 +444,7 @@ async def _resolve_brand_overrides(sel: Optional[dict]):
     ids = [v for v in sel.values() if v]
     if not ids:
         return None
-    rows = await _db.solar_brands.find({"id": {"$in": ids}, "is_active": True}, {"_id": 0}).to_list(50)
+    rows = await _db.solar_brands.find({"id": {"$in": ids}, "is_active": True, "status": "approved"}, {"_id": 0}).to_list(50)
     by_id = {r["id"]: r for r in rows}
     out = {}
     for code, bid in sel.items():
@@ -462,8 +462,8 @@ async def epc_components():
 
 @router.get("/brands")
 async def list_brands(category_code: Optional[str] = None):
-    """Public: active brands only (customer selection + public estimator)."""
-    q = {"is_active": True}
+    """Public: active + approved brands only (customer selection + public estimator)."""
+    q = {"is_active": True, "status": "approved"}
     if category_code:
         q["category_code"] = category_code
     rows = await _db.solar_brands.find(q, {"_id": 0}).sort("brand_name", 1).to_list(1000)
@@ -518,6 +518,8 @@ async def create_brand(body: BrandIn, request: Request):
     if body.rate is None or body.rate <= 0:
         raise HTTPException(400, "Rate must be greater than 0")
     doc = {"id": new_id("solbrand"), **_brand_doc(body, user),
+           "status": "approved" if user.get("role") == "super_admin" else "pending",
+           "rejection_reason": None,
            "created_by": user["id"], "created_by_role": user.get("role"),
            "created_by_name": user.get("name"), "company_id": user.get("company_id", "company_default"),
            "created_at": iso(now_utc())}
@@ -534,7 +536,10 @@ async def update_brand(bid: str, body: BrandIn, request: Request):
         raise HTTPException(400, "Invalid category_code")
     if body.rate is None or body.rate <= 0:
         raise HTTPException(400, "Rate must be greater than 0")
-    await _db.solar_brands.update_one({"id": bid}, {"$set": _brand_doc(body, user)})
+    upd = _brand_doc(body, user)
+    upd["status"] = "approved" if user.get("role") == "super_admin" else "pending"
+    upd["rejection_reason"] = None
+    await _db.solar_brands.update_one({"id": bid}, {"$set": upd})
     return await _db.solar_brands.find_one({"id": bid}, {"_id": 0})
 
 
@@ -555,6 +560,187 @@ async def delete_brand(bid: str, request: Request):
     return {"ok": True}
 
 
+class RejectIn(BaseModel):
+    reason: str
+
+
+@router.post("/brands/{bid}/approve")
+async def approve_brand(bid: str, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can approve brands")
+    if not await _db.solar_brands.find_one({"id": bid}, {"_id": 1}):
+        raise HTTPException(404, "Brand not found")
+    await _db.solar_brands.update_one({"id": bid}, {"$set": {
+        "status": "approved", "rejection_reason": None, "is_active": True, "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "approved"}
+
+
+@router.post("/brands/{bid}/reject")
+async def reject_brand(bid: str, body: RejectIn, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can reject brands")
+    if not body.reason.strip():
+        raise HTTPException(422, "Rejection reason is required")
+    if not await _db.solar_brands.find_one({"id": bid}, {"_id": 1}):
+        raise HTTPException(404, "Brand not found")
+    await _db.solar_brands.update_one({"id": bid}, {"$set": {
+        "status": "rejected", "rejection_reason": body.reason.strip(), "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "rejected"}
+
+
+# --------------------------------------------------------------------------- #
+# Solar Package Presets (vendor/admin bundle brands -> customer picks in 1 tap)
+# --------------------------------------------------------------------------- #
+class PackageIn(BaseModel):
+    name: str
+    description: Optional[str] = None
+    tier_label: Optional[str] = "Custom"
+    selections: dict = {}          # {category_code: brand_id}
+    is_active: bool = True
+
+
+def _pkg_doc(body: PackageIn):
+    sel = {k: v for k, v in (body.selections or {}).items() if k in _COMP_CODES and v}
+    return {
+        "name": body.name.strip(),
+        "description": (body.description or "").strip() or None,
+        "tier_label": (body.tier_label or "Custom").strip() or "Custom",
+        "selections": sel,
+        "is_active": bool(body.is_active),
+        "updated_at": iso(now_utc()),
+    }
+
+
+async def _expand_selections(sel: dict):
+    """{code: brand_id} -> [{category_code, label, brand_name, rate, available}] for display."""
+    ids = [v for v in (sel or {}).values() if v]
+    rows = await _db.solar_brands.find({"id": {"$in": ids}}, {"_id": 0}).to_list(50) if ids else []
+    by_id = {r["id"]: r for r in rows}
+    label_by_code = {c["code"]: c["label"] for c in COMPONENTS}
+    out = []
+    for code, bid in (sel or {}).items():
+        r = by_id.get(bid)
+        out.append({
+            "category_code": code, "label": label_by_code.get(code, code), "brand_id": bid,
+            "brand_name": r.get("brand_name") if r else None,
+            "rate": r.get("rate") if r else None,
+            "available": bool(r and r.get("is_active") and r.get("status") == "approved"),
+        })
+    return out
+
+
+@router.get("/packages")
+async def list_packages():
+    """Public: active + approved packages with expanded brand details."""
+    rows = await _db.solar_packages.find({"is_active": True, "status": "approved"}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    for p in rows:
+        p["items"] = await _expand_selections(p.get("selections", {}))
+    return rows
+
+
+@router.get("/packages/manage")
+async def manage_packages(request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") == "super_admin":
+        q = {}
+    elif user.get("role") == "vendor":
+        q = {"created_by": user["id"]}
+    else:
+        raise HTTPException(403, "Only admin or vendor can manage solar packages")
+    rows = await _db.solar_packages.find(q, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    for p in rows:
+        p["items"] = await _expand_selections(p.get("selections", {}))
+    return rows
+
+
+async def _get_owned_package(pid, user):
+    p = await _db.solar_packages.find_one({"id": pid}, {"_id": 0})
+    if not p:
+        raise HTTPException(404, "Package not found")
+    if user.get("role") != "super_admin" and p.get("created_by") != user["id"]:
+        raise HTTPException(403, "You can only manage your own packages")
+    return p
+
+
+@router.post("/packages")
+async def create_package(body: PackageIn, request: Request):
+    user = await _get_current_user(request)
+    if not _can_manage(user):
+        raise HTTPException(403, "Only admin or vendor can manage solar packages")
+    if not body.name.strip():
+        raise HTTPException(400, "Package name is required")
+    doc = {"id": new_id("solpkg"), **_pkg_doc(body),
+           "status": "approved" if user.get("role") == "super_admin" else "pending",
+           "rejection_reason": None,
+           "created_by": user["id"], "created_by_role": user.get("role"),
+           "created_by_name": user.get("name"), "company_id": user.get("company_id", "company_default"),
+           "created_at": iso(now_utc())}
+    await _db.solar_packages.insert_one(dict(doc))
+    doc.pop("_id", None)
+    doc["items"] = await _expand_selections(doc.get("selections", {}))
+    return doc
+
+
+@router.put("/packages/{pid}")
+async def update_package(pid: str, body: PackageIn, request: Request):
+    user = await _get_current_user(request)
+    await _get_owned_package(pid, user)
+    if not body.name.strip():
+        raise HTTPException(400, "Package name is required")
+    upd = _pkg_doc(body)
+    upd["status"] = "approved" if user.get("role") == "super_admin" else "pending"
+    upd["rejection_reason"] = None
+    await _db.solar_packages.update_one({"id": pid}, {"$set": upd})
+    p = await _db.solar_packages.find_one({"id": pid}, {"_id": 0})
+    p["items"] = await _expand_selections(p.get("selections", {}))
+    return p
+
+
+@router.patch("/packages/{pid}/status")
+async def toggle_package(pid: str, request: Request):
+    user = await _get_current_user(request)
+    p = await _get_owned_package(pid, user)
+    new_status = not p.get("is_active", True)
+    await _db.solar_packages.update_one({"id": pid}, {"$set": {"is_active": new_status, "updated_at": iso(now_utc())}})
+    return {"ok": True, "is_active": new_status}
+
+
+@router.delete("/packages/{pid}")
+async def delete_package(pid: str, request: Request):
+    user = await _get_current_user(request)
+    await _get_owned_package(pid, user)
+    await _db.solar_packages.delete_one({"id": pid})
+    return {"ok": True}
+
+
+@router.post("/packages/{pid}/approve")
+async def approve_package(pid: str, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can approve packages")
+    if not await _db.solar_packages.find_one({"id": pid}, {"_id": 1}):
+        raise HTTPException(404, "Package not found")
+    await _db.solar_packages.update_one({"id": pid}, {"$set": {
+        "status": "approved", "rejection_reason": None, "is_active": True, "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "approved"}
+
+
+@router.post("/packages/{pid}/reject")
+async def reject_package(pid: str, body: RejectIn, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can reject packages")
+    if not body.reason.strip():
+        raise HTTPException(422, "Rejection reason is required")
+    if not await _db.solar_packages.find_one({"id": pid}, {"_id": 1}):
+        raise HTTPException(404, "Package not found")
+    await _db.solar_packages.update_one({"id": pid}, {"$set": {
+        "status": "rejected", "rejection_reason": body.reason.strip(), "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "rejected"}
+
+
 async def _seed_brands():
     if await _db.solar_brands.count_documents({}) > 0:
         return
@@ -563,12 +749,46 @@ async def _seed_brands():
         await _db.solar_brands.insert_one({
             "id": new_id("solbrand"), "category_code": code, "brand_name": name,
             "model": model, "spec": spec, "rate": float(rate), "module_wp": wp, "is_active": True,
+            "status": "approved", "rejection_reason": None,
             "created_by": (admin or {}).get("id", "system"), "created_by_role": "super_admin",
             "created_by_name": (admin or {}).get("name", "System"),
             "company_id": (admin or {}).get("company_id", "company_default"),
             "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
         })
     logger.info("Seeded %d solar brands", len(DEFAULT_BRANDS))
+
+
+DEFAULT_PACKAGES = [
+    ("Premium Home", "Premium", "Top-tier Tier-1 components", {
+        "module": "Waaree TOPCon Bifacial", "inverter": "Sungrow String",
+        "structure": "Tata Anodized Aluminium", "protection": "Schneider Protection"}),
+    ("Value Home", "Value", "Balanced performance & price", {
+        "module": "Adani Mono-PERC", "inverter": "Growatt",
+        "structure": "HDGI Galvanised", "protection": "Havells Protection"}),
+]
+
+
+async def _seed_packages():
+    if await _db.solar_packages.count_documents({}) > 0:
+        return
+    admin = await _db.users.find_one({"role": "super_admin"}, {"_id": 0, "id": 1, "name": 1, "company_id": 1})
+    for name, tier, desc, brand_map in DEFAULT_PACKAGES:
+        selections = {}
+        for code, bname in brand_map.items():
+            b = await _db.solar_brands.find_one({"category_code": code, "brand_name": bname}, {"_id": 0, "id": 1})
+            if b:
+                selections[code] = b["id"]
+        if not selections:
+            continue
+        await _db.solar_packages.insert_one({
+            "id": new_id("solpkg"), "name": name, "tier_label": tier, "description": desc,
+            "selections": selections, "is_active": True, "status": "approved", "rejection_reason": None,
+            "created_by": (admin or {}).get("id", "system"), "created_by_role": "super_admin",
+            "created_by_name": (admin or {}).get("name", "System"),
+            "company_id": (admin or {}).get("company_id", "company_default"),
+            "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+        })
+    logger.info("Seeded %d solar packages", len(DEFAULT_PACKAGES))
 
 
 # --------------------------------------------------------------------------- #
@@ -912,9 +1132,20 @@ async def ensure_indexes():
             await _db.solar_kyc.create_index(f)
         except Exception:
             pass
-    for f in ["category_code", "created_by", "is_active"]:
+    for f in ["category_code", "created_by", "is_active", "status"]:
         try:
             await _db.solar_brands.create_index(f)
         except Exception:
             pass
+    for f in ["created_by", "is_active", "status"]:
+        try:
+            await _db.solar_packages.create_index(f)
+        except Exception:
+            pass
+    # backfill status on legacy brands (pre-approval-queue docs)
+    try:
+        await _db.solar_brands.update_many({"status": {"$exists": False}}, {"$set": {"status": "approved", "rejection_reason": None}})
+    except Exception:
+        pass
     await _seed_brands()
+    await _seed_packages()

@@ -9,7 +9,7 @@ import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRup
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import WalletSection from "@/components/dashboard/WalletSection";
-import SolarBrandsManager from "@/components/solar/SolarBrandsManager";
+import SolarCatalogManager from "@/components/solar/SolarCatalogManager";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -150,7 +150,7 @@ export default function VendorDashboard() {
                 <h2 className="font-display font-bold text-lg tracking-tight">Solar Component Brands</h2>
                 <p className="text-sm text-muted-foreground mt-1">List your solar components with prices. Customers pick these in the Solar EPC estimator and your rates flow into their BOQ.</p>
               </div>
-              <SolarBrandsManager scope="vendor" />
+              <SolarCatalogManager scope="vendor" />
             </div>
           )}
 

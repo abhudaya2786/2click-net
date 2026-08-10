@@ -7,7 +7,7 @@ import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, 
 import { useBranding } from "@/context/BrandingContext";
 import AdminBilling from "@/pages/dashboard/AdminBilling";
 import AdminMaterials from "@/pages/dashboard/AdminMaterials";
-import SolarBrandsManager from "@/components/solar/SolarBrandsManager";
+import SolarCatalogManager from "@/components/solar/SolarCatalogManager";
 
 const TABS = [
   { id: "companies", label: "Companies", icon: Building2 },
@@ -52,7 +52,7 @@ export default function AdminRBAC() {
       {tab === "billing" && <AdminBilling />}
       {tab === "wallet" && <AdminWallet />}
       {tab === "materials" && <AdminMaterials />}
-      {tab === "solar" && <SolarBrandsManager scope="admin" />}
+      {tab === "solar" && <SolarCatalogManager scope="admin" />}
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
       {tab === "audit" && <Audit />}

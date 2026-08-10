@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
 import {
   LayoutDashboard, Briefcase, Inbox, FolderOpen, Loader2, Tag, Star, MapPin, ExternalLink,
@@ -69,14 +70,36 @@ const PROFILES = {
 export default function FreelancerWorkspace() {
   const [active, setActive] = useState("overview");
   const [session, setSession] = useState(null);
-  const [enq, setEnq] = useState({ received: [], sent: [] });
+  const [enq, setEnq] = useState({ received: [], sent: [], unread: 0 });
   const [loading, setLoading] = useState(true);
+  const seen = useRef(null);
+
+  const loadEnq = useCallback(async () => {
+    try {
+      const { data } = await api.get("/freelancers/me/enquiries");
+      if (seen.current) {
+        (data.received || []).filter((e) => !seen.current.has(e.id)).forEach((e) =>
+          toast.info(`New enquiry from ${e.from_name || "a client"}`, { description: (e.message || "").slice(0, 80) }));
+      }
+      seen.current = new Set((data.received || []).map((e) => e.id));
+      setEnq(data);
+    } catch { /* ignore poll errors */ }
+  }, []);
 
   useEffect(() => {
-    Promise.all([api.get("/auth/session"), api.get("/freelancers/me/enquiries")])
-      .then(([s, e]) => { setSession(s.data); setEnq(e.data); })
-      .finally(() => setLoading(false));
-  }, []);
+    api.get("/auth/session").then((s) => setSession(s.data)).catch(() => {});
+    loadEnq().finally(() => setLoading(false));
+    const t = setInterval(loadEnq, 15000);
+    return () => clearInterval(t);
+  }, [loadEnq]);
+
+  useEffect(() => {
+    if (active === "enquiries" && enq.unread > 0) {
+      api.post("/freelancers/me/enquiries/mark-read").then(() => setEnq((p) => ({ ...p, unread: 0 }))).catch(() => {});
+    }
+  }, [active, enq.unread]);
+
+  const nav = NAV.map((n) => (n.id === "enquiries" ? { ...n, badge: enq.unread } : n));
 
   const u = session?.user || {};
   const cats = session?.categories || [];
@@ -85,7 +108,7 @@ export default function FreelancerWorkspace() {
   const PIcon = profile.icon;
 
   return (
-    <DashboardLayout nav={NAV} active={active} setActive={setActive} title={profile.title}>
+    <DashboardLayout nav={nav} active={active} setActive={setActive} title={profile.title}>
       {loading ? <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div> : (
         <>
           {active === "overview" && (

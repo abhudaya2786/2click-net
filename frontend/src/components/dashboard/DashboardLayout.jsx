@@ -24,6 +24,12 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
               className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors ${active === n.id ? "bg-primary text-white" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}>
               <n.icon className="h-4.5 w-4.5 shrink-0" strokeWidth={1.5} />
               <span className="hidden md:inline">{n.label}</span>
+              {n.badge > 0 && (
+                <span data-testid={`nav-badge-${n.id}`}
+                  className={`ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full ${active === n.id ? "bg-white text-primary" : "bg-primary text-white"}`}>
+                  {n.badge > 99 ? "99+" : n.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
