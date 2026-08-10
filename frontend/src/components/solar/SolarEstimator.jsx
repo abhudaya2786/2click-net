@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Sun, Loader2, Zap, IndianRupee, TrendingUp, Leaf, Ruler, FileText, FileCheck2,
-  Upload, CheckCircle2, Download, Save, Building2, Home, BatteryCharging, Trash2,
+  Upload, CheckCircle2, Download, Save, Building2, Home, BatteryCharging, Trash2, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -47,7 +47,34 @@ export default function SolarEstimator({ embedded = false }) {
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [proposal, setProposal] = useState(null);
+  const [brands, setBrands] = useState([]);
+  const [components, setComponents] = useState([]);
+  const [sel, setSel] = useState({});
+  const [packages, setPackages] = useState([]);
+  const [appliedPkg, setAppliedPkg] = useState(null);
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    Promise.all([api.get("/solar/epc/brands"), api.get("/solar/epc/components"), api.get("/solar/epc/packages")])
+      .then(([b, c, p]) => { setBrands(b.data || []); setComponents(c.data.components || []); setPackages(p.data || []); })
+      .catch(() => {});
+  }, []);
+
+  const brandsByCat = useMemo(() => {
+    const m = {};
+    brands.forEach((b) => { (m[b.category_code] = m[b.category_code] || []).push(b); });
+    return m;
+  }, [brands]);
+  const selCount = Object.values(sel).filter(Boolean).length;
+
+  const applyPackage = (p) => {
+    const next = {};
+    (p.items || []).forEach((it) => { if (it.available && it.brand_id) next[it.category_code] = it.brand_id; });
+    setSel(next);
+    setAppliedPkg(p.id);
+    toast.success(`Applied "${p.name}" — now generate your estimate`);
+  };
+  const clearPackage = () => { setSel({}); setAppliedPkg(null); };
 
   const payload = () => ({
     segment: f.segment, system_type: f.system_type, tier: f.tier,
@@ -57,6 +84,7 @@ export default function SolarEstimator({ embedded = false }) {
     tenure_years: Number(f.tenure_years) || 0, interest_rate: f.interest_rate ? Number(f.interest_rate) : null,
     customer_name: f.customer_name, site_address: f.site_address, state: f.state,
     discom: f.discom, contact: f.contact,
+    brand_selections: Object.fromEntries(Object.entries(sel).filter(([, v]) => v)),
   });
 
   const estimate = async () => {
@@ -140,6 +168,49 @@ export default function SolarEstimator({ embedded = false }) {
             {battery && <div><label className="text-xs font-medium text-muted-foreground mb-1.5 block">Backup (days)</label>
               <Input data-testid="epc-autonomy" type="number" step="0.5" value={f.autonomy_days} onChange={(e) => set("autonomy_days", e.target.value)} className="rounded-none" /></div>}
           </div>
+
+          {packages.length > 0 && (
+            <div data-testid="solar-packages">
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 flex items-center gap-1.5"><Layers className="h-3.5 w-3.5" />Ready-made packages (1-tap)</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {packages.map((p) => (
+                  <button key={p.id} type="button" data-testid={`pkg-pick-${p.id}`} onClick={() => applyPackage(p)}
+                    className={`text-left border p-2.5 transition-colors ${appliedPkg === p.id ? "border-primary bg-primary/5" : "border-border hover:bg-accent"}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-sm">{p.name}</span>
+                      <span className="text-[10px] font-mono uppercase bg-solar/10 text-solar px-1.5 py-0.5">{p.tier_label}</span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{(p.items || []).filter((i) => i.available).length} components{p.description ? ` · ${p.description}` : ""}</div>
+                  </button>
+                ))}
+              </div>
+              {appliedPkg && <button type="button" data-testid="pkg-clear" onClick={clearPackage} className="text-xs text-muted-foreground hover:text-destructive mt-1.5">Clear package & choose manually</button>}
+            </div>
+          )}
+
+          {components.filter((c) => (brandsByCat[c.code] || []).length && (c.code !== "battery" || battery)).length > 0 && (
+            <details className="text-sm" data-testid="brand-select">
+              <summary className="cursor-pointer text-muted-foreground text-xs font-medium">
+                Choose component brands (optional){selCount > 0 ? ` · ${selCount} selected` : ""}
+              </summary>
+              <p className="text-[11px] text-muted-foreground mt-2">Pick specific brands — their live rates replace the default {TIERS.find((t) => t.id === f.tier)?.label} pricing in your BOQ.</p>
+              <div className="mt-2.5 space-y-2.5">
+                {components.filter((c) => (brandsByCat[c.code] || []).length && (c.code !== "battery" || battery)).map((c) => (
+                  <div key={c.code}>
+                    <label className="text-xs text-muted-foreground mb-1 block">{c.label}</label>
+                    <select data-testid={`brand-sel-${c.code}`} value={sel[c.code] || ""}
+                      onChange={(e) => setSel((p) => ({ ...p, [c.code]: e.target.value }))}
+                      className="w-full bg-background border border-input px-2 h-9 text-sm rounded-none">
+                      <option value="" label={`Default (${TIERS.find((t) => t.id === f.tier)?.label || "Standard"})`} />
+                      {(brandsByCat[c.code] || []).map((b) => (
+                        <option key={b.id} value={b.id} label={`${b.brand_name}${b.module_wp ? ` ${b.module_wp}Wp` : ""} — ₹${Number(b.rate).toLocaleString("en-IN")}${c.unit}`} />
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
 
           <details className="text-sm">
             <summary className="cursor-pointer text-muted-foreground text-xs font-medium">Financing & customer details</summary>

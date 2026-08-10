@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Star, ShoppingCart, Loader2, Package } from "lucide-react";
 import { toast } from "sonner";
+import AdSlot from "@/components/ads/AdSlot";
 
 export default function Marketplace() {
   const { user } = useAuth();
@@ -60,6 +61,7 @@ export default function Marketplace() {
             <button key={c} onClick={() => setActive(c)} data-testid={`cat-${c}`}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${active === c ? "bg-primary text-white" : "hover:bg-accent"}`}>{c}</button>
           ))}
+          <AdSlot placement="sidebar" className="mt-6" />
         </aside>
 
         <div>
@@ -69,6 +71,7 @@ export default function Marketplace() {
             <div className="text-center py-20 text-muted-foreground"><Package className="h-8 w-8 mx-auto mb-3" strokeWidth={1.5} />No products found.</div>
           ) : (
             <div className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-3">
+              <AdSlot placement="infeed" limit={1} />
               {products.map((p) => (
                 <div key={p.id} data-testid={`product-${p.id}`} className="group bg-card">
                   <div className="aspect-[4/3] overflow-hidden bg-muted">

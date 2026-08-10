@@ -331,6 +331,7 @@ async def freelancer_enquiry(fid: str, body: EnquiryIn, request: Request):
     doc = {"id": new_id("enq"), "freelancer_id": fid, "from_user_id": user["id"],
            "from_name": user.get("name"), "from_email": user.get("email"),
            "message": body.message, "category": body.category, "status": "new",
+           "is_read": False,
            "created_at": iso(now_utc())}
     await _db.freelancer_enquiries.insert_one(dict(doc))
     await rbac.audit_log("CREATE", "crm", doc["id"], None, {"to": fid}, user=user, request=request,
@@ -344,7 +345,16 @@ async def my_enquiries(request: Request):
     user = await _get_current_user(request)
     received = await _db.freelancer_enquiries.find({"freelancer_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
     sent = await _db.freelancer_enquiries.find({"from_user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
-    return {"received": received, "sent": sent}
+    unread = sum(1 for e in received if e.get("is_read") is False)
+    return {"received": received, "sent": sent, "unread": unread}
+
+
+@public_router.post("/freelancers/me/enquiries/mark-read")
+async def mark_enquiries_read(request: Request):
+    user = await _get_current_user(request)
+    res = await _db.freelancer_enquiries.update_many(
+        {"freelancer_id": user["id"], "is_read": False}, {"$set": {"is_read": True}})
+    return {"ok": True, "marked": res.modified_count}
 
 
 # ---------------------------------------------------------------------------

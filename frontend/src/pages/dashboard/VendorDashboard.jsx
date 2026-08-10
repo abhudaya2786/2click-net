@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star, CreditCard, Wallet } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, Plus, Trash2, Loader2, IndianRupee, Boxes, Star, CreditCard, Wallet, Sun } from "lucide-react";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import WalletSection from "@/components/dashboard/WalletSection";
+import SolarCatalogManager from "@/components/solar/SolarCatalogManager";
 
 const NAV = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "products", label: "My Products", icon: Package },
   { id: "orders", label: "Orders", icon: ShoppingBag },
+  { id: "solar", label: "Solar Brands", icon: Sun },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
@@ -139,6 +141,16 @@ export default function VendorDashboard() {
                   {orders.length === 0 && <tr><td colSpan="6" className="p-8 text-center text-muted-foreground">No orders yet.</td></tr>}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {active === "solar" && (
+            <div>
+              <div className="mb-5">
+                <h2 className="font-display font-bold text-lg tracking-tight">Solar Component Brands</h2>
+                <p className="text-sm text-muted-foreground mt-1">List your solar components with prices. Customers pick these in the Solar EPC estimator and your rates flow into their BOQ.</p>
+              </div>
+              <SolarCatalogManager scope="vendor" />
             </div>
           )}
 

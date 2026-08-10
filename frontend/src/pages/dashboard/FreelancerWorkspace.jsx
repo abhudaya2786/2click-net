@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
-import { LayoutDashboard, Briefcase, Inbox, FolderOpen, Loader2, Tag, Star, MapPin, ExternalLink, IndianRupee, Wallet } from "lucide-react";
+import {
+  LayoutDashboard, Briefcase, Inbox, FolderOpen, Loader2, Tag, Star, MapPin, ExternalLink,
+  IndianRupee, Wallet, Compass, Ruler, HardHat, Calculator, Sun, Store, Gavel, ShoppingBag,
+  FileText, Users, ArrowRight,
+} from "lucide-react";
 import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
@@ -12,31 +18,142 @@ const NAV = [
   { id: "wallet", label: "Wallet", icon: Wallet },
 ];
 
+// Category-wise (profession) personalization.
+const PROFILES = {
+  architect: {
+    title: "Architect Studio", icon: Compass,
+    tagline: "Design projects, drawings & client enquiries — your architecture workspace.",
+    quick: [
+      { to: "/solar", icon: Sun, label: "Solar EPC Designer", desc: "Size rooftop systems & generate BOQ" },
+      { to: "/mart", icon: Store, label: "Super Mart Rates", desc: "Live material rates for specs & estimates" },
+      { to: "/tenders", icon: Gavel, label: "Tender Hub", desc: "Find design & consultancy tenders" },
+    ],
+  },
+  engineer: {
+    title: "Engineer Desk", icon: Ruler,
+    tagline: "Structural, MEP & site engineering — manage projects and enquiries.",
+    quick: [
+      { to: "/mart", icon: Calculator, label: "Material Estimator", desc: "Category & brand-wise rate calculator" },
+      { to: "/solar", icon: Sun, label: "Solar Engineering", desc: "System sizing & 25-yr generation model" },
+      { to: "/tenders", icon: Gavel, label: "Tender Hub", desc: "Bid on engineering scopes" },
+    ],
+  },
+  ca: {
+    title: "CA Practice", icon: Calculator,
+    tagline: "Accounts, GST & compliance — track billing, wallet and client work.",
+    quick: [
+      { to: "/pricing", icon: FileText, label: "Plans & GST Invoices", desc: "Subscription & invoicing (18% GST)" },
+      { to: "/marketplace", icon: ShoppingBag, label: "Marketplace", desc: "Vendor orders & GST-ready invoices" },
+      { to: "/tenders", icon: Gavel, label: "Tender Hub", desc: "Financial & audit consultancy tenders" },
+    ],
+  },
+  service_provider: {
+    title: "Service Desk", icon: HardHat,
+    tagline: "On-site services & installation — respond to enquiries and grow leads.",
+    quick: [
+      { to: "/mart", icon: Store, label: "Super Mart", desc: "Materials for your service jobs" },
+      { to: "/solar", icon: Sun, label: "Solar Installs", desc: "Quote & install solar EPC systems" },
+      { to: "/tenders", icon: Gavel, label: "Tender Hub", desc: "Service & AMC contracts" },
+    ],
+  },
+  freelancer: {
+    title: "Freelancer Hub", icon: Briefcase,
+    tagline: "Your skills, services & enquiries — all in one workspace.",
+    quick: [
+      { to: "/marketplace", icon: ShoppingBag, label: "Marketplace", desc: "Source materials for your gigs" },
+      { to: "/tenders", icon: Gavel, label: "Tender Hub", desc: "Find work across construction" },
+      { to: "/services", icon: Users, label: "Explore Services", desc: "See where you fit on the platform" },
+    ],
+  },
+};
+
 export default function FreelancerWorkspace() {
   const [active, setActive] = useState("overview");
   const [session, setSession] = useState(null);
-  const [enq, setEnq] = useState({ received: [], sent: [] });
+  const [enq, setEnq] = useState({ received: [], sent: [], unread: 0 });
   const [loading, setLoading] = useState(true);
+  const seen = useRef(null);
+
+  const loadEnq = useCallback(async () => {
+    try {
+      const { data } = await api.get("/freelancers/me/enquiries");
+      if (seen.current) {
+        (data.received || []).filter((e) => !seen.current.has(e.id)).forEach((e) =>
+          toast.info(`New enquiry from ${e.from_name || "a client"}`, { description: (e.message || "").slice(0, 80) }));
+      }
+      seen.current = new Set((data.received || []).map((e) => e.id));
+      setEnq(data);
+    } catch { /* ignore poll errors */ }
+  }, []);
 
   useEffect(() => {
-    Promise.all([api.get("/auth/session"), api.get("/freelancers/me/enquiries")])
-      .then(([s, e]) => { setSession(s.data); setEnq(e.data); })
-      .finally(() => setLoading(false));
-  }, []);
+    api.get("/auth/session").then((s) => setSession(s.data)).catch(() => {});
+    loadEnq().finally(() => setLoading(false));
+    const t = setInterval(loadEnq, 15000);
+    return () => clearInterval(t);
+  }, [loadEnq]);
+
+  useEffect(() => {
+    if (active !== "enquiries") return;
+    (async () => {
+      await loadEnq();                          // always fetch fresh when opening the tab
+      try { await api.post("/freelancers/me/enquiries/mark-read"); } catch { /* ignore */ }
+      setEnq((p) => ({ ...p, unread: 0 }));
+    })();
+  }, [active, loadEnq]);
+
+  const nav = NAV.map((n) => (n.id === "enquiries" ? { ...n, badge: enq.unread } : n));
 
   const u = session?.user || {};
   const cats = session?.categories || [];
+  const userType = session?.user_type || "freelancer";
+  const profile = PROFILES[userType] || PROFILES.freelancer;
+  const PIcon = profile.icon;
 
   return (
-    <DashboardLayout nav={NAV} active={active} setActive={setActive} title="Freelancer Workspace">
+    <DashboardLayout nav={nav} active={active} setActive={setActive} title={profile.title}>
       {loading ? <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div> : (
         <>
           {active === "overview" && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard icon={Tag} label="Categories" value={cats.length} />
-              <StatCard icon={Inbox} label="Enquiries Received" value={enq.received.length} color="text-tender" />
-              <StatCard icon={Briefcase} label="Skills" value={(u.skills || []).length} color="text-solar" />
-              <StatCard icon={IndianRupee} label="Pricing" value={u.expected_pricing || "—"} />
+            <div className="space-y-6" data-testid="freelancer-overview">
+              {/* profession banner */}
+              <div data-testid="freelancer-profile-banner" className="border border-border bg-card p-6 flex items-start gap-4">
+                <div className="h-12 w-12 bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <PIcon className="h-6 w-6" strokeWidth={1.5} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="font-display font-extrabold text-xl tracking-tight">{profile.title}</h2>
+                    <span data-testid="freelancer-profession-tag" className="text-[10px] font-mono uppercase tracking-wider bg-solar/10 text-solar px-2 py-0.5">{userType.replace("_", " ")}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{profile.tagline}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard icon={Tag} label="Categories" value={cats.length} />
+                <StatCard icon={Inbox} label="Enquiries Received" value={enq.received.length} color="text-tender" />
+                <StatCard icon={Briefcase} label="Skills" value={(u.skills || []).length} color="text-solar" />
+                <StatCard icon={IndianRupee} label="Pricing" value={u.expected_pricing || "—"} />
+              </div>
+
+              {/* category-wise quick actions */}
+              <div>
+                <div className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2.5">Recommended for you</div>
+                <div className="grid gap-px bg-border border border-border sm:grid-cols-2 lg:grid-cols-3">
+                  {profile.quick.map((q) => (
+                    <Link key={q.to} to={q.to} data-testid={`freelancer-quick-${q.to.replace("/", "")}`}
+                      className="bg-card p-5 group hover:bg-accent transition-colors">
+                      <div className="flex items-center justify-between">
+                        <q.icon className="h-5 w-5 text-primary" strokeWidth={1.5} />
+                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
+                      </div>
+                      <div className="font-display font-bold text-sm mt-3">{q.label}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{q.desc}</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 

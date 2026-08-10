@@ -136,6 +136,7 @@ class EpcIn(BaseModel):
     state: str = "Maharashtra"
     discom: Optional[str] = None
     contact: Optional[str] = None
+    brand_selections: Optional[dict] = None   # {category_code: brand_id} — customer-selected brands
 
 
 def _emi(principal: float, annual_rate: float, years: int) -> float:
@@ -155,42 +156,59 @@ def _residential_subsidy(cap_kwp: float) -> int:
     return int(round(min(s, 78000)))
 
 
-def _build_boq(cap_kwp, tier, system_type, daily_kwh, autonomy_days):
+def _build_boq(cap_kwp, tier, system_type, daily_kwh, autonomy_days, ov=None):
+    ov = ov or {}
     t = TIERS[tier]
-    mod_count = max(1, math.ceil(cap_kwp * 1000 / t["module_wp"]))
-    actual_wp = mod_count * t["module_wp"]
+
+    # Module is special: brand override can change Wp (affects count + installed Wp) and ₹/Wp rate.
+    mod = ov.get("module") or {}
+    module_wp = int(mod.get("module_wp") or t["module_wp"])
+    module_rate_per_wp = mod.get("rate") if mod.get("rate") is not None else t["module_rate_per_wp"]
+    module_brand = mod.get("brand_name") or t["module_brand"]
+    module_spec = mod.get("spec") or f'{module_wp} Wp {t["module_tech"]} · ALMM · IEC 61215/61730'
+    mod_count = max(1, math.ceil(cap_kwp * 1000 / module_wp))
+    actual_wp = mod_count * module_wp
     items = []
 
-    def add(item, spec, brand, qty, unit, rate):
-        items.append({"item": item, "spec": spec, "brand": brand, "qty": round(qty, 2),
+    def add(code, item, spec, brand, qty, unit, rate):
+        o = ov.get(code)
+        if o:
+            if o.get("brand_name"):
+                brand = o["brand_name"]
+            if o.get("rate") is not None:
+                rate = o["rate"]
+            if o.get("spec"):
+                spec = o["spec"]
+        items.append({"code": code, "item": item, "spec": spec, "brand": brand, "qty": round(qty, 2),
                       "unit": unit, "rate": round(rate, 2), "amount": round(qty * rate, 2)})
 
-    add("Solar PV Modules", f'{t["module_wp"]} Wp {t["module_tech"]} · ALMM · IEC 61215/61730',
-        t["module_brand"], mod_count, "nos", t["module_rate_per_wp"] * t["module_wp"])
+    # module already resolved above (rate here is per-module) -> code=None so add() won't re-apply it
+    add(None, "Solar PV Modules", module_spec, module_brand, mod_count, "nos", module_rate_per_wp * module_wp)
+    items[-1]["code"] = "module"
     inv_kw = max(1, round(cap_kwp))
     inv_type = "Hybrid" if system_type in ("hybrid", "offgrid") else "On-Grid"
-    add(f"Solar {inv_type} Inverter", "MPPT >98.5% · IEC 62109 · IP65/66",
+    add("inverter", f"Solar {inv_type} Inverter", "MPPT >98.5% · IEC 62109 · IP65/66",
         t["inverter_brand"], inv_kw, "kW", t["inverter_rate_per_kw"])
-    add("Mounting Structure", f'{t["structure_brand"]} ≥80 micron · wind 150 km/h · seasonal tilt',
+    add("structure", "Mounting Structure", f'{t["structure_brand"]} ≥80 micron · wind 150 km/h · seasonal tilt',
         t["structure_brand"], cap_kwp, "kWp", t["structure_rate_per_kw"])
-    add("DC Cables & Connectors", "Tinned Cu · EN 50618 · 4/6 mm² · MC4",
+    add("dc_cable", "DC Cables & Connectors", "Tinned Cu · EN 50618 · 4/6 mm² · MC4",
         "Polycab / Lapp", cap_kwp, "kWp", t["dc_rate_per_kw"])
-    add("AC Cables (Armoured)", "Armoured XLPE Cu/Al",
+    add("ac_cable", "AC Cables (Armoured)", "Armoured XLPE Cu/Al",
         "Polycab / Havells", cap_kwp, "kWp", t["ac_rate_per_kw"])
-    add("Protection (AJB/SPD/MCB)", "IP65 AJB · SPD Class II · MCB/MCCB",
+    add("protection", "Protection (AJB/SPD/MCB)", "IP65 AJB · SPD Class II · MCB/MCCB",
         t["protection_brand"], cap_kwp, "kWp", t["protection_rate_per_kw"])
-    add("Chemical Earthing (3 Pits)", "AC / DC / LA pits + chemical compound",
+    add("earthing", "Chemical Earthing (3 Pits)", "AC / DC / LA pits + chemical compound",
         "Ashlok / JMV", 3, "pits", t["earthing_pit_rate"])
-    add("Lightning Arrester", t["la_type"], "JMV / OBO", 1, "nos", t["la_rate"])
-    add("Net-Meter / Bi-Directional Kit", "DISCOM-approved bi-directional meter",
+    add("la", "Lightning Arrester", t["la_type"], "JMV / OBO", 1, "nos", t["la_rate"])
+    add("netmeter", "Net-Meter / Bi-Directional Kit", "DISCOM-approved bi-directional meter",
         "Genus / Secure", 1, "set", t["netmeter_rate"])
-    add("Installation, Civil & Freight", "Erection · commissioning · civil · transport",
+    add("install", "Installation, Civil & Freight", "Erection · commissioning · civil · transport",
         "2click EPC", cap_kwp, "kWp", t["install_rate_per_kw"])
 
     battery_kwh = 0
     if system_type in ("hybrid", "offgrid"):
         battery_kwh = max(1, math.ceil(daily_kwh * autonomy_days / 0.8))
-        add("LiFePO4 Battery Bank", ">6000 cycles @80% DoD · integrated BMS",
+        add("battery", "LiFePO4 Battery Bank", ">6000 cycles @80% DoD · integrated BMS",
             t["battery_brand"], battery_kwh, "kWh", t["battery_rate_per_kwh"])
 
     for i, it in enumerate(items, 1):
@@ -199,7 +217,7 @@ def _build_boq(cap_kwp, tier, system_type, daily_kwh, autonomy_days):
     return items, subtotal, actual_wp, mod_count, battery_kwh
 
 
-def compute_epc(x: EpcIn) -> dict:
+def compute_epc(x: EpcIn, brand_overrides=None) -> dict:
     tier = x.tier if x.tier in TIERS else "standard"
     system_type = x.system_type if x.system_type in ("ongrid", "hybrid", "offgrid") else "ongrid"
     segment = x.segment if x.segment in ("residential", "commercial") else "residential"
@@ -221,7 +239,7 @@ def compute_epc(x: EpcIn) -> dict:
     capacity = round(max(capacity, 0.5), 2)
 
     items, subtotal, actual_wp, mod_count, battery_kwh = _build_boq(
-        capacity, tier, system_type, daily, x.autonomy_days)
+        capacity, tier, system_type, daily, x.autonomy_days, brand_overrides)
 
     # Generation + 25-yr degradation
     daily_per_kwp = PEAK_SUN_HOURS * PERFORMANCE_RATIO
@@ -291,7 +309,7 @@ def compute_epc(x: EpcIn) -> dict:
             "recommended_capacity_kwp": capacity,
             "area_required_sqft": round(capacity * AREA_PER_KWP),
             "roof_area_sqft": x.roof_area_sqft, "roof_limited": roof_limited,
-            "module_count": mod_count, "module_wp": TIERS[tier]["module_wp"],
+            "module_count": mod_count, "module_wp": round(actual_wp / max(mod_count, 1)),
             "installed_wp": actual_wp, "battery_kwh": battery_kwh,
             "peak_sun_hours": PEAK_SUN_HOURS, "performance_ratio": PERFORMANCE_RATIO,
         },
@@ -359,7 +377,418 @@ async def epc_config():
 
 @router.post("/estimate")
 async def epc_estimate(body: EpcIn):
-    return compute_epc(body)
+    overrides = await _resolve_brand_overrides(body.brand_selections)
+    return compute_epc(body, overrides)
+
+
+# --------------------------------------------------------------------------- #
+# Dynamic Brand & Price Catalog (Admin + Vendor manage · Customer selects)
+# --------------------------------------------------------------------------- #
+# code -> (label, ₹-unit suffix, whether it carries a module Wp field)
+COMPONENTS = [
+    {"code": "module", "label": "Solar PV Module", "unit": "/Wp", "has_wp": True},
+    {"code": "inverter", "label": "Inverter", "unit": "/kW", "has_wp": False},
+    {"code": "battery", "label": "Battery (LiFePO4)", "unit": "/kWh", "has_wp": False},
+    {"code": "structure", "label": "Mounting Structure", "unit": "/kWp", "has_wp": False},
+    {"code": "dc_cable", "label": "DC Cables & Connectors", "unit": "/kWp", "has_wp": False},
+    {"code": "ac_cable", "label": "AC Cables", "unit": "/kWp", "has_wp": False},
+    {"code": "protection", "label": "Protection (AJB/SPD/MCB)", "unit": "/kWp", "has_wp": False},
+    {"code": "earthing", "label": "Chemical Earthing", "unit": "/pit", "has_wp": False},
+    {"code": "la", "label": "Lightning Arrester", "unit": "/unit", "has_wp": False},
+    {"code": "netmeter", "label": "Net-Meter Kit", "unit": "/set", "has_wp": False},
+    {"code": "install", "label": "Installation & Civil", "unit": "/kWp", "has_wp": False},
+]
+_COMP_CODES = {c["code"] for c in COMPONENTS}
+
+# Seeded on first run (idempotent). (category_code, brand_name, model, spec, rate, module_wp)
+DEFAULT_BRANDS = [
+    ("module", "Waaree TOPCon Bifacial", "WSMD-585", "585 Wp N-Type TOPCon Bifacial (>21.5% eff)", 20, 585),
+    ("module", "Adani Mono-PERC", "AR-550", "550 Wp Mono-PERC (>21% eff)", 16, 550),
+    ("module", "Vikram ELDORA", "VSP-545", "545 Wp Mono-PERC · ALMM", 14, 545),
+    ("inverter", "Sungrow String", "SG-5K", "MPPT >98.5% · IEC 62109 · IP66", 6500, None),
+    ("inverter", "Growatt", "MIN-5000", "MPPT >98% string inverter", 5000, None),
+    ("inverter", "Luminous Hybrid", "NXG-5kW", "Hybrid MPPT inverter", 4200, None),
+    ("battery", "Exide LiFePO4", "EX-LFP", ">6000 cycles @80% DoD · BMS", 32000, None),
+    ("battery", "Luminous LiFePO4", "LUM-LFP", ">6000 cycles · integrated BMS", 28000, None),
+    ("structure", "Tata Anodized Aluminium", None, "≥80 micron · wind 150 km/h", 5500, None),
+    ("structure", "HDGI Galvanised", None, "Hot-dip galvanised structure", 4200, None),
+    ("dc_cable", "Polycab DC", None, "Tinned Cu · EN 50618 · MC4", 2200, None),
+    ("ac_cable", "Havells Armoured AC", None, "Armoured XLPE Cu/Al", 2300, None),
+    ("protection", "Schneider Protection", None, "IP65 AJB · SPD Class II · MCB/MCCB", 2500, None),
+    ("protection", "Havells Protection", None, "AJB + SPD + MCB", 2000, None),
+    ("earthing", "Ashlok Chemical Earthing", None, "AC/DC/LA pits + compound", 6000, None),
+    ("la", "JMV ESE Lightning Arrester", None, "ESE Lightning Arrester", 12000, None),
+    ("netmeter", "Genus Net-Meter Kit", None, "DISCOM bi-directional meter", 8000, None),
+    ("install", "2click EPC Installation", None, "Erection · commissioning · civil", 6000, None),
+]
+
+
+def _can_manage(user):
+    return user.get("role") in ("super_admin", "vendor")
+
+
+class BrandIn(BaseModel):
+    category_code: str
+    brand_name: str
+    model: Optional[str] = None
+    spec: Optional[str] = None
+    rate: float
+    module_wp: Optional[int] = None
+    is_active: bool = True
+
+
+async def _resolve_brand_overrides(sel: Optional[dict]):
+    """Map {category_code: brand_id} -> {category_code: {brand_name, rate, spec, module_wp}} from DB."""
+    if not sel:
+        return None
+    ids = [v for v in sel.values() if v]
+    if not ids:
+        return None
+    rows = await _db.solar_brands.find({"id": {"$in": ids}, "is_active": True, "status": "approved"}, {"_id": 0}).to_list(50)
+    by_id = {r["id"]: r for r in rows}
+    out = {}
+    for code, bid in sel.items():
+        r = by_id.get(bid)
+        if r and code in _COMP_CODES:
+            out[code] = {"brand_name": r.get("brand_name"), "rate": r.get("rate"),
+                         "spec": r.get("spec") or r.get("model"), "module_wp": r.get("module_wp")}
+    return out or None
+
+
+@router.get("/components")
+async def epc_components():
+    return {"components": COMPONENTS}
+
+
+@router.get("/brands")
+async def list_brands(category_code: Optional[str] = None):
+    """Public: active + approved brands only (customer selection + public estimator)."""
+    q = {"is_active": True, "status": "approved"}
+    if category_code:
+        q["category_code"] = category_code
+    rows = await _db.solar_brands.find(q, {"_id": 0}).sort("brand_name", 1).to_list(1000)
+    return rows
+
+
+@router.get("/brands/manage")
+async def manage_brands(request: Request):
+    """Admin sees all brands; vendor sees only their own."""
+    user = await _get_current_user(request)
+    if user.get("role") == "super_admin":
+        q = {}
+    elif user.get("role") == "vendor":
+        q = {"created_by": user["id"]}
+    else:
+        raise HTTPException(403, "Only admin or vendor can manage solar brands")
+    rows = await _db.solar_brands.find(q, {"_id": 0}).sort("created_at", -1).to_list(2000)
+    return rows
+
+
+async def _get_owned_brand(bid, user):
+    b = await _db.solar_brands.find_one({"id": bid}, {"_id": 0})
+    if not b:
+        raise HTTPException(404, "Brand not found")
+    if user.get("role") != "super_admin" and b.get("created_by") != user["id"]:
+        raise HTTPException(403, "You can only manage your own brands")
+    return b
+
+
+def _brand_doc(body: BrandIn, user):
+    return {
+        "category_code": body.category_code,
+        "brand_name": body.brand_name.strip(),
+        "model": (body.model or "").strip() or None,
+        "spec": (body.spec or "").strip() or None,
+        "rate": float(body.rate),
+        "module_wp": int(body.module_wp) if (body.category_code == "module" and body.module_wp) else None,
+        "is_active": bool(body.is_active),
+        "updated_at": iso(now_utc()),
+    }
+
+
+@router.post("/brands")
+async def create_brand(body: BrandIn, request: Request):
+    user = await _get_current_user(request)
+    if not _can_manage(user):
+        raise HTTPException(403, "Only admin or vendor can manage solar brands")
+    if body.category_code not in _COMP_CODES:
+        raise HTTPException(400, "Invalid category_code")
+    if not body.brand_name.strip():
+        raise HTTPException(400, "Brand name is required")
+    if body.rate is None or body.rate <= 0:
+        raise HTTPException(400, "Rate must be greater than 0")
+    doc = {"id": new_id("solbrand"), **_brand_doc(body, user),
+           "status": "approved" if user.get("role") == "super_admin" else "pending",
+           "rejection_reason": None,
+           "created_by": user["id"], "created_by_role": user.get("role"),
+           "created_by_name": user.get("name"), "company_id": user.get("company_id", "company_default"),
+           "created_at": iso(now_utc())}
+    await _db.solar_brands.insert_one(dict(doc))
+    doc.pop("_id", None)
+    return doc
+
+
+@router.put("/brands/{bid}")
+async def update_brand(bid: str, body: BrandIn, request: Request):
+    user = await _get_current_user(request)
+    await _get_owned_brand(bid, user)
+    if body.category_code not in _COMP_CODES:
+        raise HTTPException(400, "Invalid category_code")
+    if body.rate is None or body.rate <= 0:
+        raise HTTPException(400, "Rate must be greater than 0")
+    upd = _brand_doc(body, user)
+    upd["status"] = "approved" if user.get("role") == "super_admin" else "pending"
+    upd["rejection_reason"] = None
+    await _db.solar_brands.update_one({"id": bid}, {"$set": upd})
+    return await _db.solar_brands.find_one({"id": bid}, {"_id": 0})
+
+
+@router.patch("/brands/{bid}/status")
+async def toggle_brand(bid: str, request: Request):
+    user = await _get_current_user(request)
+    b = await _get_owned_brand(bid, user)
+    new_status = not b.get("is_active", True)
+    await _db.solar_brands.update_one({"id": bid}, {"$set": {"is_active": new_status, "updated_at": iso(now_utc())}})
+    return {"ok": True, "is_active": new_status}
+
+
+@router.delete("/brands/{bid}")
+async def delete_brand(bid: str, request: Request):
+    user = await _get_current_user(request)
+    await _get_owned_brand(bid, user)
+    await _db.solar_brands.delete_one({"id": bid})
+    return {"ok": True}
+
+
+class RejectIn(BaseModel):
+    reason: str
+
+
+@router.post("/brands/{bid}/approve")
+async def approve_brand(bid: str, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can approve brands")
+    if not await _db.solar_brands.find_one({"id": bid}, {"_id": 1}):
+        raise HTTPException(404, "Brand not found")
+    await _db.solar_brands.update_one({"id": bid}, {"$set": {
+        "status": "approved", "rejection_reason": None, "is_active": True, "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "approved"}
+
+
+@router.post("/brands/{bid}/reject")
+async def reject_brand(bid: str, body: RejectIn, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can reject brands")
+    if not body.reason.strip():
+        raise HTTPException(422, "Rejection reason is required")
+    if not await _db.solar_brands.find_one({"id": bid}, {"_id": 1}):
+        raise HTTPException(404, "Brand not found")
+    await _db.solar_brands.update_one({"id": bid}, {"$set": {
+        "status": "rejected", "rejection_reason": body.reason.strip(), "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "rejected"}
+
+
+# --------------------------------------------------------------------------- #
+# Solar Package Presets (vendor/admin bundle brands -> customer picks in 1 tap)
+# --------------------------------------------------------------------------- #
+class PackageIn(BaseModel):
+    name: str
+    description: Optional[str] = None
+    tier_label: Optional[str] = "Custom"
+    selections: dict = {}          # {category_code: brand_id}
+    is_active: bool = True
+
+
+def _pkg_doc(body: PackageIn):
+    sel = {k: v for k, v in (body.selections or {}).items() if k in _COMP_CODES and v}
+    return {
+        "name": body.name.strip(),
+        "description": (body.description or "").strip() or None,
+        "tier_label": (body.tier_label or "Custom").strip() or "Custom",
+        "selections": sel,
+        "is_active": bool(body.is_active),
+        "updated_at": iso(now_utc()),
+    }
+
+
+async def _expand_selections(sel: dict):
+    """{code: brand_id} -> [{category_code, label, brand_name, rate, available}] for display."""
+    ids = [v for v in (sel or {}).values() if v]
+    rows = await _db.solar_brands.find({"id": {"$in": ids}}, {"_id": 0}).to_list(50) if ids else []
+    by_id = {r["id"]: r for r in rows}
+    label_by_code = {c["code"]: c["label"] for c in COMPONENTS}
+    out = []
+    for code, bid in (sel or {}).items():
+        r = by_id.get(bid)
+        out.append({
+            "category_code": code, "label": label_by_code.get(code, code), "brand_id": bid,
+            "brand_name": r.get("brand_name") if r else None,
+            "rate": r.get("rate") if r else None,
+            "available": bool(r and r.get("is_active") and r.get("status") == "approved"),
+        })
+    return out
+
+
+@router.get("/packages")
+async def list_packages():
+    """Public: active + approved packages with expanded brand details."""
+    rows = await _db.solar_packages.find({"is_active": True, "status": "approved"}, {"_id": 0}).sort("created_at", -1).to_list(200)
+    for p in rows:
+        p["items"] = await _expand_selections(p.get("selections", {}))
+    return rows
+
+
+@router.get("/packages/manage")
+async def manage_packages(request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") == "super_admin":
+        q = {}
+    elif user.get("role") == "vendor":
+        q = {"created_by": user["id"]}
+    else:
+        raise HTTPException(403, "Only admin or vendor can manage solar packages")
+    rows = await _db.solar_packages.find(q, {"_id": 0}).sort("created_at", -1).to_list(1000)
+    for p in rows:
+        p["items"] = await _expand_selections(p.get("selections", {}))
+    return rows
+
+
+async def _get_owned_package(pid, user):
+    p = await _db.solar_packages.find_one({"id": pid}, {"_id": 0})
+    if not p:
+        raise HTTPException(404, "Package not found")
+    if user.get("role") != "super_admin" and p.get("created_by") != user["id"]:
+        raise HTTPException(403, "You can only manage your own packages")
+    return p
+
+
+@router.post("/packages")
+async def create_package(body: PackageIn, request: Request):
+    user = await _get_current_user(request)
+    if not _can_manage(user):
+        raise HTTPException(403, "Only admin or vendor can manage solar packages")
+    if not body.name.strip():
+        raise HTTPException(400, "Package name is required")
+    doc = {"id": new_id("solpkg"), **_pkg_doc(body),
+           "status": "approved" if user.get("role") == "super_admin" else "pending",
+           "rejection_reason": None,
+           "created_by": user["id"], "created_by_role": user.get("role"),
+           "created_by_name": user.get("name"), "company_id": user.get("company_id", "company_default"),
+           "created_at": iso(now_utc())}
+    await _db.solar_packages.insert_one(dict(doc))
+    doc.pop("_id", None)
+    doc["items"] = await _expand_selections(doc.get("selections", {}))
+    return doc
+
+
+@router.put("/packages/{pid}")
+async def update_package(pid: str, body: PackageIn, request: Request):
+    user = await _get_current_user(request)
+    await _get_owned_package(pid, user)
+    if not body.name.strip():
+        raise HTTPException(400, "Package name is required")
+    upd = _pkg_doc(body)
+    upd["status"] = "approved" if user.get("role") == "super_admin" else "pending"
+    upd["rejection_reason"] = None
+    await _db.solar_packages.update_one({"id": pid}, {"$set": upd})
+    p = await _db.solar_packages.find_one({"id": pid}, {"_id": 0})
+    p["items"] = await _expand_selections(p.get("selections", {}))
+    return p
+
+
+@router.patch("/packages/{pid}/status")
+async def toggle_package(pid: str, request: Request):
+    user = await _get_current_user(request)
+    p = await _get_owned_package(pid, user)
+    new_status = not p.get("is_active", True)
+    await _db.solar_packages.update_one({"id": pid}, {"$set": {"is_active": new_status, "updated_at": iso(now_utc())}})
+    return {"ok": True, "is_active": new_status}
+
+
+@router.delete("/packages/{pid}")
+async def delete_package(pid: str, request: Request):
+    user = await _get_current_user(request)
+    await _get_owned_package(pid, user)
+    await _db.solar_packages.delete_one({"id": pid})
+    return {"ok": True}
+
+
+@router.post("/packages/{pid}/approve")
+async def approve_package(pid: str, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can approve packages")
+    if not await _db.solar_packages.find_one({"id": pid}, {"_id": 1}):
+        raise HTTPException(404, "Package not found")
+    await _db.solar_packages.update_one({"id": pid}, {"$set": {
+        "status": "approved", "rejection_reason": None, "is_active": True, "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "approved"}
+
+
+@router.post("/packages/{pid}/reject")
+async def reject_package(pid: str, body: RejectIn, request: Request):
+    user = await _get_current_user(request)
+    if user.get("role") != "super_admin":
+        raise HTTPException(403, "Only super admin can reject packages")
+    if not body.reason.strip():
+        raise HTTPException(422, "Rejection reason is required")
+    if not await _db.solar_packages.find_one({"id": pid}, {"_id": 1}):
+        raise HTTPException(404, "Package not found")
+    await _db.solar_packages.update_one({"id": pid}, {"$set": {
+        "status": "rejected", "rejection_reason": body.reason.strip(), "updated_at": iso(now_utc())}})
+    return {"ok": True, "status": "rejected"}
+
+
+async def _seed_brands():
+    if await _db.solar_brands.count_documents({}) > 0:
+        return
+    admin = await _db.users.find_one({"role": "super_admin"}, {"_id": 0, "id": 1, "name": 1, "company_id": 1})
+    for code, name, model, spec, rate, wp in DEFAULT_BRANDS:
+        await _db.solar_brands.insert_one({
+            "id": new_id("solbrand"), "category_code": code, "brand_name": name,
+            "model": model, "spec": spec, "rate": float(rate), "module_wp": wp, "is_active": True,
+            "status": "approved", "rejection_reason": None,
+            "created_by": (admin or {}).get("id", "system"), "created_by_role": "super_admin",
+            "created_by_name": (admin or {}).get("name", "System"),
+            "company_id": (admin or {}).get("company_id", "company_default"),
+            "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+        })
+    logger.info("Seeded %d solar brands", len(DEFAULT_BRANDS))
+
+
+DEFAULT_PACKAGES = [
+    ("Premium Home", "Premium", "Top-tier Tier-1 components", {
+        "module": "Waaree TOPCon Bifacial", "inverter": "Sungrow String",
+        "structure": "Tata Anodized Aluminium", "protection": "Schneider Protection"}),
+    ("Value Home", "Value", "Balanced performance & price", {
+        "module": "Adani Mono-PERC", "inverter": "Growatt",
+        "structure": "HDGI Galvanised", "protection": "Havells Protection"}),
+]
+
+
+async def _seed_packages():
+    if await _db.solar_packages.count_documents({}) > 0:
+        return
+    admin = await _db.users.find_one({"role": "super_admin"}, {"_id": 0, "id": 1, "name": 1, "company_id": 1})
+    for name, tier, desc, brand_map in DEFAULT_PACKAGES:
+        selections = {}
+        for code, bname in brand_map.items():
+            b = await _db.solar_brands.find_one({"category_code": code, "brand_name": bname}, {"_id": 0, "id": 1})
+            if b:
+                selections[code] = b["id"]
+        if not selections:
+            continue
+        await _db.solar_packages.insert_one({
+            "id": new_id("solpkg"), "name": name, "tier_label": tier, "description": desc,
+            "selections": selections, "is_active": True, "status": "approved", "rejection_reason": None,
+            "created_by": (admin or {}).get("id", "system"), "created_by_role": "super_admin",
+            "created_by_name": (admin or {}).get("name", "System"),
+            "company_id": (admin or {}).get("company_id", "company_default"),
+            "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+        })
+    logger.info("Seeded %d solar packages", len(DEFAULT_PACKAGES))
 
 
 # --------------------------------------------------------------------------- #
@@ -374,7 +803,8 @@ async def _proposal_number():
 @router.post("/proposals")
 async def create_proposal(body: EpcIn, request: Request):
     user = await _get_current_user(request)
-    result = compute_epc(body)
+    overrides = await _resolve_brand_overrides(body.brand_selections)
+    result = compute_epc(body, overrides)
     doc = {
         "id": new_id("sol"), "proposal_no": await _proposal_number(),
         "user_id": user["id"], "user_email": user["email"],
@@ -685,10 +1115,12 @@ async def download_kyc(file_id: str, request: Request, auth: Optional[str] = Que
         raise HTTPException(404, "Not found")
     try:
         data, ct = await asyncio.to_thread(_get_object, rec["storage_path"])
+        return Response(content=data, media_type=rec.get("content_type", ct),
+                        headers={"Content-Disposition": f'inline; filename="{rec["original_filename"]}"'})
+    except HTTPException:
+        raise
     except Exception:
         raise HTTPException(502, "Could not fetch file")
-    return Response(content=data, media_type=rec.get("content_type", ct),
-                    headers={"Content-Disposition": f'inline; filename="{rec["original_filename"]}"'})
 
 
 async def ensure_indexes():
@@ -702,3 +1134,20 @@ async def ensure_indexes():
             await _db.solar_kyc.create_index(f)
         except Exception:
             pass
+    for f in ["category_code", "created_by", "is_active", "status"]:
+        try:
+            await _db.solar_brands.create_index(f)
+        except Exception:
+            pass
+    for f in ["created_by", "is_active", "status"]:
+        try:
+            await _db.solar_packages.create_index(f)
+        except Exception:
+            pass
+    # backfill status on legacy brands (pre-approval-queue docs)
+    try:
+        await _db.solar_brands.update_many({"status": {"$exists": False}}, {"$set": {"status": "approved", "rejection_reason": None}})
+    except Exception:
+        pass
+    await _seed_brands()
+    await _seed_packages()
