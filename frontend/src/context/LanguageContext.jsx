@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 const STRINGS = {
   en: {
@@ -35,10 +35,11 @@ const STRINGS = {
     login: "Log in",
     choose_at_least_one: "Please select at least one category",
     accept_required: "Please accept the terms to continue",
+    lang_toggle_label: "हिन्दी",
   },
   hi: {
     create_account: "अपना 2Click.in खाता बनाएँ",
-    onboarding_sub: "अपना वर्कस्पेस सेट करने के लिए कुछ आसान चरण",
+    onboarding_sub: "अपना कार्यक्षेत्र सेट करने के लिए कुछ आसान चरण",
     step_type: "खाता प्रकार",
     step_category: "श्रेणियाँ",
     step_business: "व्यवसाय विवरण",
@@ -54,9 +55,9 @@ const STRINGS = {
     company_name: "कंपनी का नाम",
     department: "विभाग",
     business_type: "व्यवसाय प्रकार",
-    skills: "कौशल (कॉमा से अलग)",
+    skills: "कौशल (अलग करने के लिए अल्पविराम)",
     service_area: "सेवा क्षेत्र / शहर",
-    portfolio: "पोर्टफोलियो URL",
+    portfolio: "पोर्टफोलियो यूआरएल",
     pricing: "अपेक्षित मूल्य",
     availability: "उपलब्धता",
     full_name: "पूरा नाम",
@@ -70,15 +71,59 @@ const STRINGS = {
     login: "लॉग इन",
     choose_at_least_one: "कृपया कम से कम एक श्रेणी चुनें",
     accept_required: "जारी रखने के लिए कृपया नियम स्वीकार करें",
+    lang_toggle_label: "English",
   },
 };
 
 const LanguageContext = createContext(null);
-export const useLang = () => useContext(LanguageContext) || { lang: "en", t: (k) => STRINGS.en[k] || k, toggle: () => {} };
+
+export const useLang = () => {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) {
+    return {
+      lang: "en",
+      isHi: false,
+      t: (k) => STRINGS.en[k] || k,
+      pick: (en) => en,
+      toggle: () => {},
+    };
+  }
+  return ctx;
+};
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => localStorage.getItem("bs_lang") || "en");
-  const toggle = useCallback(() => setLang((l) => { const n = l === "en" ? "hi" : "en"; localStorage.setItem("bs_lang", n); return n; }), []);
-  const t = useCallback((k) => (STRINGS[lang] && STRINGS[lang][k]) || STRINGS.en[k] || k, [lang]);
-  return <LanguageContext.Provider value={{ lang, t, toggle }}>{children}</LanguageContext.Provider>;
+
+  useEffect(() => {
+    document.documentElement.lang = lang === "hi" ? "hi" : "en";
+  }, [lang]);
+
+  const toggle = useCallback(() => {
+    setLang((l) => {
+      const n = l === "en" ? "hi" : "en";
+      localStorage.setItem("bs_lang", n);
+      return n;
+    });
+  }, []);
+
+  const t = useCallback(
+    (k) => (STRINGS[lang] && STRINGS[lang][k]) || STRINGS.en[k] || k,
+    [lang],
+  );
+
+  const pick = useCallback((en, hi) => (lang === "hi" ? hi : en), [lang]);
+
+  const value = {
+    lang,
+    isHi: lang === "hi",
+    t,
+    pick,
+    toggle,
+    setLang: (l) => {
+      localStorage.setItem("bs_lang", l);
+      setLang(l);
+    },
+  };
+
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }

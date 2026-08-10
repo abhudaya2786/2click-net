@@ -96,7 +96,7 @@ export default function Register() {
             <span className="font-display font-extrabold tracking-tight">{brand_name}</span>
           </Link>
           <button data-testid="lang-toggle" onClick={toggle} className="flex items-center gap-1.5 text-sm border border-border px-3 h-9 hover:bg-accent transition-colors">
-            <Languages className="h-4 w-4" strokeWidth={1.5} />{lang === "en" ? "हिन्दी" : "English"}
+            <Languages className="h-4 w-4" strokeWidth={1.5} />{t("lang_toggle_label")}
           </button>
         </div>
       </div>
