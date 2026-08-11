@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
+import { DEMO_INTERIOR_VERTICALS } from "@/lib/demoData";
 import { Calculator, ArrowRight, Loader2 } from "lucide-react";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
@@ -15,6 +16,7 @@ export default function InteriorBOQHub({ onSelect, hideIntro = false }) {
   useEffect(() => {
     api.get("/mart/interior-verticals")
       .then(({ data }) => setVerticals(data))
+      .catch(() => setVerticals(DEMO_INTERIOR_VERTICALS))
       .finally(() => setLoading(false));
   }, []);
 

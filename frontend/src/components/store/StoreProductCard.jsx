@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Star, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
+import { useDemoMode } from "@/context/DemoModeContext";
 import { toast } from "sonner";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
@@ -9,12 +10,13 @@ const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractio
 export default function StoreProductCard({ item, className = "" }) {
   const { add } = useCart();
   const { user } = useAuth();
+  const { demoMode } = useDemoMode();
   const nav = useNavigate();
 
   const handleAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!user) {
+    if (!user && !demoMode) {
       toast.error("Login to add to bag");
       nav("/login");
       return;

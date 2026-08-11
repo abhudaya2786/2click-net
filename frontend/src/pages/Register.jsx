@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -118,6 +118,27 @@ export default function Register() {
   const hasField = (f) => (ut?.fields || []).includes(f);
   const needsCategories = (ut?.category_types || []).length > 0;
   const displayTypes = userTypes.length ? userTypes : FALLBACK_USER_TYPES;
+
+  const filteredCats = useMemo(() => {
+    const q = catQ.trim().toLowerCase();
+    if (!q) return cats;
+    return cats.filter(
+      (c) =>
+        c.name?.toLowerCase().includes(q) ||
+        c.slug?.toLowerCase().includes(q) ||
+        c.category_type?.toLowerCase().includes(q),
+    );
+  }, [cats, catQ]);
+
+  const grouped = useMemo(() => {
+    const map = {};
+    for (const c of filteredCats) {
+      const type = c.category_type || "general";
+      if (!map[type]) map[type] = [];
+      map[type].push(c);
+    }
+    return map;
+  }, [filteredCats]);
 
   const selectUserType = (u) => {
     setUt(u);
