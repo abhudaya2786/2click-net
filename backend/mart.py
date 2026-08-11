@@ -72,24 +72,77 @@ CATEGORY_IMAGES = {
     "Gardening": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
 }
 
+# Per-product reference photos (category|material name) — clearer than category-only images
+PRODUCT_IMAGES = {
+    "Interior Decoration|Modular Kitchen Base Unit": "https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=800",
+    "Interior Decoration|Wardrobe Sliding Door": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800",
+    "Interior Decoration|TV Unit Panel": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800",
+    "Interior Decoration|Curtains & Blinds": "https://images.unsplash.com/photo-1615529328331-f8917597711f?w=800",
+    "Interior Decoration|Wall Wallpaper": "https://images.unsplash.com/photo-1615873968403-b89bfd70dc51?w=800",
+    "Vastu|Vastu Consultation (Site Visit)": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+    "Vastu|Vastu Report + Layout": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800",
+    "Vastu|Pyramid / Remedy Kit": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800",
+    "Fabrication|MS Gate Fabrication": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800",
+    "Fabrication|SS Railing": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+    "Fabrication|MS Grill Window": "https://images.unsplash.com/photo-1600047509358-9dc75507daeb?w=800",
+    "Fabrication|Main Door Frame MS": "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800",
+    "Tiles|Vitrified Tile": "https://images.unsplash.com/photo-1647102256335-7a7370d99924?w=800",
+    "Tiles|Ceramic Floor Tile": "https://images.unsplash.com/photo-1615873968403-b89bfd70dc51?w=800",
+    "Tiles|Wall Tile": "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800",
+    "False Ceiling|POP False Ceiling": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800",
+    "False Ceiling|Gypsum Board Ceiling": "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800",
+    "False Ceiling|PVC Ceiling Panel": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+    "False Ceiling|Wooden Ceiling Panel": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800",
+    "PVC Work|PVC Door": "https://images.pexels.com/photos/12142829/pexels-photo-12142829.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "PVC Work|UPVC Window": "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800",
+    "PVC Work|PVC Pipe 2 inch": "https://images.pexels.com/photos/12142829/pexels-photo-12142829.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "PVC Work|PVC Casing & Capping": "https://images.pexels.com/photos/12142829/pexels-photo-12142829.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "PVC Work|PVC Flooring": "https://images.unsplash.com/photo-1615873968403-b89bfd70dc51?w=800",
+    "Renovation|Bathroom Renovation Package": "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800",
+    "Renovation|Kitchen Renovation": "https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=800",
+    "Renovation|Wall Demolition": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800",
+    "Renovation|Debris Removal": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800",
+    "Renovation|Terrace Waterproofing": "https://images.unsplash.com/photo-1674485169641-bcb2bf6f1df9?w=800",
+    "Gardening|Landscape Design": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
+    "Gardening|Artificial Grass": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
+    "Gardening|Drip Irrigation System": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800",
+    "Gardening|Outdoor Plants (mixed)": "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800",
+    "Gardening|Garden Lighting LED": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
+}
+
+
+def resolve_material_image(category: str, name: str, existing: Optional[str] = None) -> Optional[str]:
+    if existing:
+        return existing
+    key = f"{category}|{name}"
+    return PRODUCT_IMAGES.get(key) or CATEGORY_IMAGES.get(category)
+
 # Interior / finishing verticals for BOQ calculator (column-wise breakdown)
 INTERIOR_VERTICALS = [
     {"id": "interior_decoration", "name": "Interior Decoration", "name_hi": "इंटीरियर डेकोरेशन",
-     "category": "Interior Decoration", "icon": "sofa"},
+     "category": "Interior Decoration", "icon": "sofa",
+     "image": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800"},
     {"id": "vastu", "name": "Vastu", "name_hi": "वास्तु",
-     "category": "Vastu", "icon": "compass"},
+     "category": "Vastu", "icon": "compass",
+     "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800"},
     {"id": "fabrication", "name": "Fabrication", "name_hi": "फैब्रिकेशन",
-     "category": "Fabrication", "icon": "wrench"},
+     "category": "Fabrication", "icon": "wrench",
+     "image": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800"},
     {"id": "tiles", "name": "Tiles", "name_hi": "टाइल्स",
-     "category": "Tiles", "icon": "grid"},
+     "category": "Tiles", "icon": "grid",
+     "image": "https://images.unsplash.com/photo-1647102256335-7a7370d99924?w=800"},
     {"id": "false_ceiling", "name": "False Ceiling", "name_hi": "फॉल्स सीलिंग",
-     "category": "False Ceiling", "icon": "layers"},
+     "category": "False Ceiling", "icon": "layers",
+     "image": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800"},
     {"id": "pvc_work", "name": "PVC Work", "name_hi": "PVC वर्क",
-     "category": "PVC Work", "icon": "pipe"},
+     "category": "PVC Work", "icon": "pipe",
+     "image": "https://images.pexels.com/photos/12142829/pexels-photo-12142829.jpeg?auto=compress&cs=tinysrgb&w=800"},
     {"id": "renovation", "name": "Renovation", "name_hi": "रेनोवेशन",
-     "category": "Renovation", "icon": "hammer"},
+     "category": "Renovation", "icon": "hammer",
+     "image": "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800"},
     {"id": "gardening", "name": "Gardening", "name_hi": "गार्डनिंग",
-     "category": "Gardening", "icon": "leaf"},
+     "category": "Gardening", "icon": "leaf",
+     "image": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800"},
 ]
 
 
@@ -384,7 +437,22 @@ async def list_boq_templates(vertical: Optional[str] = None):
 
 @public_router.get("/mart/interior-verticals")
 async def list_interior_verticals():
-    return INTERIOR_VERTICALS
+    out = []
+    for v in INTERIOR_VERTICALS:
+        row = dict(v)
+        mats = await _db.materials.find(
+            {"status": "active", "category": v["category"]},
+            {"_id": 0, "rate": 1, "unit": 1, "brand": 1, "name": 1},
+        ).sort("rate", 1).to_list(500)
+        row["brand_count"] = len(mats)
+        row["product_count"] = len({m["name"] for m in mats}) if mats else 0
+        if mats:
+            cheapest = mats[0]
+            row["from_rate"] = float(cheapest["rate"])
+            row["from_unit"] = cheapest["unit"]
+            row["from_brand"] = cheapest["brand"]
+        out.append(row)
+    return out
 
 
 @public_router.get("/mart/interior-verticals/{vid}/catalog")
@@ -401,16 +469,20 @@ async def vertical_catalog(vid: str):
     for m in mats:
         entry = {
             "id": m["id"], "brand": m["brand"], "rate": float(m["rate"]),
-            "unit": m["unit"], "name": m["name"], "image": m.get("image"),
+            "unit": m["unit"], "name": m["name"],
+            "image": resolve_material_image(m["category"], m["name"], m.get("image")),
         }
         by_name.setdefault(m["name"], {"name": m["name"], "unit": m["unit"], "brands": []})
         by_name[m["name"]]["brands"].append(entry)
     products = []
     for pname, pdata in by_name.items():
         brands = sorted(pdata["brands"], key=lambda x: x["rate"])
+        product_image = brands[0]["image"] if brands else None
         products.append({
             "name": pname,
             "unit": pdata["unit"],
+            "image": product_image,
+            "from_rate": brands[0]["rate"] if brands else None,
             "brands": brands,
             "cheapest": brands[0] if brands else None,
         })
@@ -504,7 +576,7 @@ async def admin_list_materials(user=Depends(rbac.rbac_admin)):
 async def admin_create_material(body: MaterialIn, request: Request, user=Depends(rbac.rbac_admin)):
     data = body.model_dump()
     if not data.get("image"):
-        data["image"] = CATEGORY_IMAGES.get(data["category"])
+        data["image"] = resolve_material_image(data["category"], data["name"])
     doc = {"id": new_id("mat"), **data,
            "rate_history": [{"date": now_utc().date().isoformat(), "rate": float(data["rate"])}],
            "created_at": iso(now_utc()), "updated_at": iso(now_utc())}
@@ -561,7 +633,7 @@ async def seed_mart():
                 await _db.materials.insert_one({
                     "id": new_id("mat"), "category": category, "name": name,
                     "brand": brand, "unit": unit, "rate": float(rate), "hsn": None,
-                    "image": CATEGORY_IMAGES.get(category), "status": "active", "sort_order": order,
+                    "image": resolve_material_image(category, name), "status": "active", "sort_order": order,
                     "rate_history": _gen_history(float(rate), f"{category}-{name}-{brand}"),
                     "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
                 })
@@ -583,20 +655,22 @@ async def seed_interior_verticals():
                 await _db.materials.insert_one({
                     "id": new_id("mat"), "category": category, "name": name,
                     "brand": brand, "unit": unit, "rate": float(rate), "hsn": None,
-                    "image": CATEGORY_IMAGES.get(category), "status": "active", "sort_order": order,
+                    "image": resolve_material_image(category, name), "status": "active", "sort_order": order,
                     "rate_history": _gen_history(float(rate), f"{category}-{name}-{brand}"),
                     "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
                 })
 
 
 async def migrate_mart():
-    """Idempotent backfill: add category image + rate history to older material docs."""
+    """Idempotent backfill: product/category images + rate history on legacy docs."""
     async for m in _db.materials.find({}, {"_id": 0}):
         upd = {}
-        if not m.get("image"):
-            img = CATEGORY_IMAGES.get(m.get("category"))
-            if img:
-                upd["image"] = img
+        resolved = resolve_material_image(m.get("category", ""), m.get("name", ""), m.get("image"))
+        cat_only = CATEGORY_IMAGES.get(m.get("category"))
+        if resolved and m.get("image") != resolved:
+            # Upgrade category-only images to product-specific when available
+            if not m.get("image") or (cat_only and m.get("image") == cat_only):
+                upd["image"] = resolved
         if not m.get("rate_history"):
             upd["rate_history"] = _gen_history(float(m.get("rate", 0)), m["id"])
         if upd:

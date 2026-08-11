@@ -4,12 +4,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet, Sun, Home, Globe, Database, Download } from "lucide-react";
+import { Building2, Network, Shield, Grid3x3, UserCog, Boxes, Menu as MenuIcon, ScrollText, Plus, Loader2, Trash2, Check, Tag, Palette, CreditCard, Receipt, Store, Wallet, Sun, Home, Globe, Database, Download, ClipboardList } from "lucide-react";
 import AdminHomeBuild from "@/components/homebuild/AdminHomeBuild";
 import SiteCustomizer from "@/components/admin/SiteCustomizer";
 import { useBranding } from "@/context/BrandingContext";
 import AdminBilling from "@/pages/dashboard/AdminBilling";
 import AdminMaterials from "@/pages/dashboard/AdminMaterials";
+import AdminInteriorCatalog from "@/pages/dashboard/AdminInteriorCatalog";
 import SolarCatalogManager from "@/components/solar/SolarCatalogManager";
 
 const ALL_TABS = [
@@ -25,6 +26,7 @@ const ALL_TABS = [
   { id: "billing", label: "Billing", icon: Receipt },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "materials", label: "Super Mart", icon: Store },
+  { id: "interior-boq", label: "Interior BOQ Catalog", icon: ClipboardList },
   { id: "homebuild", label: "Home Build", icon: Home },
   { id: "solar", label: "Solar Brands", icon: Sun },
   { id: "shops", label: "Shop Enrollment", icon: Store },
@@ -36,11 +38,11 @@ const ALL_TABS = [
 const R = "/admin/rbac";
 const A = "/admin";
 
-export default function AdminRBAC() {
+export default function AdminRBAC({ initialTab }) {
   const { user } = useAuth();
   const isSuper = user?.role === "super_admin";
   const TABS = ALL_TABS.filter((t) => !t.superAdminOnly || isSuper);
-  const [tab, setTab] = useState("departments");
+  const [tab, setTab] = useState(initialTab || "departments");
   return (
     <div>
       <div className="flex flex-wrap gap-1 border border-border bg-card mb-6">
@@ -63,6 +65,7 @@ export default function AdminRBAC() {
       {tab === "billing" && <AdminBilling />}
       {tab === "wallet" && <AdminWallet />}
       {tab === "materials" && <AdminMaterials />}
+      {tab === "interior-boq" && <AdminInteriorCatalog />}
       {tab === "homebuild" && <AdminHomeBuild />}
       {tab === "solar" && <SolarCatalogManager scope="admin" />}
       {tab === "shops" && <ShopEnrollments />}

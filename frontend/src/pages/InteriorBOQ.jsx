@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import MarketingLayout from "@/components/marketing/MarketingLayout";
 import PageSEO from "@/components/marketing/PageSEO";
 import InteriorBOQHub from "@/components/dashboard/InteriorBOQHub";
 import VerticalCategoryCalculator from "@/components/dashboard/VerticalCategoryCalculator";
@@ -13,7 +12,7 @@ export default function InteriorBOQ() {
   const isHub = !verticalId || verticalId === "all";
 
   return (
-    <MarketingLayout>
+    <>
       <PageSEO
         title={hi ? "इंटीरियर BOQ कैलकुलेटर" : "Interior BOQ Calculator"}
         description={hi ? "श्रेणी-वार ब्रांड कैलकुलेटर" : "Category-wise brand calculators"}
@@ -31,16 +30,16 @@ export default function InteriorBOQ() {
               </h1>
               <p className="mt-3 text-muted-foreground text-sm">
                 {hi
-                  ? "हर विकल्प का अपना कैलकुलेटर — इंटीरियर, वास्तु, फैब्रिकेशन, टाइल्स, फॉल्स सीलिंग, PVC, रेनोवेशन, गार्डनिंग। ब्रांड compare करके BOQ बनाएँ।"
-                  : "Each option has its own calculator — interior, vastu, fabrication, tiles, false ceiling, PVC, renovation, gardening. Compare brands and build BOQ."}
+                  ? "फोटो कैटलॉग, ब्रांड-वार अनुमानित कीमत — इंटीरियर, वास्तु, टाइल्स, सीलिंग, PVC, रेनोवेशन, गार्डनिंग।"
+                  : "Photo catalogs with brand-wise estimated prices — interior, vastu, tiles, ceiling, PVC, renovation, gardening."}
               </p>
             </div>
-            <InteriorBOQHub />
+            <InteriorBOQHub hideIntro />
           </>
         ) : (
           <VerticalCategoryCalculator verticalId={verticalId} />
         )}
       </div>
-    </MarketingLayout>
+    </>
   );
 }
