@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { LOGIN_PROFILES } from "@/lib/loginProfiles";
 import { useDemoMode } from "@/context/DemoModeContext";
+import AuthTabs from "@/components/auth/AuthTabs";
 
 const PUBLIC_LOGIN_PROFILES = LOGIN_PROFILES.filter((p) => p.id !== "admin");
 
@@ -61,7 +62,16 @@ export default function Login() {
         finish(data);
       }
     } catch (e2) {
-      setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
+      if (!e2.response) {
+        setErr(
+          t(
+            "Cannot reach the server. If this persists, the API may be updating — try again in a minute.",
+            "सर्वर से कनेक्ट नहीं हो पाया। थोड़ी देर बाद फिर कोशिश करें।",
+          ),
+        );
+      } else {
+        setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
+      }
     } finally {
       setBusy(false);
     }
