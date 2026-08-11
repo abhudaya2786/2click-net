@@ -22,6 +22,8 @@ import TenderDetail from "@/pages/TenderDetail";
 import Freelancers from "@/pages/Freelancers";
 import Login from "@/pages/Login";
 import AdminLogin from "@/pages/AdminLogin";
+import Enrollment from "@/pages/Enrollment";
+import { TermsPage, PrivacyPage, ClientAgreementPage, FreelancerAgreementPage } from "@/pages/Legal";
 import Register from "@/pages/Register";
 import AuthCallback from "@/pages/AuthCallback";
 import ResetPassword from "@/pages/ResetPassword";
@@ -57,6 +59,11 @@ function AppRouter() {
       <Route path="/become-vendor" element={M(<BecomeVendor />)} />
       <Route path="/login" element={<Login />} />
       <Route path="/sys/console" element={<AdminLogin />} />
+      <Route path="/enroll" element={<Enrollment />} />
+      <Route path="/terms" element={M(<TermsPage />)} />
+      <Route path="/privacy" element={M(<PrivacyPage />)} />
+      <Route path="/client-agreement" element={M(<ClientAgreementPage />)} />
+      <Route path="/freelancer-agreement" element={M(<FreelancerAgreementPage />)} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/payment/success" element={<PaymentSuccess />} />

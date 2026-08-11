@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
-import MarketingLayout from "@/components/marketing/MarketingLayout";
 import PageSEO from "@/components/marketing/PageSEO";
 import PrintShareBar from "@/components/enrollment/PrintShareBar";
 import { buildAgreementPrintHtml, printHtml } from "@/lib/printShare";
@@ -26,7 +25,7 @@ function LegalPage({ code, fallbackTitle }) {
   };
 
   return (
-    <MarketingLayout>
+    <>
       <PageSEO title={title} description={title} path={`/${code.replace("_", "-")}`} />
       <div className="mx-auto max-w-3xl px-5 py-12">
         <Link to="/enroll" className="text-sm text-primary hover:underline">{hi ? "पंजीकरण पर वापस" : "Back to enrollment"}</Link>
@@ -49,7 +48,7 @@ function LegalPage({ code, fallbackTitle }) {
           {body || (hi ? "लोड हो रहा है…" : "Loading…")}
         </div>
       </div>
-    </MarketingLayout>
+    </>
   );
 }
 
