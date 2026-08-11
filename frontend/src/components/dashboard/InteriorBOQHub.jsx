@@ -29,13 +29,13 @@ export default function InteriorBOQHub({ onSelect, hideIntro = false }) {
   return (
     <div className="space-y-6" data-testid="interior-boq-hub">
       {!hideIntro && (
-        <p className="text-sm text-muted-foreground">
-          {hi
-            ? "हर श्रेणी का अपना कैलकुलेटर — ब्रांड compare करके BOQ बनाएँ।"
-            : "Each category has its own calculator — compare brands and build BOQ."}
-        </p>
+      <p className="text-sm text-muted-foreground">
+        {hi
+          ? "हर श्रेणी का अपना कैलकुलेटर — ब्रांड compare करके BOQ बनाएँ।"
+          : "Each category has its own calculator — compare brands and build BOQ."}
+      </p>
       )}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {verticals.map((v) => {
           const inner = (
             <div className="group border border-border rounded-xl bg-card hover:border-primary hover:shadow-md transition-all h-full overflow-hidden">
