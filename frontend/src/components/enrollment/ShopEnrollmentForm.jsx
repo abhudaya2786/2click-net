@@ -65,11 +65,13 @@ export default function ShopEnrollmentForm({ value, onChange, location, onLocati
         <div className="sm:col-span-2">
           <label className="text-sm font-medium mb-1.5 block">{t("service_area")}</label>
           <LocationPicker
+            pincodeFirst
             value={location}
             onChange={(loc) => {
               onLocationChange(loc);
               set("state", loc.state);
               set("city", loc.city);
+              set("district", loc.district);
               set("pincode", loc.pincode);
             }}
           />

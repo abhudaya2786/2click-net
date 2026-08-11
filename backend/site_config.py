@@ -2,10 +2,12 @@
 2Click.in — Site customization (super_admin), geo lookup (pincode/state/city/GPS).
 Public read for applied theme/languages; write endpoints are super_admin only.
 """
+import csv
+import io
 import math
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 import rbac
 
 _db = None
@@ -81,8 +83,66 @@ DEFAULT_LOCALE_STRINGS = {
     "location.state": {"en": "State", "hi": "राज्य"},
     "location.city": {"en": "City", "hi": "शहर"},
     "location.pincode": {"en": "Pincode", "hi": "पिनकोड"},
+    "location.district": {"en": "District", "hi": "ज़िला"},
     "location.gps": {"en": "Use GPS", "hi": "GPS लोकेशन"},
 }
+
+
+def normalize_geo_row(raw: dict) -> Optional[dict]:
+    code = "".join(c for c in str(raw.get("pincode", "")) if c.isdigit())
+    if len(code) != 6:
+        return None
+    city = str(raw.get("city", "")).strip()
+    district = str(raw.get("district", city)).strip()
+    lat_raw, lng_raw = raw.get("lat"), raw.get("lng")
+    try:
+        lat = float(lat_raw) if lat_raw not in (None, "") else 0.0
+        lng = float(lng_raw) if lng_raw not in (None, "") else 0.0
+    except (TypeError, ValueError):
+        lat, lng = 0.0, 0.0
+    return {
+        "pincode": code,
+        "state": str(raw.get("state", "")).strip(),
+        "city": city,
+        "district": district or city,
+        "lat": lat,
+        "lng": lng,
+        "updated_at": iso(now_utc()),
+    }
+
+
+async def upsert_geo_rows(rows: List[dict]) -> dict:
+    imported, skipped = 0, 0
+    for raw in rows:
+        doc = normalize_geo_row(raw)
+        if not doc:
+            skipped += 1
+            continue
+        await _db.geo_master.update_one({"pincode": doc["pincode"]}, {"$set": doc}, upsert=True)
+        imported += 1
+    return {"imported": imported, "skipped": skipped, "total": len(rows)}
+
+
+def parse_csv_geo(text: str) -> List[dict]:
+    reader = csv.DictReader(io.StringIO(text))
+    if not reader.fieldnames:
+        return []
+    norm_headers = {h.lower().strip(): h for h in reader.fieldnames}
+    rows = []
+    for line in reader:
+        row = {}
+        for key in ("pincode", "state", "city", "district", "lat", "lng"):
+            src = norm_headers.get(key)
+            if src:
+                row[key] = line.get(src, "")
+        if any(str(row.get(k, "")).strip() for k in ("pincode", "state", "city")):
+            rows.append(row)
+    return rows
+
+
+async def distinct_geo_values(field: str, match: dict) -> List[str]:
+    vals = await _db.geo_master.distinct(field, match)
+    return sorted({str(v).strip() for v in vals if v})
 
 
 def init(db):
@@ -136,19 +196,59 @@ async def _locale_config():
 # ----- Public geo -----
 @public_router.get("/geo/states")
 async def list_states():
-    return {"states": INDIAN_STATES}
+    db_states = await _db.geo_master.distinct("state")
+    merged = sorted({s for s in INDIAN_STATES} | {s for s in db_states if s})
+    return {"states": merged}
 
 
 @public_router.get("/geo/cities")
-async def list_cities(state: str):
+async def list_cities(state: str, district: Optional[str] = None):
     if not state:
         raise HTTPException(400, "state required")
     cities = CITIES_BY_STATE.get(state)
+    if cities and not district:
+        return {"state": state, "district": district or "", "cities": cities}
+    q: dict = {"state": state}
+    if district:
+        q["district"] = district
+    uniq = await distinct_geo_values("city", q)
+    if uniq:
+        return {"state": state, "district": district or "", "cities": uniq}
     if cities:
-        return {"state": state, "cities": cities}
-    rows = await _db.geo_master.find({"state": state}, {"_id": 0, "city": 1}).to_list(500)
-    uniq = sorted({r["city"] for r in rows if r.get("city")})
-    return {"state": state, "cities": uniq or [state]}
+        return {"state": state, "district": district or "", "cities": cities}
+    return {"state": state, "district": district or "", "cities": [state]}
+
+
+@public_router.get("/geo/districts")
+async def list_districts(state: str):
+    if not state:
+        raise HTTPException(400, "state required")
+    uniq = await distinct_geo_values("district", {"state": state})
+    return {"state": state, "districts": uniq}
+
+
+@public_router.get("/geo/pincodes")
+async def list_pincodes(
+    state: Optional[str] = None,
+    city: Optional[str] = None,
+    district: Optional[str] = None,
+    q: Optional[str] = None,
+    limit: int = 200,
+):
+    filt: dict = {}
+    if state:
+        filt["state"] = state
+    if city:
+        filt["city"] = city
+    if district:
+        filt["district"] = district
+    if q:
+        pin = "".join(c for c in q if c.isdigit())
+        if len(pin) >= 1:
+            filt["pincode"] = {"$regex": f"^{pin}"}
+    cap = max(1, min(limit, 500))
+    rows = await _db.geo_master.find(filt, {"_id": 0}).sort("pincode", 1).limit(cap).to_list(cap)
+    return {"pincodes": rows, "count": len(rows), "filters": {"state": state, "city": city, "district": district, "q": q}}
 
 
 @public_router.get("/geo/pincode/{pincode}")
@@ -232,33 +332,96 @@ async def update_locales(body: dict, request: Request, user=Depends(rbac.rbac_su
 
 
 @admin_router.get("/geo/pincodes")
-async def admin_list_pincodes(state: Optional[str] = None, user=Depends(rbac.rbac_super_admin)):
-    q = {"state": state} if state else {}
-    return await _db.geo_master.find(q, {"_id": 0}).sort("pincode", 1).to_list(500)
+async def admin_list_pincodes(
+    state: Optional[str] = None,
+    city: Optional[str] = None,
+    district: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+    user=Depends(rbac.rbac_super_admin),
+):
+    q: dict = {}
+    if state:
+        q["state"] = state
+    if city:
+        q["city"] = city
+    if district:
+        q["district"] = district
+    cap = max(1, min(limit, 500))
+    skip_n = max(0, skip)
+    total = await _db.geo_master.count_documents(q)
+    rows = await _db.geo_master.find(q, {"_id": 0}).sort("pincode", 1).skip(skip_n).limit(cap).to_list(cap)
+    return {"pincodes": rows, "total": total, "skip": skip_n, "limit": cap}
+
+
+@admin_router.get("/geo/summary")
+async def admin_geo_summary(user=Depends(rbac.rbac_super_admin)):
+    total = await _db.geo_master.count_documents({})
+    by_state = []
+    pipeline = [
+        {"$group": {"_id": "$state", "count": {"$sum": 1}, "cities": {"$addToSet": "$city"}, "districts": {"$addToSet": "$district"}}},
+        {"$sort": {"_id": 1}},
+    ]
+    async for row in _db.geo_master.aggregate(pipeline):
+        by_state.append({
+            "state": row["_id"] or "",
+            "count": row["count"],
+            "cities": len([c for c in row.get("cities") or [] if c]),
+            "districts": len([d for d in row.get("districts") or [] if d]),
+        })
+    return {"total": total, "by_state": by_state}
+
+
+@admin_router.post("/geo/pincodes/bulk")
+async def admin_bulk_pincodes(body: dict, request: Request, user=Depends(rbac.rbac_super_admin)):
+    rows = body.get("rows") or body.get("pincodes") or []
+    if not isinstance(rows, list) or not rows:
+        raise HTTPException(400, "rows array required")
+    result = await upsert_geo_rows(rows)
+    await rbac.audit_log(
+        "CREATE", "settings", "geo_bulk", None, result,
+        user=user, request=request, metadata={"section": "geo", "count": result["imported"]},
+    )
+    return result
+
+
+@admin_router.post("/geo/pincodes/upload")
+async def admin_upload_pincodes_csv(
+    request: Request,
+    file: UploadFile = File(...),
+    user=Depends(rbac.rbac_super_admin),
+):
+    raw = await file.read()
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = raw.decode("latin-1")
+    rows = parse_csv_geo(text)
+    if not rows:
+        raise HTTPException(400, "No valid rows — CSV must have pincode,state,city,district,lat,lng headers")
+    result = await upsert_geo_rows(rows)
+    await rbac.audit_log(
+        "CREATE", "settings", "geo_csv", None, result,
+        user=user, request=request, metadata={"section": "geo", "file": file.filename},
+    )
+    return {"ok": True, "filename": file.filename, **result}
 
 
 @admin_router.post("/geo/pincodes")
 async def admin_add_pincode(body: dict, request: Request, user=Depends(rbac.rbac_super_admin)):
-    code = "".join(c for c in str(body.get("pincode", "")) if c.isdigit())
-    if len(code) != 6:
+    doc = normalize_geo_row(body)
+    if not doc:
         raise HTTPException(400, "Pincode must be 6 digits")
-    doc = {
-        "pincode": code,
-        "state": body.get("state", ""),
-        "city": body.get("city", ""),
-        "district": body.get("district", body.get("city", "")),
-        "lat": float(body.get("lat") or 0),
-        "lng": float(body.get("lng") or 0),
-        "updated_at": iso(now_utc()),
-    }
-    await _db.geo_master.update_one({"pincode": code}, {"$set": doc}, upsert=True)
-    await rbac.audit_log("CREATE", "settings", code, None, doc, user=user, request=request, metadata={"section": "geo"})
+    await _db.geo_master.update_one({"pincode": doc["pincode"]}, {"$set": doc}, upsert=True)
+    await rbac.audit_log("CREATE", "settings", doc["pincode"], None, doc, user=user, request=request, metadata={"section": "geo"})
     return doc
 
 
 async def ensure_indexes():
     await _db.geo_master.create_index("pincode", unique=True)
     await _db.geo_master.create_index("state")
+    await _db.geo_master.create_index("city")
+    await _db.geo_master.create_index("district")
 
 
 async def seed_geo():

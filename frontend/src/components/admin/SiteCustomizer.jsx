@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, Palette, Languages, MapPin, Layout, Image } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
+import GeoPincodeManager from "@/components/admin/GeoPincodeManager";
 
 const A = "/admin";
 const LAYOUTS = [
@@ -41,8 +42,6 @@ export default function SiteCustomizer() {
     default_language: "en",
   });
   const [locales, setLocales] = useState({ enabled: ["en", "hi"], default: "en", strings: {} });
-  const [pinForm, setPinForm] = useState({ pincode: "", state: "", city: "", district: "", lat: "", lng: "" });
-  const [pincodes, setPincodes] = useState([]);
 
   const load = useCallback(async () => {
     const [{ data: site }, { data: loc }] = await Promise.all([
@@ -61,9 +60,7 @@ export default function SiteCustomizer() {
     setLocales(loc);
   }, []);
 
-  const loadPins = () => api.get(`${A}/geo/pincodes`).then(({ data }) => setPincodes(data)).catch(() => {});
-
-  useEffect(() => { load(); loadPins(); }, [load]);
+  useEffect(() => { load(); }, [load]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -106,21 +103,6 @@ export default function SiteCustomizer() {
       toast.error("Save failed");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const addPincode = async () => {
-    try {
-      await api.post(`${A}/geo/pincodes`, {
-        ...pinForm,
-        lat: parseFloat(pinForm.lat) || 0,
-        lng: parseFloat(pinForm.lng) || 0,
-      });
-      toast.success("Pincode added");
-      setPinForm({ pincode: "", state: "", city: "", district: "", lat: "", lng: "" });
-      loadPins();
-    } catch {
-      toast.error("Invalid pincode");
     }
   };
 
@@ -235,20 +217,7 @@ export default function SiteCustomizer() {
           </div>
         )}
 
-        {section === "geo" && (
-          <div className="space-y-4">
-            <p className="text-xs text-muted-foreground">Add pincodes for auto state/city lookup (users + vendors).</p>
-            <div className="grid sm:grid-cols-3 gap-2 max-w-3xl">
-              <Input placeholder="Pincode" value={pinForm.pincode} onChange={(e) => setPinForm({ ...pinForm, pincode: e.target.value })} className="rounded-none" />
-              <Input placeholder="State" value={pinForm.state} onChange={(e) => setPinForm({ ...pinForm, state: e.target.value })} className="rounded-none" />
-              <Input placeholder="City" value={pinForm.city} onChange={(e) => setPinForm({ ...pinForm, city: e.target.value })} className="rounded-none" />
-              <Input placeholder="Lat" value={pinForm.lat} onChange={(e) => setPinForm({ ...pinForm, lat: e.target.value })} className="rounded-none" />
-              <Input placeholder="Lng" value={pinForm.lng} onChange={(e) => setPinForm({ ...pinForm, lng: e.target.value })} className="rounded-none" />
-              <Button onClick={addPincode} className="rounded-none">Add pincode</Button>
-            </div>
-            <div className="text-xs font-mono text-muted-foreground">{pincodes.length} pincodes seeded</div>
-          </div>
-        )}
+        {section === "geo" && <GeoPincodeManager />}
 
         {(section === "theme" || section === "layout") && (
           <Button data-testid="site-theme-save" onClick={saveTheme} disabled={saving} className="rounded-none mt-6">

@@ -190,6 +190,7 @@ class RegisterIn(BaseModel):
     service_area: Optional[str] = None
     state: Optional[str] = None
     city: Optional[str] = None
+    district: Optional[str] = None
     pincode: Optional[str] = None
     lat: Optional[float] = None
     lng: Optional[float] = None
@@ -403,7 +404,7 @@ async def register(body: RegisterIn, response: Response):
         "primary_category": body.primary_category, "primary_category_id": body.primary_category_id,
         "department_id": body.department_id, "skills": body.skills or [],
         "service_area": body.service_area or (f"{body.city}, {body.state}" if body.city and body.state else body.city or body.state),
-        "state": body.state, "city": body.city, "pincode": body.pincode,
+        "state": body.state, "city": body.city, "district": body.district, "pincode": body.pincode,
         "lat": body.lat, "lng": body.lng,
         "portfolio_url": body.portfolio_url,
         "expected_pricing": body.expected_pricing, "availability": body.availability,
