@@ -52,6 +52,8 @@ class TestPublicEndpoints:
 
     def test_geo(self):
         assert requests.get(f"{API}/geo/states", timeout=15).status_code == 200
+        assert requests.get(f"{API}/geo/districts", params={"state": "Maharashtra"}, timeout=15).status_code == 200
+        assert requests.get(f"{API}/geo/pincodes", params={"state": "Maharashtra", "limit": 5}, timeout=15).status_code == 200
 
     def test_landing(self):
         assert requests.get(f"{API}/landing?state=Maharashtra", timeout=15).status_code == 200
