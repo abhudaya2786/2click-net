@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import PageSEO from "@/components/marketing/PageSEO";
 import { useLang } from "@/context/LanguageContext";
 import {
@@ -21,13 +21,23 @@ import { ArrowRight, ExternalLink, Sparkles, Layers, BookOpen } from "lucide-rea
 export default function PlatformGuide() {
   const { lang } = useLang();
   const hi = lang === "hi";
+  const { pathname } = useLocation();
+  const isHowItWorks = pathname === "/how-it-works";
 
   return (
     <div className="mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-14">
       <PageSEO
-        title="Complete 2click.in guide — functions, options & work types"
-        description="Full platform reference: every module, click workflow, user roles, BOQ, store, solar, tenders, enrollment."
-        path="/platform"
+        title={
+          isHowItWorks
+            ? "How 2click.in works — step-by-step construction platform"
+            : "Complete 2click.in guide — functions, options & work types"
+        }
+        description={
+          isHowItWorks
+            ? "See how 2click.in works: build a project in two clicks, estimate costs, BOQ, store, tenders, solar, and enrollment."
+            : "Full platform reference: every module, click workflow, user roles, BOQ, store, solar, tenders, enrollment."
+        }
+        path={isHowItWorks ? "/how-it-works" : "/platform"}
       />
       <div className="flex items-start gap-3">
         <BookOpen className="h-8 w-8 text-primary shrink-0 mt-1" />

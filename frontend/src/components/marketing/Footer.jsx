@@ -16,6 +16,8 @@ const COLS = [
   {
     h: "Platform",
     items: [
+      { label: "Complete guide", to: "/platform" },
+      { label: "How it works", to: "/how-it-works" },
       { label: "Consultants", to: "/consultants" },
       { label: "Solar", to: "/solar" },
       { label: "Services", to: "/services" },
