@@ -6,8 +6,10 @@ import InstallAppBanner from "@/components/marketing/InstallAppBanner";
 import AIAssistant from "@/components/AIAssistant";
 import AdSlot from "@/components/ads/AdSlot";
 import CatalogBrandStrip from "@/components/catalog/CatalogBrandStrip";
-import CatalogShowcase from "@/components/catalog/CatalogShowcase";
-import DemoPanel, { DemoFloatingButton, DemoModeBanner } from "@/components/demo/PlatformDemo";
+import { DemoFloatingButton, DemoModeBanner } from "@/components/demo/PlatformDemo";
+
+/** Pages where live brand strip adds value — not on every marketing page */
+const BRAND_STRIP_PREFIXES = ["/store", "/mart", "/interior-boq", "/marketplace", "/boq-builder"];
 
 export default function MarketingLayout({ children }) {
   const { pathname } = useLocation();
