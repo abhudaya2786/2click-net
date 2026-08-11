@@ -5,6 +5,8 @@ Public read for applied theme/languages; write endpoints are super_admin only.
 import csv
 import io
 import math
+import os
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
@@ -147,6 +149,53 @@ def parse_csv_geo(text: str) -> List[dict]:
     return rows
 
 
+def _geo_csv_directories() -> List[Path]:
+    """Resolve folders containing pincode CSV seed files (repo data/geo + optional env)."""
+    here = Path(__file__).resolve().parent
+    candidates = []
+    env_dir = os.environ.get("GEO_DATA_DIR", "").strip()
+    if env_dir:
+        candidates.append(Path(env_dir))
+    candidates.extend([
+        here.parent / "data" / "geo",
+        here / "data" / "geo",
+        Path.cwd() / "data" / "geo",
+    ])
+    seen = set()
+    out = []
+    for p in candidates:
+        try:
+            resolved = p.resolve()
+        except OSError:
+            continue
+        if resolved.is_dir() and resolved not in seen:
+            seen.add(resolved)
+            out.append(resolved)
+    return out
+
+
+async def seed_geo_from_csv_files() -> dict:
+    """Import all *.csv in data/geo (skips template-only files)."""
+    imported, skipped, files = 0, 0, 0
+    for geo_dir in _geo_csv_directories():
+        for path in sorted(geo_dir.glob("*.csv")):
+            name = path.name.lower()
+            if name.startswith("pincodes_template") or name.endswith(".template.csv"):
+                continue
+            try:
+                text = path.read_text(encoding="utf-8-sig")
+            except OSError:
+                continue
+            rows = parse_csv_geo(text)
+            if not rows:
+                continue
+            result = await upsert_geo_rows(rows)
+            imported += result["imported"]
+            skipped += result["skipped"]
+            files += 1
+    return {"files": files, "imported": imported, "skipped": skipped}
+
+
 async def distinct_geo_values(field: str, match: dict) -> List[str]:
     vals = await _db.geo_master.distinct(field, match)
     return sorted({str(v).strip() for v in vals if v})
@@ -201,6 +250,18 @@ async def _locale_config():
 
 
 # ----- Public geo -----
+@public_router.get("/geo/meta")
+async def geo_meta():
+    total = await _db.geo_master.count_documents({})
+    state_count = len([s for s in await _db.geo_master.distinct("state") if s])
+    meta = await _db.app_settings.find_one({"key": "geo_seed_meta"}, {"_id": 0})
+    return {
+        "total_pincodes": total,
+        "states_with_data": state_count,
+        "last_csv_seed": (meta or {}).get("value"),
+    }
+
+
 @public_router.get("/geo/states")
 async def list_states():
     db_states = await _db.geo_master.distinct("state")
@@ -212,18 +273,17 @@ async def list_states():
 async def list_cities(state: str, district: Optional[str] = None):
     if not state:
         raise HTTPException(400, "state required")
-    cities = CITIES_BY_STATE.get(state)
-    if cities and not district:
-        return {"state": state, "district": district or "", "cities": cities}
     q: dict = {"state": state}
     if district:
         q["district"] = district
-    uniq = await distinct_geo_values("city", q)
-    if uniq:
-        return {"state": state, "district": district or "", "cities": uniq}
-    if cities:
-        return {"state": state, "district": district or "", "cities": cities}
-    return {"state": state, "district": district or "", "cities": [state]}
+    db_cities = await distinct_geo_values("city", q)
+    static = CITIES_BY_STATE.get(state) or []
+    merged = sorted({c for c in db_cities + static if c})
+    return {
+        "state": state,
+        "district": district or "",
+        "cities": merged if merged else [state],
+    }
 
 
 @public_router.get("/geo/districts")
@@ -272,7 +332,12 @@ async def pincode_lookup(pincode: str):
 @public_router.get("/geo/reverse")
 async def reverse_geocode(lat: float, lng: float):
     """Nearest seeded pincode for state/city hint."""
-    rows = await _db.geo_master.find({}, {"_id": 0}).to_list(500)
+    rows = await _db.geo_master.find(
+        {"lat": {"$ne": 0}, "lng": {"$ne": 0}},
+        {"_id": 0, "pincode": 1, "state": 1, "city": 1, "district": 1, "lat": 1, "lng": 1},
+    ).to_list(20000)
+    if not rows:
+        rows = await _db.geo_master.find({}, {"_id": 0}).to_list(500)
     if not rows:
         return {"state": "", "city": "", "pincode": "", "lat": lat, "lng": lng}
     best = min(rows, key=lambda r: haversine_km(lat, lng, r.get("lat", 0), r.get("lng", 0)))
@@ -434,6 +499,7 @@ async def ensure_indexes():
 async def seed_geo():
     for row in PINCODE_SEED:
         await _db.geo_master.update_one({"pincode": row["pincode"]}, {"$set": row}, upsert=True)
+    csv_seed = await seed_geo_from_csv_files()
     if not await _db.app_settings.find_one({"key": "locales"}):
         await _db.app_settings.insert_one({
             "key": "locales",
@@ -446,3 +512,15 @@ async def seed_geo():
         if not b.get("theme"):
             b["theme"] = DEFAULT_THEME
             await _db.companies.update_one({"id": DEFAULT_COMPANY_ID}, {"$set": {"branding": b}})
+    if csv_seed.get("imported"):
+        await _db.app_settings.update_one(
+            {"key": "geo_seed_meta"},
+            {
+                "$set": {
+                    "key": "geo_seed_meta",
+                    "value": {**csv_seed, "updated_at": iso(now_utc())},
+                    "updated_at": iso(now_utc()),
+                }
+            },
+            upsert=True,
+        )
