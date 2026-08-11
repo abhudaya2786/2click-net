@@ -116,6 +116,7 @@ export const NAV_COPY = {
   en: {
     more: "More",
     explore: "Explore",
+    exploreMore: "More",
     menu: "Menu",
     login: "Log in",
     join: "Join",
@@ -127,6 +128,7 @@ export const NAV_COPY = {
   hi: {
     more: "और",
     explore: "और देखें",
+    exploreMore: "अधिक",
     menu: "मेनू",
     login: "लॉग इन",
     join: "रजिस्टर",

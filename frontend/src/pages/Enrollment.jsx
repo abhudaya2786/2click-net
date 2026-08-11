@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import PageSEO from "@/components/marketing/PageSEO";
-import CategoryPicker from "@/components/signup/CategoryPicker";
+import { ENROLLMENT_FLOW } from "@/lib/exploreNavMap";
 
 const MODES = [
   { id: "user", icon: User, en: "Individual User", hi: "व्यक्तिगत उपयोगकर्ता", subEn: "Buy, tender, solar quotes", subHi: "खरीदें, टेंडर, सोलर" },
@@ -190,6 +190,9 @@ export default function Enrollment() {
             </div>
           ))}
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          {(hi ? ENROLLMENT_FLOW.stepsHi : ENROLLMENT_FLOW.stepsEn)[step]}
+        </p>
 
         {err && <div data-testid="enroll-error" className="mt-5 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2 rounded-lg">{err}</div>}
 

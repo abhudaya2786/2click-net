@@ -6,10 +6,10 @@ import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 
 const STEPS = [
-  { n: "1", t: "रजिस्टर करें", d: "vendor@2click.in जैसा खाता बनाएँ या हमसे संपर्क करें" },
-  { n: "2", t: "KYC पूरा करें", d: "GST, PAN और दुकान का विवरण अपलोड करें" },
-  { n: "3", t: "प्रोडक्ट लिस्ट करें", d: "Steel, cement, solar या अपनी श्रेणी में सामान डालें" },
-  { n: "4", t: "ऑर्डर पाएँ", d: "Marketplace + Tender bidding से ग्राहक मिलें" },
+  { n: "1", t: "फॉर्म भरें", tEn: "Fill form", d: "दुकान या vendor विवरण और KYC शुरू करें", dEn: "Start shop or vendor details and KYC" },
+  { n: "2", t: "दस्तावेज़ जमा", tEn: "Submit documents", d: "GST, PAN और दुकान दस्तावेज़ अपलोड", dEn: "Upload GST, PAN and shop documents" },
+  { n: "3", t: "सत्यापन", tEn: "Verification", d: "टीम सत्यापन और अनुमोदन", dEn: "Team verification and approval" },
+  { n: "4", t: "स्टोर लाइव", tEn: "Store live", d: "Marketplace पर लिस्टिंग और ऑर्डर", dEn: "Live on marketplace — receive orders" },
 ];
 
 const BENEFITS = [
