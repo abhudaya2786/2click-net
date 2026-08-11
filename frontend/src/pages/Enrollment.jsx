@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import UserEnrollmentForm from "@/components/enrollment/UserEnrollmentForm";
 import ShopEnrollmentForm from "@/components/enrollment/ShopEnrollmentForm";
 import AgreementPanel from "@/components/enrollment/AgreementPanel";
+import EnrollmentReceipt from "@/components/enrollment/EnrollmentReceipt";
 import {
   HardHat, Loader2, Check, ArrowLeft, ArrowRight, User, Store, ShoppingBag, Languages,
 } from "lucide-react";
@@ -47,6 +48,7 @@ export default function Enrollment() {
   const [account, setAccount] = useState({ email: "", password: "" });
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [completed, setCompleted] = useState(null);
 
   const steps = mode === "user" ? STEPS_USER : STEPS_SHOP;
   const userType = mode === "shop" ? "shop" : mode === "vendor" ? "vendor" : "customer";
@@ -116,13 +118,22 @@ export default function Enrollment() {
       };
       const { data } = await api.post("/enrollment/complete", payload);
       setSession(data.token, data.user);
-      if (mode === "user") {
-        toast.success(t("account_created"));
-        nav("/dashboard");
-      } else {
-        toast.success(t("enrollment_submitted"));
-        nav("/dashboard");
-      }
+      const receiptAgreements = agreements
+        .filter((a) => acceptedList.includes(a.code))
+        .map((a) => ({ code: a.code, title: hi ? a.title_hi || a.title : a.title, version: a.version }));
+      setCompleted({
+        user: data.user,
+        shop: data.shop,
+        mode,
+        user_type: userType,
+        name: userForm.name,
+        email: account.email,
+        phone: userForm.phone || shopForm.phone,
+        enrollment_status: data.user?.enrollment_status || data.shop?.status,
+        categories: selectedCats,
+        agreements: receiptAgreements,
+      });
+      toast.success(mode === "user" ? t("account_created") : t("enrollment_submitted"));
     } catch (e2) {
       setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
     } finally {
@@ -131,6 +142,27 @@ export default function Enrollment() {
   };
 
   const stepKey = steps[step];
+
+  if (completed) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col">
+        <div className="flex-1 mx-auto max-w-3xl w-full px-5 py-10">
+          <div className="text-center mb-6">
+            <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+              <Check className="h-7 w-7 text-primary" />
+            </div>
+            <h1 className="font-display font-extrabold text-2xl">{t("enrollment_complete_title")}</h1>
+            <p className="text-sm text-muted-foreground mt-2">{t("enrollment_complete_sub")}</p>
+          </div>
+          <EnrollmentReceipt data={completed} lang={lang} t={t} />
+          <div className="mt-6 flex flex-wrap gap-3 justify-center">
+            <Button onClick={() => nav("/dashboard")} className="rounded-lg">{t("go_dashboard")}</Button>
+            <Button variant="outline" onClick={() => nav("/enroll")} className="rounded-lg">{t("new_enrollment")}</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Check, FileText } from "lucide-react";
+import { Check, FileText, Printer, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import PrintShareBar from "@/components/enrollment/PrintShareBar";
+import { buildAgreementPrintHtml, buildAgreementsBundleHtml, printHtml } from "@/lib/printShare";
+import { openWhatsAppShare } from "@/lib/whatsapp";
 
 export default function AgreementPanel({
   agreements = [],
@@ -14,9 +17,37 @@ export default function AgreementPanel({
     return <p className="text-sm text-muted-foreground">{t("loading_agreements")}</p>;
   }
 
+  const printOne = (a) => {
+    const title = hi ? a.title_hi || a.title : a.title;
+    printHtml(`2click.in — ${title}`, buildAgreementPrintHtml(a, lang));
+  };
+
+  const shareOne = (a) => {
+    const title = hi ? a.title_hi || a.title : a.title;
+    const content = hi ? a.content_hi || a.content : a.content;
+    openWhatsAppShare(`${title}\n\n${content}\n\n— 2click.in`);
+  };
+
+  const printAll = () => {
+    printHtml(hi ? "2click.in समझौते" : "2click.in Agreements", buildAgreementsBundleHtml(agreements, lang));
+  };
+
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">{t("agreements_intro")}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">{t("agreements_intro")}</p>
+        <PrintShareBar
+          onPrint={printAll}
+          printTitle={hi ? "2click.in समझौते" : "2click.in Agreements"}
+          printHtmlBody={buildAgreementsBundleHtml(agreements, lang)}
+          shareText={hi ? "2click.in पंजीकरण समझौते — www.2click.in/enroll" : "2click.in enrollment agreements — www.2click.in/enroll"}
+          shareUrl="https://www.2click.in/enroll"
+          emailSubject={hi ? "2click.in समझौते" : "2click.in agreements"}
+          t={(k) => (k === "print" ? t("print_all") : t(k))}
+          size="sm"
+        />
+      </div>
+
       {agreements.map((a) => {
         const title = hi ? a.title_hi || a.title : a.title;
         const content = hi ? a.content_hi || a.content : a.content;
@@ -41,7 +72,15 @@ export default function AgreementPanel({
               </div>
               {on && <Check className="h-4 w-4 text-primary shrink-0" />}
             </label>
-            <div className="px-4 pb-4 text-xs text-muted-foreground leading-relaxed border-t border-border/50 bg-muted/30 p-3 max-h-32 overflow-y-auto">
+            <div className="px-4 pb-3 flex flex-wrap gap-2 border-t border-border/50 bg-muted/20 pt-2">
+              <Button type="button" variant="ghost" size="sm" className="h-8 rounded-lg gap-1 text-xs" onClick={() => printOne(a)}>
+                <Printer className="h-3.5 w-3.5" />{t("print")}
+              </Button>
+              <Button type="button" variant="ghost" size="sm" className="h-8 rounded-lg gap-1 text-xs" onClick={() => shareOne(a)}>
+                <Share2 className="h-3.5 w-3.5" />{t("share")}
+              </Button>
+            </div>
+            <div className="px-4 pb-4 text-xs text-muted-foreground leading-relaxed border-t border-border/50 bg-muted/30 p-3 max-h-40 overflow-y-auto">
               {content}
             </div>
           </div>

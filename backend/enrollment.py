@@ -311,6 +311,40 @@ async def complete_enrollment(body: EnrollmentCompleteIn, request: Request, resp
     return {"token": token, "user": user_out, "shop": shop_doc}
 
 
+@router.get("/receipt")
+async def enrollment_receipt(user=Depends(_user_dep)):
+    shops = await _db.shops.find({"owner_user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    shop = shops[0] if shops else None
+    acceptances = await _db.agreement_acceptances.find({"user_id": user["id"]}, {"_id": 0}).to_list(100)
+    agreements = []
+    for acc in acceptances:
+        agr = next((a for a in AGREEMENTS if a["code"] == acc.get("agreement_code")), None)
+        if not agr:
+            continue
+        agreements.append({
+            "code": agr["code"],
+            "title": agr["title"],
+            "title_hi": agr.get("title_hi"),
+            "version": acc.get("version") or agr["version"],
+            "accepted_at": acc.get("accepted_at"),
+        })
+    cat_ids = list(user.get("category_ids") or [])
+    if user.get("primary_category_id"):
+        cat_ids = list({user["primary_category_id"], *cat_ids})
+    categories = []
+    if cat_ids:
+        categories = await _db.categories.find({"id": {"$in": cat_ids}}, {"_id": 0, "id": 1, "name": 1}).to_list(50)
+    user_out = {k: v for k, v in _clean(user).items() if k != "password_hash"}
+    return {
+        "user": user_out,
+        "shop": shop,
+        "mode": user.get("enrollment_mode"),
+        "enrollment_status": user.get("enrollment_status"),
+        "categories": categories,
+        "agreements": agreements,
+    }
+
+
 @router.get("/me")
 async def my_enrollment(user=Depends(_user_dep)):
     shops = await _db.shops.find({"owner_user_id": user["id"]}, {"_id": 0}).to_list(50)
