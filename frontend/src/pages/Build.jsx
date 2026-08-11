@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import LocationPicker from "@/components/location/LocationPicker";
 import { useLang } from "@/context/LanguageContext";
 import { SUPER_COPY } from "@/lib/superAppCopy";
+import { USER_PERSONAS, PROPERTY_SUBTYPES, QUALITY_TIERS } from "@/lib/platformArchitecture";
 import { ArrowRight, Check } from "lucide-react";
 
 const LS_KEY = "bs_two_click_project";
@@ -14,19 +15,26 @@ export default function Build() {
   const { lang } = useLang();
   const c = SUPER_COPY[lang] || SUPER_COPY.en;
   const nav = useNavigate();
+  const hi = lang === "hi";
   const [step, setStep] = useState(0);
   const [type, setType] = useState("");
+  const [persona, setPersona] = useState("individual");
+  const [propertySubtype, setPropertySubtype] = useState("new_building");
+  const [quality, setQuality] = useState("standard");
   const [location, setLocation] = useState({ state: "", city: "", district: "", pincode: "", lat: null, lng: null, location: "" });
   const [form, setForm] = useState({
-    plot_area_sqft: "", built_up_sqft: "", floors: "1", bhk: "", budget: "",
+    plot_area_sqft: "", built_up_sqft: "1000", floors: "1", bhk: "", budget: "",
   });
 
   const types = c.projectTypes;
-  const label = (item) => (lang === "hi" ? item.hi : item.en);
+  const label = (item) => (hi ? item.hi : item.en);
 
   const finish = () => {
     const payload = {
       project_type: type,
+      persona,
+      property_subtype: propertySubtype,
+      quality,
       state: location.state,
       city: location.city,
       pincode: location.pincode,
@@ -35,7 +43,6 @@ export default function Build() {
       floors: Number(form.floors) || 1,
       bhk: Number(form.bhk) || 0,
       budget: Number(form.budget) || 0,
-      quality: "standard",
     };
     localStorage.setItem(LS_KEY, JSON.stringify(payload));
     nav("/projects");
@@ -46,7 +53,9 @@ export default function Build() {
       <PageSEO title="Start your project — 2click.in" description="2-click project setup" path="/build" />
       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{c.twoClickTitle}</p>
       <h1 className="font-display font-extrabold text-3xl tracking-tight">
-        {step === 0 ? (lang === "hi" ? "आप क्या बनाना चाहते हैं?" : "What do you want to build?") : (lang === "hi" ? "प्रोजेक्ट के बारे में बताएं" : "Tell us about your project")}
+        {step === 0
+          ? (hi ? "आप क्या बनाना चाहते हैं?" : "What do you want to build?")
+          : (hi ? "आप कौन हैं और प्रोजेक्ट विवरण" : "Who are you & project details")}
       </h1>
       <p className="text-sm text-muted-foreground mt-2">{c.twoClickSub}</p>
 
@@ -71,30 +80,65 @@ export default function Build() {
               {type === t.id && <Check className="h-4 w-4 text-primary mt-2" />}
             </button>
           ))}
-          <Button
-            className="sm:col-span-2 mt-4 rounded-xl h-12"
-            disabled={!type}
-            onClick={() => setStep(1)}
-          >
-            {lang === "hi" ? "आगे — क्लिक 2" : "Next — click 2"} <ArrowRight className="ml-2 h-4 w-4" />
+          <Button className="sm:col-span-2 mt-4 rounded-xl h-12" disabled={!type} onClick={() => setStep(1)}>
+            {hi ? "आगे — क्लिक 2" : "Next — click 2"} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       )}
 
       {step === 1 && (
-        <div className="space-y-4">
-          <LocationPicker pincodeFirst value={location} onChange={setLocation} />
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Input placeholder={lang === "hi" ? "प्लॉट एरिया (sqft)" : "Plot area (sqft)"} value={form.plot_area_sqft} onChange={(e) => setForm({ ...form, plot_area_sqft: e.target.value })} className="rounded-xl" />
-            <Input placeholder={lang === "hi" ? "बिल्ट-अप (sqft)" : "Built-up area (sqft)"} value={form.built_up_sqft} onChange={(e) => setForm({ ...form, built_up_sqft: e.target.value })} className="rounded-xl" />
-            <Input placeholder={lang === "hi" ? "फ़्लोर" : "Floors"} value={form.floors} onChange={(e) => setForm({ ...form, floors: e.target.value })} className="rounded-xl" />
-            <Input placeholder="BHK" value={form.bhk} onChange={(e) => setForm({ ...form, bhk: e.target.value })} className="rounded-xl" />
-            <Input placeholder={lang === "hi" ? "बजट (₹)" : "Budget (₹)"} value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className="rounded-xl" />
+        <div className="space-y-6">
+          <div>
+            <p className="text-sm font-semibold mb-3">{hi ? "आप कौन हैं?" : "Who are you?"}</p>
+            <div className="grid sm:grid-cols-2 gap-2">
+              {USER_PERSONAS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPersona(p.id)}
+                  className={`p-3 rounded-xl border text-sm text-left ${persona === p.id ? "border-primary bg-primary/5" : "border-border"}`}
+                >
+                  {hi ? p.hi : p.en}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-3 pt-4">
-            <Button variant="outline" className="rounded-xl" onClick={() => setStep(0)}>{lang === "hi" ? "पीछे" : "Back"}</Button>
+
+          <div>
+            <p className="text-sm font-semibold mb-3">{hi ? "प्रॉपर्टी प्रकार" : "Property type"}</p>
+            <div className="flex flex-wrap gap-2">
+              {PROPERTY_SUBTYPES.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPropertySubtype(p.id)}
+                  className={`px-3 py-2 rounded-xl border text-xs font-medium ${propertySubtype === p.id ? "border-primary bg-primary/5" : "border-border"}`}
+                >
+                  {hi ? p.hi : p.en}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <LocationPicker pincodeFirst value={location} onChange={setLocation} />
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Input placeholder={hi ? "बिल्ट-अप (sqft)" : "Built-up (sqft)"} value={form.built_up_sqft} onChange={(e) => setForm({ ...form, built_up_sqft: e.target.value })} className="rounded-xl" />
+            <select value={quality} onChange={(e) => setQuality(e.target.value)} className="h-10 border rounded-xl px-3 text-sm bg-background">
+              {QUALITY_TIERS.map((q) => (
+                <option key={q.id} value={q.id}>{hi ? q.labelHi : q.labelEn}</option>
+              ))}
+            </select>
+            <Input placeholder={hi ? "प्लॉट (sqft)" : "Plot (sqft)"} value={form.plot_area_sqft} onChange={(e) => setForm({ ...form, plot_area_sqft: e.target.value })} className="rounded-xl" />
+            <Input placeholder={hi ? "फ़्लोर" : "Floors"} value={form.floors} onChange={(e) => setForm({ ...form, floors: e.target.value })} className="rounded-xl" />
+            <Input placeholder="BHK" value={form.bhk} onChange={(e) => setForm({ ...form, bhk: e.target.value })} className="rounded-xl" />
+            <Input placeholder={hi ? "बजट (₹)" : "Budget (₹)"} value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} className="rounded-xl" />
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button variant="outline" className="rounded-xl" onClick={() => setStep(0)}>{hi ? "पीछे" : "Back"}</Button>
             <Button className="rounded-xl flex-1" onClick={finish}>
-              {lang === "hi" ? "AI डैशबोर्ड खोलें" : "Open AI dashboard"} <ArrowRight className="ml-2 h-4 w-4" />
+              {hi ? "डैशबोर्ड खोलें" : "Open dashboard"} <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>

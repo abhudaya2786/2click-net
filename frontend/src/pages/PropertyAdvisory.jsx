@@ -14,6 +14,8 @@ import {
   Compass, BadgeCheck, Send,
 } from "lucide-react";
 import { toast } from "sonner";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { MODULE_SCREENS } from "@/lib/moduleUpgrades";
 
 const NEED_ICONS = {
   new_building: Building2,
@@ -134,6 +136,8 @@ export default function PropertyAdvisory() {
     }
   };
 
+  const screenMeta = MODULE_SCREENS.find((m) => m.id === "property-advisory");
+
   const needLabel = (n) => hi ? n.name_hi || n.name : n.name;
   const clientLabel = (c) => hi ? c.label_hi || c.label : c.label;
   const timelineLabel = (t) => hi ? t.label_hi || t.label : t.label;
@@ -173,10 +177,20 @@ export default function PropertyAdvisory() {
             {s === 1 && (hi ? "प्रकार" : "Type")}
             {s === 2 && (hi ? "लोकेशन" : "Location")}
             {s === 3 && (hi ? "विवरण" : "Details")}
-            {s === 4 && (hi ? "परिणाम" : "Results")}
+            {s === 4 && (hi ? "सलाहकार मिलान" : "Advisor match")}
           </span>
         ))}
       </div>
+
+      {screenMeta && (
+        <ModuleWorkflowBanner
+          hi={hi}
+          flowEn={screenMeta.flowEn}
+          flowHi={screenMeta.flowHi}
+          stepsEn={screenMeta.stepsEn}
+          stepsHi={screenMeta.stepsHi}
+        />
+      )}
 
       {step === 1 && (
         <div className="space-y-6" data-testid="advisory-step-1">

@@ -9,11 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Search, MapPin, Star, Loader2, Briefcase, Send } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { FREELANCER_MODULE } from "@/lib/exploreNavMap";
+import { useLang } from "@/context/LanguageContext";
 import ClientAgreementGate from "@/components/enrollment/ClientAgreementGate";
 
 export default function Freelancers() {
   const { user } = useAuth();
   const nav = useNavigate();
+  const { lang } = useLang();
+  const hi = lang === "hi";
   const [list, setList] = useState([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
@@ -92,7 +96,7 @@ export default function Freelancers() {
       <div className="flex gap-2 mb-6 max-w-xl">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input data-testid="freelancer-search" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} placeholder="Search by name…" className="rounded-none pl-9" />
+          <Input data-testid="freelancer-search" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => e.key === "Enter" && load()} placeholder={hi ? FREELANCER_MODULE.searchPlaceholderHi : FREELANCER_MODULE.searchPlaceholderEn} className="rounded-none pl-9" />
         </div>
         <Button onClick={load} data-testid="freelancer-search-btn" className="rounded-none">Search</Button>
       </div>
@@ -113,10 +117,10 @@ export default function Freelancers() {
               </div>
               {(f.skills || []).length > 0 && <div className="mt-2 text-xs text-muted-foreground">{f.skills.slice(0, 4).join(" · ")}</div>}
               {f.service_area && <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{f.service_area}</div>}
-              <Button data-testid={`contact-${f.id}`} onClick={() => contact(f)} className="w-full rounded-none mt-4"><Briefcase className="h-4 w-4 mr-1.5" />Contact</Button>
+              <Button data-testid={`contact-${f.id}`} onClick={() => contact(f)} className="w-full rounded-none mt-4"><Briefcase className="h-4 w-4 mr-1.5" />{hi ? "हायर / पूछताछ" : "Hire / Send enquiry"}</Button>
             </motion.div>
           ))}
-          {list.length === 0 && <div className="bg-card p-10 col-span-full text-center text-muted-foreground text-sm">No professionals found yet.</div>}
+          {list.length === 0 && <div className="bg-card p-10 col-span-full text-center text-muted-foreground text-sm">{hi ? FREELANCER_MODULE.emptyHi : FREELANCER_MODULE.emptyEn}</div>}
         </div>
       )}
 

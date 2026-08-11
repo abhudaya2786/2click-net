@@ -10,6 +10,8 @@ import BrandLogo from "@/components/marketing/BrandLogo";
 import CartNavButton from "@/components/store/CartNavButton";
 import { NAV_COPY } from "@/lib/homeCopy";
 import { SUPER_COPY } from "@/lib/superAppCopy";
+import ExploreDropdownLinks, { exploreLabel } from "@/components/marketing/ExploreDropdownLinks";
+import { EXPLORE_MENU, EXPLORE_EXTENDED } from "@/lib/exploreNavMap";
 import { useDemoMode } from "@/context/DemoModeContext";
 
 const PRIMARY_LINKS = [
@@ -20,33 +22,7 @@ const PRIMARY_LINKS = [
   { to: "/projects", key: "projects" },
 ];
 
-const EXPLORE_LINKS = [
-  { to: "/store", key: "materials" },
-  { to: "/professionals", key: "professionals" },
-  { to: "/solar", key: "solar" },
-  { to: "/technology", label: "3D / LiDAR / VR", labelHi: "3D / LiDAR / VR" },
-  { to: "/about", key: "about" },
-  { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
-  { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
-  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
-  { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
-  { to: "/upcoming-projects", key: "nav.upcoming", label: "Upcoming", labelHi: "आगामी प्रोजेक्ट" },
-  { to: "/property-advisory", key: "nav.advisory", label: "Property Advisory", labelHi: "प्रॉपर्टी सलाह" },
-  { to: "/equipment-rental", key: "nav.rental", label: "Equipment Rental", labelHi: "उपकरण रेंटल" },
-  { to: "/consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
-  { to: "/marketplace", label: "Marketplace", labelHi: "मार्केटप्लेस" },
-  { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
-  { to: "/services", label: "All services", labelHi: "सभी सेवाएँ" },
-  { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
-  { to: "/enroll", label: "Enrollment", labelHi: "पंजीकरण" },
-  { to: "/become-vendor", label: "Become vendor", labelHi: "विक्रेता बनें" },
-  { to: "/contact", label: "Contact", labelHi: "संपर्क" },
-];
-
-const MOBILE_LINKS = [
-  ...PRIMARY_LINKS.map((l) => ({ ...l, superKey: l.key })),
-  ...EXPLORE_LINKS,
-];
+const MOBILE_EXPLORE = [...EXPLORE_MENU, ...EXPLORE_EXTENDED];
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -66,7 +42,7 @@ export default function Navbar() {
       const translated = t(l.key);
       if (translated && translated !== l.key) return translated;
     }
-    return lang === "hi" ? l.labelHi || l.label : l.label;
+    return exploreLabel(l, lang, t);
   };
 
   const openAi = () => {
@@ -112,17 +88,8 @@ export default function Navbar() {
             {exploreOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setExploreOpen(false)} aria-hidden />
-                <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-lg py-2 z-50 max-h-[70vh] overflow-y-auto">
-                  {EXPLORE_LINKS.map((l) => (
-                    <Link
-                      key={l.to}
-                      to={l.to}
-                      onClick={() => setExploreOpen(false)}
-                      className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
-                    >
-                      {lbl(l)}
-                    </Link>
-                  ))}
+                <div className="absolute top-full right-0 mt-2 w-56 rounded-xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-lg py-2 z-50 max-h-[70vh] overflow-y-auto">
+                  <ExploreDropdownLinks onNavigate={() => setExploreOpen(false)} lbl={lbl} />
                 </div>
               </>
             )}
@@ -179,7 +146,13 @@ export default function Navbar() {
 
       {open && (
         <div className="lg:hidden border-t border-border/40 bg-background px-4 py-4 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
-          {MOBILE_LINKS.map((l) => (
+          {PRIMARY_LINKS.map((l) => (
+            <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-accent/50 active:text-primary">
+              {lbl(l)}
+            </Link>
+          ))}
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 pt-2">{navCopy.explore}</p>
+          {MOBILE_EXPLORE.map((l) => (
             <Link
               key={l.to}
               to={l.to}

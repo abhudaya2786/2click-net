@@ -51,7 +51,9 @@ import ProjectPlanner from "@/pages/ProjectPlanner";
 import DesignStudio from "@/pages/DesignStudio";
 import Technology from "@/pages/Technology";
 import About from "@/pages/About";
+import PlatformGuide from "@/pages/PlatformGuide";
 import ProfessionalsHub from "@/pages/ProfessionalsHub";
+import MaterialCalculatorPage from "@/pages/MaterialCalculatorPage";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -63,10 +65,12 @@ function AppRouter() {
       <Route path="/" element={M(<Home />)} />
       <Route path="/build" element={M(<Build />)} />
       <Route path="/estimate" element={M(<Estimate />)} />
+      <Route path="/material-calculator" element={M(<MaterialCalculatorPage />)} />
       <Route path="/projects" element={M(<ProjectPlanner />)} />
       <Route path="/design" element={M(<DesignStudio />)} />
       <Route path="/technology" element={M(<Technology />)} />
       <Route path="/about" element={M(<About />)} />
+      <Route path="/platform" element={M(<PlatformGuide />)} />
       <Route path="/professionals" element={M(<ProfessionalsHub />)} />
       <Route path="/services" element={M(<Services />)} />
       <Route path="/pricing" element={M(<Pricing />)} />
