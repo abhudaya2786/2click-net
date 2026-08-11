@@ -14,6 +14,7 @@ import {
   computeLayoutZones,
   buildFullWorkflow,
 } from "@/lib/ai3dStudio";
+import { DESIGN_FEATURE_MODULES, DESIGN_STYLES } from "@/lib/platformScreenArchitecture";
 import { api } from "@/lib/api";
 import {
   Sparkles, Copy, Layout, Sun, Camera, ExternalLink, ChevronDown, ChevronUp,
@@ -49,12 +50,14 @@ export default function Ai3dHomeStudio() {
   const hi = lang === "hi";
 
   const [builtUp, setBuiltUp] = useState("400");
-  const [style, setStyle] = useState("studio");
+  const [style, setStyle] = useState("modern");
+  const [featureModule, setFeatureModule] = useState("interior");
+  const [roomPrompt, setRoomPrompt] = useState("");
   const [scale, setScale] = useState("1:50");
   const [fov, setFov] = useState(FOV_DEFAULT);
   const [extra, setExtra] = useState("");
   const [workflow, setWorkflow] = useState(() =>
-    buildFullWorkflow({ builtUpSqft: 400, style: "studio", scale: "1:50", fov: FOV_DEFAULT, lang })
+    buildFullWorkflow({ builtUpSqft: 400, style: "modern", scale: "1:50", fov: FOV_DEFAULT, lang })
   );
   const [busy, setBusy] = useState(false);
 
@@ -70,21 +73,31 @@ export default function Ai3dHomeStudio() {
     setWorkflow(buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra, lang }));
   }, [builtUp, style, scale, fov, extra, lang]);
 
+  const activeFeature = DESIGN_FEATURE_MODULES.find((f) => f.id === featureModule);
+  const styleLabel = DESIGN_STYLES.find((s) => s.id === style);
+
   const generate = async () => {
     const sqft = parseFloat(builtUp);
     if (!sqft || sqft <= 0) {
       toast.error(hi ? "बिल्ट-अप एरिया दर्ज करें" : "Enter built-up area");
       return;
     }
+    const prefix = hi ? activeFeature?.promptPrefixHi : activeFeature?.promptPrefixEn;
+    const room = roomPrompt.trim();
+    const composedExtra = [
+      prefix && room ? `${prefix} ${room}` : room,
+      styleLabel ? (hi ? styleLabel.hi : styleLabel.en) : style,
+    ].filter(Boolean).join(" · ");
     setBusy(true);
-    const local = buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra, lang });
+    const local = buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra: composedExtra, lang });
     try {
       const { data } = await api.post("/design-studio/workflow", {
         built_up_sqft: sqft,
         style,
         scale,
         fov,
-        extra,
+        extra: composedExtra,
+        feature_module: featureModule,
         lang,
       });
       setWorkflow(data.workflow || local);
@@ -101,6 +114,28 @@ export default function Ai3dHomeStudio() {
 
   return (
     <div className="space-y-10">
+      {/* AI feature modules */}
+      <section>
+        <h2 className="font-display font-bold text-lg mb-3">
+          {hi ? "AI फ़ीचर मॉड्यूल" : "AI feature modules"}
+        </h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+          {DESIGN_FEATURE_MODULES.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              data-testid={`design-feature-${f.id}`}
+              onClick={() => setFeatureModule(f.id)}
+              className={`p-3 rounded-xl border text-sm text-left transition-colors ${
+                featureModule === f.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"
+              }`}
+            >
+              {hi ? f.hi : f.en}
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* Formula pipeline */}
       <section>
         <h2 className="font-display font-bold text-lg mb-2">
@@ -131,11 +166,11 @@ export default function Ai3dHomeStudio() {
         </div>
         <div>
           <label className="text-sm font-medium mb-2 block">{hi ? "स्टाइल" : "Style"}</label>
-          <select value={style} onChange={(e) => setStyle(e.target.value)} className="w-full h-10 border rounded-xl px-3 text-sm bg-background">
+          <select value={style} onChange={(e) => setStyle(e.target.value)} className="w-full h-10 border rounded-xl px-3 text-sm bg-background" data-testid="design-style-select">
+            {DESIGN_STYLES.map((s) => (
+              <option key={s.id} value={s.id}>{hi ? s.hi : s.en}</option>
+            ))}
             <option value="studio">{hi ? "3D Home Studio" : "3D Home Studio"}</option>
-            <option value="modern">{hi ? "आधुनिक" : "Modern"}</option>
-            <option value="minimal">{hi ? "मिनिमल" : "Minimal"}</option>
-            <option value="luxury">{hi ? "लक्ज़री" : "Luxury"}</option>
           </select>
         </div>
         <div>
@@ -153,11 +188,21 @@ export default function Ai3dHomeStudio() {
           <input type="range" min={FOV_MIN} max={FOV_MAX} value={fov} onChange={(e) => setFov(Number(e.target.value))} className="w-full" />
         </div>
         <div className="sm:col-span-2">
+          <label className="text-sm font-medium mb-2 block">{hi ? "रूम / एरिया प्रॉम्प्ट" : "Room / area prompt"}</label>
+          <Input
+            value={roomPrompt}
+            onChange={(e) => setRoomPrompt(e.target.value)}
+            placeholder={hi ? "जैसे: 3BHK लिविंग रूम, आधुनिक वुड पैनलिंग…" : "e.g. 3BHK living room with modern wood panelling…"}
+            className="rounded-xl"
+            data-testid="design-room-prompt"
+          />
+        </div>
+        <div className="sm:col-span-2">
           <Input value={extra} onChange={(e) => setExtra(e.target.value)} placeholder={hi ? "अतिरिक्त विवरण…" : "Extra details…"} className="rounded-xl" />
         </div>
-        <Button className="sm:col-span-2 rounded-xl h-11" onClick={generate} disabled={busy}>
+        <Button className="sm:col-span-2 rounded-xl h-11" onClick={generate} disabled={busy} data-testid="generate-design-btn">
           <Sparkles className="h-4 w-4 mr-2" />
-          {hi ? "पूरा 5-चरण वर्कफ़्लो जनरेट करें" : "Generate full 5-phase workflow"}
+          {hi ? "डिज़ाइन जनरेट करें" : "Generate design"}
         </Button>
       </div>
 

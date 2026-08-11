@@ -9,6 +9,8 @@ import ProjectDashboard from "@/components/project/ProjectDashboard";
 import EmptyState, { LoadingSkeleton } from "@/components/superapp/EmptyState";
 import { Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { CORE_PLATFORM_SCREENS } from "@/lib/platformScreenArchitecture";
 
 const LS_KEY = "bs_two_click_project";
 
@@ -69,13 +71,27 @@ export default function ProjectPlanner() {
             {input.project_type} · {input.city || input.state || "India"}
           </h1>
           <p className="text-sm text-muted-foreground mt-2">
-            {input.built_up_sqft} sqft · {input.quality || "standard"} · {input.persona || "individual"}
+            {input.built_up_sqft} sqft · {input.floors || 1} {hi ? "फ़्लोर" : "floors"}
+            {input.bhk ? ` · ${input.bhk}BHK` : ""} · {input.quality || "standard"} · {input.persona || "individual"}
           </p>
         </div>
         <Button className="rounded-xl" onClick={generatePlan} disabled={planBusy}>
           {planBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : c.generatePlan}
         </Button>
       </div>
+
+      {(() => {
+        const screenMeta = CORE_PLATFORM_SCREENS.find((s) => s.id === "projects");
+        return screenMeta ? (
+          <ModuleWorkflowBanner
+            hi={hi}
+            flowEn={screenMeta.flowEn}
+            flowHi={screenMeta.flowHi}
+            stepsEn={screenMeta.stepsEn}
+            stepsHi={screenMeta.stepsHi}
+          />
+        ) : null;
+      })()}
 
       {busy ? <LoadingSkeleton rows={8} /> : <ProjectDashboard input={input} />}
     </div>

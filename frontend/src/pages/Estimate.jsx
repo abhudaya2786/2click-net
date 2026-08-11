@@ -11,6 +11,8 @@ import { LoadingSkeleton } from "@/components/superapp/EmptyState";
 import MaterialCalculator from "@/components/calculator/MaterialCalculator";
 import { Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { CORE_PLATFORM_SCREENS } from "@/lib/platformScreenArchitecture";
 
 const QUALITIES = ["low", "standard", "premium", "luxury"];
 
@@ -78,6 +80,8 @@ export default function Estimate() {
     toast.success(lang === "hi" ? "कोटेशन डाउनलोड" : "Quotation downloaded");
   };
 
+  const screenMeta = CORE_PLATFORM_SCREENS.find((s) => s.id === "estimate");
+
   return (
     <div className="mx-auto max-w-4xl px-4 md:px-8 py-10 md:py-14">
       <PageSEO title="Cost calculator — 2click.in" description="Construction cost estimate" path="/estimate" />
@@ -85,6 +89,18 @@ export default function Estimate() {
       <p className="text-sm text-muted-foreground mt-2">
         {lang === "hi" ? "स्थान, क्षेत्रफल और गुणवत्ता — तुरंत विस्तृत अनुमान।" : "Location, area and quality — instant detailed estimate."}
       </p>
+
+      {screenMeta && (
+        <div className="mt-6">
+          <ModuleWorkflowBanner
+            hi={lang === "hi"}
+            flowEn={screenMeta.flowEn}
+            flowHi={screenMeta.flowHi}
+            stepsEn={screenMeta.stepsEn}
+            stepsHi={screenMeta.stepsHi}
+          />
+        </div>
+      )}
 
       <div className="mt-8 grid lg:grid-cols-2 gap-8">
         <div className="space-y-4 glass-card p-6 rounded-2xl border border-border/60">

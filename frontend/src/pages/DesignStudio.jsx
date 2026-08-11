@@ -3,11 +3,14 @@ import Ai3dHomeStudio from "@/components/design/Ai3dHomeStudio";
 import { useLang } from "@/context/LanguageContext";
 import { SUPER_COPY } from "@/lib/superAppCopy";
 import { Sparkles } from "lucide-react";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { CORE_PLATFORM_SCREENS } from "@/lib/platformScreenArchitecture";
 
 export default function DesignStudio() {
   const { lang } = useLang();
   const c = SUPER_COPY[lang] || SUPER_COPY.en;
   const hi = lang === "hi";
+  const screenMeta = CORE_PLATFORM_SCREENS.find((s) => s.id === "design");
 
   return (
     <div className="mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-14">
@@ -30,6 +33,18 @@ export default function DesignStudio() {
           ? "स्केल फार्मूला, 3-पॉइंट लाइटिंग, FOV कैमरा, ज़ोन लेआउट और Text-to-3D प्रॉम्प्ट — एक स्थान पर।"
           : "Scale formula, 3-point lighting, FOV camera, zone layout and text-to-3D prompts — all in one place."}
       </p>
+
+      {screenMeta && (
+        <div className="mt-6">
+          <ModuleWorkflowBanner
+            hi={hi}
+            flowEn={screenMeta.flowEn}
+            flowHi={screenMeta.flowHi}
+            stepsEn={screenMeta.stepsEn}
+            stepsHi={screenMeta.stepsHi}
+          />
+        </div>
+      )}
 
       <div className="mt-10">
         <Ai3dHomeStudio />
