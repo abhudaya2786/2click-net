@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/context/LanguageContext";
@@ -53,9 +53,10 @@ export default function Ai3dHomeStudio() {
   const [scale, setScale] = useState("1:50");
   const [fov, setFov] = useState(FOV_DEFAULT);
   const [extra, setExtra] = useState("");
-  const [workflow, setWorkflow] = useState(null);
+  const [workflow, setWorkflow] = useState(() =>
+    buildFullWorkflow({ builtUpSqft: 400, style: "studio", scale: "1:50", fov: FOV_DEFAULT, lang })
+  );
   const [busy, setBusy] = useState(false);
-  const [activePhase, setActivePhase] = useState(1);
 
   const zones = useMemo(() => computeLayoutZones(parseFloat(builtUp) || 0), [builtUp]);
 
@@ -63,6 +64,11 @@ export default function Ai3dHomeStudio() {
     navigator.clipboard.writeText(text);
     toast.success(hi ? "कॉपी हो गया" : "Copied");
   };
+
+  useEffect(() => {
+    const sqft = parseFloat(builtUp) || 400;
+    setWorkflow(buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra, lang }));
+  }, [builtUp, style, scale, fov, extra, lang]);
 
   const generate = async () => {
     const sqft = parseFloat(builtUp);
@@ -178,7 +184,7 @@ export default function Ai3dHomeStudio() {
         </section>
       )}
 
-      {/* 5 Phase workflow */}
+      {/* 5 Phase workflow — all phases visible */}
       {workflow && (
         <section className="space-y-6">
           <h2 className="font-display font-bold text-xl">
@@ -186,15 +192,10 @@ export default function Ai3dHomeStudio() {
           </h2>
 
           {WORKFLOW_PHASES.map((phase) => {
-            const isActive = activePhase === phase.phase;
             const promptText = phasePrompt(phase.promptKey);
             return (
-              <div key={phase.id} className={`glass-card rounded-2xl border ${isActive ? "border-primary/40" : "border-border/60"}`}>
-                <button
-                  type="button"
-                  onClick={() => setActivePhase(phase.phase)}
-                  className="w-full flex items-start gap-4 p-5 text-left"
-                >
+              <div key={phase.id} className="glass-card rounded-2xl border border-border/60">
+                <div className="flex items-start gap-4 p-5">
                   <span className="h-8 w-8 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-sm shrink-0">
                     {phase.phase}
                   </span>
@@ -202,26 +203,24 @@ export default function Ai3dHomeStudio() {
                     <p className="font-display font-bold">{hi ? phase.hi : phase.en}</p>
                     <p className="text-xs text-primary mt-1">{phase.tools}</p>
                   </div>
-                  <a href={phase.toolUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-primary shrink-0">
+                  <a href={phase.toolUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary shrink-0">
                     <ExternalLink className="h-4 w-4" />
                   </a>
-                </button>
+                </div>
 
-                {isActive && (
-                  <div className="px-5 pb-5 space-y-4 border-t border-border/40 pt-4">
-                    <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                      {(hi ? phase.stepsHi : phase.stepsEn).map((s) => <li key={s}>{s}</li>)}
-                    </ol>
-                    {promptText && (
-                      <PromptBlock
-                        label={hi ? `AI Prompt ${phase.phase}` : `AI Prompt ${phase.phase}`}
-                        text={promptText}
-                        hi={hi}
-                        onCopy={copy}
-                      />
-                    )}
-                  </div>
-                )}
+                <div className="px-5 pb-5 space-y-4 border-t border-border/40 pt-4">
+                  <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
+                    {(hi ? phase.stepsHi : phase.stepsEn).map((s) => <li key={s}>{s}</li>)}
+                  </ol>
+                  {promptText && (
+                    <PromptBlock
+                      label={hi ? `AI Prompt ${phase.phase}` : `AI Prompt ${phase.phase}`}
+                      text={promptText}
+                      hi={hi}
+                      onCopy={copy}
+                    />
+                  )}
+                </div>
               </div>
             );
           })}

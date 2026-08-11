@@ -30,9 +30,9 @@ describe("ai3dStudio workflow", () => {
     expect(p).toContain("400 sq ft");
   });
 
-  it("prompt5 includes lighting percentages", () => {
-    const p = buildPrompt5LookXRender({ quality: "premium" });
-    expect(p).toContain("fill 50%");
-    expect(p).toContain("key 100%");
+  it("prompt5 matches LookX render template", () => {
+    const p = buildPrompt5LookXRender();
+    expect(p).toContain("soft warm filling light from the left");
+    expect(p).toContain("raytracing");
   });
 });

@@ -96,10 +96,9 @@ def _prompt4():
 
 def _prompt5(quality):
     return (
-        f"Photorealistic architectural visualization, interior view of modern 3D Home Studio, focus on the workstation, "
-        f"dramatic cinematic lighting, soft warm filling light from the left (fill 50%), sharp accent backlight from the right (key 100%), "
-        f"ambient depth light 30%, detailed textures on the oak floor and acoustic panels, {quality} quality tier, "
-        f"hyper-realistic, 8k, raytracing."
+        "Photorealistic architectural visualization, interior view of modern 3D Home Studio, focus on the workstation, "
+        "dramatic cinematic lighting, soft warm filling light from the left, sharp accent backlight from the right, "
+        "detailed textures on the oak floor and acoustic panels, hyper-realistic, 8k, raytracing."
     )
 
 
