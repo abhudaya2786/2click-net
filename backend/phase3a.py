@@ -72,6 +72,8 @@ SEED_TREE = {
     "Freelancer Services": ("freelancer", ["Architecture", "CAD Design", "3D Design", "Estimation", "BOQ",
                                            "Quantity Surveying", "Accounting", "GST", "Digital Marketing",
                                            "Web Development", "Other Services"]),
+    "Architecture": ("architecture", ["Residential", "Commercial", "Interior Design", "Vastu",
+                                      "3D Visualization", "Landscape", "Renovation"]),
 }
 
 
@@ -579,6 +581,32 @@ async def seed_phase3a():
                     "created_by": "system", "updated_by": "system"})
         await _db.app_settings.update_one({"key": "phase3a_categories_seeded"},
                                           {"$set": {"key": "phase3a_categories_seeded", "value": True,
+                                                    "updated_at": iso(now_utc())}}, upsert=True)
+
+    arch_flag = await _db.app_settings.find_one({"key": "phase3a_architecture_seeded"})
+    if not arch_flag:
+        if await _db.categories.count_documents({"category_type": "architecture"}) == 0:
+            order = await _db.categories.count_documents({})
+            parent_name, (ctype, children) = "Architecture", ("architecture", [
+                "Residential", "Commercial", "Interior Design", "Vastu",
+                "3D Visualization", "Landscape", "Renovation",
+            ])
+            pid = new_id("cat")
+            await _db.categories.insert_one({
+                "id": pid, "name": parent_name, "slug": slug(parent_name), "description": "",
+                "parent_id": None, "category_type": ctype, "icon": None, "image": None,
+                "status": "active", "sort_order": order + 1, "metadata": {},
+                "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+                "created_by": "system", "updated_by": "system"})
+            for i, child in enumerate(children):
+                await _db.categories.insert_one({
+                    "id": new_id("cat"), "name": child, "slug": slug(child), "description": "",
+                    "parent_id": pid, "category_type": ctype, "icon": None, "image": None,
+                    "status": "active", "sort_order": i + 1, "metadata": {},
+                    "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+                    "created_by": "system", "updated_by": "system"})
+        await _db.app_settings.update_one({"key": "phase3a_architecture_seeded"},
+                                          {"$set": {"key": "phase3a_architecture_seeded", "value": True,
                                                     "updated_at": iso(now_utc())}}, upsert=True)
 
     # Backfill user_type + default_dashboard for existing users (map from legacy role)
