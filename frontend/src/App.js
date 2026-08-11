@@ -45,6 +45,13 @@ import FullBOQBuilder from "@/pages/FullBOQBuilder";
 import UpcomingProjects from "@/pages/UpcomingProjects";
 import PropertyAdvisory from "@/pages/PropertyAdvisory";
 import EquipmentRental from "@/pages/EquipmentRental";
+import Build from "@/pages/Build";
+import Estimate from "@/pages/Estimate";
+import ProjectPlanner from "@/pages/ProjectPlanner";
+import DesignStudio from "@/pages/DesignStudio";
+import Technology from "@/pages/Technology";
+import About from "@/pages/About";
+import ProfessionalsHub from "@/pages/ProfessionalsHub";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -54,6 +61,13 @@ function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={M(<Home />)} />
+      <Route path="/build" element={M(<Build />)} />
+      <Route path="/estimate" element={M(<Estimate />)} />
+      <Route path="/projects" element={M(<ProjectPlanner />)} />
+      <Route path="/design" element={M(<DesignStudio />)} />
+      <Route path="/technology" element={M(<Technology />)} />
+      <Route path="/about" element={M(<About />)} />
+      <Route path="/professionals" element={M(<ProfessionalsHub />)} />
       <Route path="/services" element={M(<Services />)} />
       <Route path="/pricing" element={M(<Pricing />)} />
       <Route path="/contact" element={M(<Contact />)} />

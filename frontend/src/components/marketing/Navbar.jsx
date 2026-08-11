@@ -9,23 +9,31 @@ import { useLang } from "@/context/LanguageContext";
 import BrandLogo from "@/components/marketing/BrandLogo";
 import CartNavButton from "@/components/store/CartNavButton";
 import { NAV_COPY } from "@/lib/homeCopy";
+import { SUPER_COPY } from "@/lib/superAppCopy";
 import { useDemoMode } from "@/context/DemoModeContext";
 
-/** Core nav — premium sites keep primary nav to 4–5 items max */
 const PRIMARY_LINKS = [
-  { to: "/store", key: "nav.store", label: "Store", labelHi: "स्टोर" },
-  { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
-  { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
-  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
+  { to: "/", key: "home" },
+  { to: "/build", key: "build" },
+  { to: "/estimate", key: "estimate" },
+  { to: "/design", key: "design" },
+  { to: "/projects", key: "projects" },
 ];
 
 const EXPLORE_LINKS = [
+  { to: "/store", key: "materials" },
+  { to: "/professionals", key: "professionals" },
+  { to: "/solar", key: "solar" },
+  { to: "/technology", label: "3D / LiDAR / VR", labelHi: "3D / LiDAR / VR" },
+  { to: "/about", key: "about" },
+  { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
+  { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
+  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
   { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/upcoming-projects", key: "nav.upcoming", label: "Upcoming", labelHi: "आगामी प्रोजेक्ट" },
   { to: "/property-advisory", key: "nav.advisory", label: "Property Advisory", labelHi: "प्रॉपर्टी सलाह" },
   { to: "/equipment-rental", key: "nav.rental", label: "Equipment Rental", labelHi: "उपकरण रेंटल" },
-  { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
-  { to: "/solar", label: "Solar", labelHi: "सोलर" },
+  { to: "/consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
   { to: "/marketplace", label: "Marketplace", labelHi: "मार्केटप्लेस" },
   { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
   { to: "/services", label: "All services", labelHi: "सभी सेवाएँ" },
@@ -35,7 +43,10 @@ const EXPLORE_LINKS = [
   { to: "/contact", label: "Contact", labelHi: "संपर्क" },
 ];
 
-const MOBILE_LINKS = [...PRIMARY_LINKS, ...EXPLORE_LINKS];
+const MOBILE_LINKS = [
+  ...PRIMARY_LINKS.map((l) => ({ ...l, superKey: l.key })),
+  ...EXPLORE_LINKS,
+];
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -43,16 +54,23 @@ export default function Navbar() {
   const { brand_name, navbar_style } = useBranding();
   const { lang, toggle: toggleLang, t, enabled } = useLang();
   const navCopy = NAV_COPY[lang] || NAV_COPY.en;
+  const superNav = SUPER_COPY[lang]?.nav || SUPER_COPY.en.nav;
   const [open, setOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const nav = useNavigate();
   const { openPanel } = useDemoMode();
+
   const lbl = (l) => {
-    const fallback = lang === "hi" ? l.labelHi : l.label;
-    if (!l.key) return fallback;
-    const translated = t(l.key);
-    if (translated && translated !== l.key) return translated;
-    return fallback;
+    if (l.key && superNav[l.key]) return superNav[l.key];
+    if (l.key) {
+      const translated = t(l.key);
+      if (translated && translated !== l.key) return translated;
+    }
+    return lang === "hi" ? l.labelHi || l.label : l.label;
+  };
+
+  const openAi = () => {
+    window.dispatchEvent(new Event("open-ai-assistant"));
   };
 
   return (
@@ -67,17 +85,20 @@ export default function Navbar() {
           <span className="font-display font-extrabold text-base tracking-tight hidden sm:inline">{brand_name}</span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
+        <nav className="hidden lg:flex items-center gap-4 xl:gap-5">
           {PRIMARY_LINKS.map((l) => (
             <Link
               key={l.to}
               to={l.to}
-              data-testid={`nav-${l.label.toLowerCase().replace(/\s+/g, "-")}`}
+              data-testid={`nav-${l.key}`}
               className="nav-link"
             >
               {lbl(l)}
             </Link>
           ))}
+          <button type="button" onClick={openAi} className="nav-link">
+            {superNav.ai}
+          </button>
           <div className="relative">
             <button
               type="button"
@@ -91,7 +112,7 @@ export default function Navbar() {
             {exploreOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setExploreOpen(false)} aria-hidden />
-                <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-lg py-2 z-50">
+                <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-lg py-2 z-50 max-h-[70vh] overflow-y-auto">
                   {EXPLORE_LINKS.map((l) => (
                     <Link
                       key={l.to}
@@ -168,6 +189,13 @@ export default function Navbar() {
               {lbl(l)}
             </Link>
           ))}
+          <button
+            type="button"
+            onClick={() => { setOpen(false); openAi(); }}
+            className="text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-accent/50 text-left"
+          >
+            {superNav.ai}
+          </button>
           {!user && (
             <Link
               to="/login"

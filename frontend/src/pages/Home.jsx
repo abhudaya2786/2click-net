@@ -9,10 +9,15 @@ import RegionalLanding from "@/components/marketing/RegionalLanding";
 import UpcomingProjectsBlock from "@/components/marketing/UpcomingProjectsBlock";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 import CatalogShowcase from "@/components/catalog/CatalogShowcase";
+import ServiceGrid from "@/components/superapp/ServiceGrid";
+import TrustStrip from "@/components/superapp/TrustStrip";
+import TechHighlights from "@/components/superapp/TechHighlights";
+import ThemeSwitcher from "@/components/superapp/ThemeSwitcher";
 import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users, Shield } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
 import { HOME_COPY } from "@/lib/homeCopy";
+import { SUPER_COPY } from "@/lib/superAppCopy";
 import { useDemoMode } from "@/context/DemoModeContext";
 
 const HERO = "https://images.unsplash.com/photo-1527335988388-b40ee248d80c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjBzaXRlJTIwY3JhbmUlMjBtb2Rlcm4lMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzg2MDc3Mzc4fDA&ixlib=rb-4.1.0&q=85";
@@ -32,6 +37,7 @@ export default function Home() {
   const { hero_layout } = useBranding();
   const { lang } = useLang();
   const c = HOME_COPY[lang] || HOME_COPY.en;
+  const sa = SUPER_COPY[lang] || SUPER_COPY.en;
   const centered = hero_layout === "centered";
   const { openPanel } = useDemoMode();
 
@@ -51,22 +57,27 @@ export default function Home() {
         <div className={`relative mx-auto max-w-6xl ${centered ? "px-4 md:px-8 py-14 md:py-20 text-center" : "grid lg:grid-cols-2 px-4 md:px-8"}`}>
           <div className={`py-10 md:py-16 flex flex-col justify-center ${centered ? "max-w-3xl mx-auto" : "order-2 lg:order-1 lg:pr-8"}`}>
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
-                {c.badge}
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary mb-3">
+                {sa.tagline}
               </p>
               <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-[3rem] tracking-tight leading-[1.1] text-balance">
-                {c.heroTitle}
-                <span className="text-primary"> {c.heroTitleAccent}</span>
+                {sa.heroTitle}
               </h1>
-              <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">{c.heroSub}</p>
+              <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">{sa.heroSub}</p>
+              <TechHighlights className="mt-4" />
               <TrustBadges className="mt-5" />
               <div className={`mt-7 flex flex-wrap gap-3 ${centered ? "justify-center" : ""}`}>
-                <Link to="/register">
+                <Link to="/build">
                   <Button data-testid="hero-cta" size="lg" className="btn-premium">
-                    {c.ctaStart} <ArrowRight className="ml-2 h-4 w-4" />
+                    {sa.ctaStartProject} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Button data-testid="hero-demo-cta" size="lg" variant="secondary" className="btn-premium" onClick={openPanel}>
+                <Link to="/estimate">
+                  <Button data-testid="hero-estimate-cta" size="lg" variant="secondary" className="btn-premium">
+                    {sa.ctaFreeEstimate}
+                  </Button>
+                </Link>
+                <Button data-testid="hero-demo-cta" size="lg" variant="outline" className="btn-premium" onClick={openPanel}>
                   {lang === "hi" ? "डेमो देखें" : "Try demo"}
                 </Button>
                 <WhatsAppShare message={c.waMsg} label={c.waLabel} size="lg" />
@@ -102,6 +113,15 @@ export default function Home() {
               </div>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Super-app services grid */}
+      <section className="border-b border-border/40 bg-muted/10">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 py-12 md:py-16">
+          <h2 className="section-heading">{sa.servicesTitle}</h2>
+          <p className="section-sub">{sa.servicesSub}</p>
+          <ServiceGrid className="mt-8" />
         </div>
       </section>
 
@@ -157,6 +177,16 @@ export default function Home() {
       </section>
 
       <CatalogShowcase variant="compact" />
+
+      {/* Trust & themes */}
+      <section className="mx-auto max-w-6xl px-4 md:px-8 py-12 md:py-16 border-t border-border/40">
+        <h2 className="section-heading">{sa.trustTitle}</h2>
+        <TrustStrip className="mt-6" />
+        <div className="mt-10">
+          <p className="text-sm text-muted-foreground mb-3">{lang === "hi" ? "UI थीम" : "UI theme"}</p>
+          <ThemeSwitcher />
+        </div>
+      </section>
 
       {/* Owner access — visible path, no passwords on public page */}
       <section className="border-y border-border/40 bg-card/40" data-testid="owner-access-strip">

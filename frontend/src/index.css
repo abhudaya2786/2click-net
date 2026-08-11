@@ -94,6 +94,12 @@ body {
   .surface-muted {
     @apply bg-muted/40 border border-border/60 rounded-2xl;
   }
+  .glass-card {
+    @apply bg-card/70 backdrop-blur-md border border-border/60 shadow-sm;
+  }
+  .hero-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--background)) 50%, hsl(var(--solar) / 0.06) 100%);
+  }
 }
 
 @layer base {
