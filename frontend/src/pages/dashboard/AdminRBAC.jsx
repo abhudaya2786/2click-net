@@ -27,6 +27,7 @@ const ALL_TABS = [
   { id: "materials", label: "Super Mart", icon: Store },
   { id: "homebuild", label: "Home Build", icon: Home },
   { id: "solar", label: "Solar Brands", icon: Sun },
+  { id: "shops", label: "Shop Enrollment", icon: Store },
   { id: "modules", label: "Modules", icon: Boxes },
   { id: "menus", label: "Menus", icon: MenuIcon },
   { id: "audit", label: "Audit Logs", icon: ScrollText },
@@ -64,6 +65,7 @@ export default function AdminRBAC() {
       {tab === "materials" && <AdminMaterials />}
       {tab === "homebuild" && <AdminHomeBuild />}
       {tab === "solar" && <SolarCatalogManager scope="admin" />}
+      {tab === "shops" && <ShopEnrollments />}
       {tab === "modules" && <SimpleList url={`${R}/modules`} cols={["name", "code", "status"]} testid="modules" />}
       {tab === "menus" && <SimpleList url={`${R}/menus`} cols={["name", "module_code", "path"]} testid="menus" />}
       {tab === "audit" && <Audit />}
@@ -696,6 +698,59 @@ function BackupPanel() {
       <p className="px-5 py-3 text-xs text-muted-foreground">
         CLI: <code className="bg-muted px-1">./scripts/backup.sh</code> · Restore: <code className="bg-muted px-1">./scripts/restore-backup.sh dump_YYYYMMDD_HHMMSS</code>
       </p>
+    </Panel>
+  );
+}
+
+function ShopEnrollments() {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const load = () => {
+    setLoading(true);
+    api.get("/enrollment/admin/shops", { params: { status: "pending_review" } })
+      .then(({ data }) => setRows(data))
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, []);
+  const review = async (id, action) => {
+    await api.patch(`/enrollment/admin/shops/${id}/review`, { action });
+    toast.success(action === "approve" ? "Shop approved" : "Shop rejected");
+    load();
+  };
+  return (
+    <Panel title="Shop enrollment queue" testid="shop-enrollment-panel">
+      {loading ? <div className="p-8 flex justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div> : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="p-3 text-left">Shop</th>
+                <th className="p-3 text-left">Type</th>
+                <th className="p-3 text-left">GST</th>
+                <th className="p-3 text-left">City</th>
+                <th className="p-3 text-left">Status</th>
+                <th className="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No pending shop enrollments</td></tr>}
+              {rows.map((s) => (
+                <tr key={s.id} className="border-t border-border">
+                  <td className="p-3 font-medium">{s.name}</td>
+                  <td className="p-3">{s.shop_type}</td>
+                  <td className="p-3 font-mono text-xs">{s.gst_number || "—"}</td>
+                  <td className="p-3">{s.city || "—"}</td>
+                  <td className="p-3"><span className="text-xs font-mono uppercase text-tender">{s.status}</span></td>
+                  <td className="p-3 text-right space-x-2">
+                    <Button size="sm" className="rounded-none" onClick={() => review(s.id, "approve")}>Approve</Button>
+                    <Button size="sm" variant="outline" className="rounded-none" onClick={() => review(s.id, "reject")}>Reject</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </Panel>
   );
 }

@@ -203,6 +203,12 @@ class LoginIn(BaseModel):
     password: str
 
 
+class AdminLoginIn(BaseModel):
+    email: EmailStr
+    password: str
+    access_pin: Optional[str] = None
+
+
 class ProductIn(BaseModel):
     name: str
     category: str
@@ -459,17 +465,38 @@ async def _issue_login_token(user: dict, response: Response):
     return {"token": token, "user": u}
 
 
-async def _send_login_otp(user: dict):
+async def _send_login_otp(user: dict, purpose: str = "login"):
     import mailer
     code = _gen_otp()
-    await db.otp_codes.insert_one({
-        "id": new_id("otp"), "email": user["email"], "purpose": "login",
+    doc = {
+        "id": new_id("otp"), "email": user["email"], "purpose": purpose,
         "code_hash": hash_password(code), "used": False, "attempts": 0,
         "expires_at": iso(now_utc() + timedelta(minutes=OTP_TTL_MINUTES)),
         "created_at": iso(now_utc()),
-    })
+    }
+    if os.environ.get("ENABLE_TEST_OTP") == "1":
+        doc["dev_code"] = code
+    await db.otp_codes.insert_one(doc)
     await mailer.send_email(user["email"], "Your 2click.in login code",
                             mailer.otp_email_html(user.get("name"), code))
+
+
+def _admin_access_pins() -> list:
+    raw = os.environ.get("ADMIN_ACCESS_PIN", "").strip()
+    return [p.strip() for p in raw.split(",") if p.strip()]
+
+
+def _check_admin_network(request: Request, access_pin: Optional[str]):
+    pins = _admin_access_pins()
+    if pins and access_pin not in pins:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    allowlist = os.environ.get("ADMIN_IP_ALLOWLIST", "").strip()
+    if not allowlist:
+        return
+    ip = _client_ip(request)
+    allowed = {a.strip() for a in allowlist.split(",") if a.strip()}
+    if ip not in allowed:
+        raise HTTPException(status_code=403, detail="Admin access is not allowed from this network")
 
 
 @api.post("/auth/login")
@@ -482,6 +509,10 @@ async def login(body: LoginIn, request: Request, response: Response):
         await _record_failed_login(identifier)
         await audit(user or {"email": email}, "login_failed", module="auth", status="failed", request=request)
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    if user.get("role") == "super_admin":
+        await _record_failed_login(identifier)
+        await audit(user, "login_blocked_super_admin", module="auth", status="failed", request=request)
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     await db.login_attempts.delete_one({"identifier": identifier})
     if user.get("two_factor_enabled"):
         await _send_login_otp(user)
@@ -489,6 +520,31 @@ async def login(body: LoginIn, request: Request, response: Response):
         return {"requires_otp": True, "email": email}
     await audit(user, "login", module="auth", request=request)
     return await _issue_login_token(user, response)
+
+
+@api.post("/auth/admin/login")
+async def admin_login(body: AdminLoginIn, request: Request, response: Response):
+    """Secure super-admin login: hidden URL + optional access PIN + mandatory email OTP."""
+    try:
+        _check_admin_network(request, body.access_pin)
+    except HTTPException:
+        await audit({"email": body.email.lower()}, "admin_login_denied", module="auth", status="failed", request=request)
+        raise
+    email = body.email.lower()
+    identifier = f"admin:{_client_ip(request)}:{email}"
+    await _check_lockout(identifier)
+    user = await db.users.find_one({"email": email})
+    if not user or user.get("role") != "super_admin" or not verify_password(body.password, user.get("password_hash", "")):
+        await _record_failed_login(identifier)
+        await audit(user or {"email": email}, "admin_login_failed", module="auth", status="failed", request=request)
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    await db.login_attempts.delete_one({"identifier": identifier})
+    if os.environ.get("ENABLE_TEST_OTP") == "1":
+        await audit(user, "admin_login_test_bypass", module="auth", request=request)
+        return await _issue_login_token(user, response)
+    await _send_login_otp(user, purpose="admin_login")
+    await audit(user, "admin_login_2fa_challenge", module="auth", request=request)
+    return {"requires_otp": True, "email": email}
 
 
 @api.get("/auth/me")
@@ -525,6 +581,8 @@ async def google_session(request: Request, response: Response):
             "created_at": iso(now_utc()),
         }
         await db.users.insert_one(dict(user))
+    if user.get("role") == "super_admin":
+        raise HTTPException(status_code=403, detail="Use the secure admin console to sign in")
     session_token = data["session_token"]
     await db.sessions.insert_one({
         "id": new_id("sess"), "user_id": user["id"], "session_token": session_token,
@@ -549,7 +607,8 @@ class OtpVerifyIn(BaseModel):
 async def otp_verify(body: OtpVerifyIn, response: Response):
     email = body.email.lower()
     rec = await db.otp_codes.find_one(
-        {"email": email, "purpose": "login", "used": False}, sort=[("created_at", -1)])
+        {"email": email, "purpose": {"$in": ["login", "admin_login"]}, "used": False},
+        sort=[("created_at", -1)])
     if not rec:
         raise HTTPException(status_code=400, detail="No pending code. Please log in again.")
     exp = datetime.fromisoformat(rec["expires_at"])
@@ -574,9 +633,24 @@ async def otp_verify(body: OtpVerifyIn, response: Response):
 async def otp_resend(body: dict):
     email = (body.get("email") or "").lower()
     user = await db.users.find_one({"email": email})
-    if user and user.get("two_factor_enabled"):
-        await _send_login_otp(user)
+    if user and (user.get("two_factor_enabled") or user.get("role") == "super_admin"):
+        purpose = "admin_login" if user.get("role") == "super_admin" else "login"
+        await _send_login_otp(user, purpose=purpose)
     return {"ok": True}
+
+
+@api.get("/auth/dev/latest-otp")
+async def dev_latest_otp(email: str):
+    """Dev/test only — returns latest unused OTP when ENABLE_TEST_OTP=1."""
+    if os.environ.get("ENABLE_TEST_OTP") != "1":
+        raise HTTPException(status_code=404, detail="Not found")
+    rec = await db.otp_codes.find_one(
+        {"email": email.lower(), "used": False, "dev_code": {"$exists": True}},
+        sort=[("created_at", -1)],
+    )
+    if not rec or not rec.get("dev_code"):
+        raise HTTPException(status_code=404, detail="No OTP available")
+    return {"code": rec["dev_code"]}
 
 
 class ForgotIn(BaseModel):
@@ -1258,11 +1332,13 @@ async def seed():
             "id": new_id("user"), "name": "Platform Owner", "email": admin_email,
             "password_hash": hash_password(admin_pw), "role": "super_admin",
             "company": "2click.in", "picture": None, "auth": "jwt",
-            "kyc_status": "verified", "wallet": 0.0, "created_at": iso(now_utc()),
+            "kyc_status": "verified", "wallet": 0.0, "two_factor_enabled": True,
+            "created_at": iso(now_utc()),
         })
     else:
         await db.users.update_one({"email": admin_email},
-                                  {"$set": {"password_hash": hash_password(admin_pw), "role": "super_admin"}})
+                                  {"$set": {"password_hash": hash_password(admin_pw), "role": "super_admin",
+                                            "two_factor_enabled": True}})
 
     # demo users
     demo = [
@@ -1411,10 +1487,14 @@ async def startup():
     _sc.init(db)
     await _sc.ensure_indexes()
     await _sc.seed_geo()
-    import consultants
-    consultants.init(db, get_current_user)
-    await consultants.ensure_indexes()
-    await consultants.seed_consultants()
+    import enrollment as _enr
+    _enr.init(db, get_current_user, {
+        "audit": audit, "hash_password": hash_password, "verify_password": verify_password,
+        "create_access_token": create_access_token, "set_auth_cookie": set_auth_cookie,
+        "clean": clean, "new_id": new_id, "iso": iso, "now_utc": now_utc,
+    })
+    await _enr.ensure_indexes()
+    await _enr.seed_agreements()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1455,6 +1535,12 @@ import consultants as _consultants
 _consultants.init(db, get_current_user)
 import site_config as _site
 _site.init(db)
+import enrollment as _enrollment
+_enrollment.init(db, get_current_user, {
+    "audit": audit, "hash_password": hash_password, "verify_password": verify_password,
+    "create_access_token": create_access_token, "set_auth_cookie": set_auth_cookie,
+    "clean": clean, "new_id": new_id, "iso": iso, "now_utc": now_utc,
+})
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1475,6 +1561,8 @@ app.include_router(_home.admin_router)
 app.include_router(_consultants.router)
 app.include_router(_site.public_router)
 app.include_router(_site.admin_router)
+app.include_router(_enrollment.router)
+app.include_router(_enrollment.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

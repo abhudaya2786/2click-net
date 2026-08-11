@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Search, MapPin, Star, Loader2, Briefcase, Send } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import ClientAgreementGate from "@/components/enrollment/ClientAgreementGate";
 
 export default function Freelancers() {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ export default function Freelancers() {
   const [target, setTarget] = useState(null);
   const [msg, setMsg] = useState("");
   const [sending, setSending] = useState(false);
+  const [clientGateOpen, setClientGateOpen] = useState(false);
+  const [pendingFreelancer, setPendingFreelancer] = useState(null);
 
   const [rates, setRates] = useState(null);
 
@@ -31,9 +34,32 @@ export default function Freelancers() {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
 
-  const contact = (f) => {
+  const hasClientAgreement = async () => {
+    try {
+      const { data } = await api.get("/enrollment/me");
+      return (data.agreements_accepted || []).some((a) => a.agreement_code === "client_agreement");
+    } catch {
+      return false;
+    }
+  };
+
+  const contact = async (f) => {
     if (!user) { toast.error("Please log in to contact freelancers"); nav("/login"); return; }
+    const ok = await hasClientAgreement();
+    if (!ok) {
+      setPendingFreelancer(f);
+      setClientGateOpen(true);
+      return;
+    }
     setTarget(f); setMsg("");
+  };
+
+  const onClientAgreementAccepted = () => {
+    if (pendingFreelancer) {
+      setTarget(pendingFreelancer);
+      setMsg("");
+      setPendingFreelancer(null);
+    }
   };
   const send = async () => {
     if (!msg.trim()) return;
@@ -56,6 +82,11 @@ export default function Freelancers() {
             Commission-based: platform fee from <strong>{rates.order_platform_percent}%</strong> per order (varies by service/product — freelancer receives net payout).
           </p>
         )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          <Link to="/client-agreement" className="text-primary hover:underline">Client agreement</Link>
+          {" · "}
+          <Link to="/freelancer-agreement" className="text-primary hover:underline">Freelancer agreement</Link>
+        </p>
       </div>
 
       <div className="flex gap-2 mb-6 max-w-xl">
@@ -88,6 +119,12 @@ export default function Freelancers() {
           {list.length === 0 && <div className="bg-card p-10 col-span-full text-center text-muted-foreground text-sm">No professionals found yet.</div>}
         </div>
       )}
+
+      <ClientAgreementGate
+        open={clientGateOpen}
+        onOpenChange={setClientGateOpen}
+        onAccepted={onClientAgreementAccepted}
+      />
 
       <Dialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
         <DialogContent className="rounded-none">

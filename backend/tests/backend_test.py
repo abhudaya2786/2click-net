@@ -5,27 +5,13 @@ import time
 import json
 import requests
 import pytest
-
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://wallet-vendor-mvp.preview.emergentagent.com").rstrip("/")
-API = f"{BASE_URL}/api"
-
-ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-VENDOR = ("vendor@2click.in", "Demo@12345")
-CUSTOMER = ("customer@2click.in", "Demo@12345")
-CONTRACTOR = ("contractor@2click.in", "Demo@12345")
-
-
-def login(email, password):
-    r = requests.post(f"{API}/auth/login", json={"email": email, "password": password}, timeout=30)
-    assert r.status_code == 200, f"Login failed for {email}: {r.status_code} {r.text}"
-    data = r.json()
-    return data["token"], data["user"]
+from auth_helpers import login, admin_login, ADMIN, VENDOR, CUSTOMER, CONTRACTOR, API
 
 
 @pytest.fixture(scope="module")
 def tokens():
     return {
-        "admin": login(*ADMIN),
+        "admin": admin_login(),
         "vendor": login(*VENDOR),
         "customer": login(*CUSTOMER),
         "contractor": login(*CONTRACTOR),

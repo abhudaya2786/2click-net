@@ -1,6 +1,8 @@
 import { useEffect, useState, Fragment } from "react";
 import { api } from "@/lib/api";
+import { useLang } from "@/context/LanguageContext";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
+import EnrollmentReceipt from "@/components/enrollment/EnrollmentReceipt";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,9 +26,11 @@ const NAV = [
 const EMPTY = { name: "", category: "Steel & TMT", price: "", unit: "unit", stock: "", description: "", image: "https://images.unsplash.com/photo-1763926062529-1edf8664c366?crop=entropy&cs=srgb&fm=jpg&q=85&w=800" };
 
 export default function VendorDashboard() {
+  const { lang, t } = useLang();
   const [active, setActive] = useState("overview");
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
+  const [enrollmentReceipt, setEnrollmentReceipt] = useState(null);
   const [form, setForm] = useState(EMPTY);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -35,7 +39,9 @@ export default function VendorDashboard() {
   const load = async () => {
     setLoading(true);
     const [p, o] = await Promise.all([api.get("/vendor/products"), api.get("/vendor/orders")]);
-    setProducts(p.data); setOrders(o.data); setLoading(false);
+    setProducts(p.data); setOrders(o.data);
+    api.get("/enrollment/receipt").then(({ data }) => setEnrollmentReceipt(data)).catch(() => setEnrollmentReceipt(null));
+    setLoading(false);
   };
   useEffect(() => { load(); }, []);
 
@@ -53,11 +59,16 @@ export default function VendorDashboard() {
       {loading ? <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div> : (
         <>
           {active === "overview" && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <StatCard icon={Package} label="Listed Products" value={products.length} />
-              <StatCard icon={ShoppingBag} label="Total Orders" value={orders.length} color="text-tender" />
-              <StatCard icon={IndianRupee} label="Revenue" value={`₹${(revenue/1000).toFixed(1)}K`} color="text-solar" />
-              <StatCard icon={Boxes} label="Total Stock" value={products.reduce((s,p)=>s+(p.stock||0),0).toLocaleString("en-IN")} />
+            <div className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard icon={Package} label="Listed Products" value={products.length} />
+                <StatCard icon={ShoppingBag} label="Total Orders" value={orders.length} color="text-tender" />
+                <StatCard icon={IndianRupee} label="Revenue" value={`₹${(revenue/1000).toFixed(1)}K`} color="text-solar" />
+                <StatCard icon={Boxes} label="Total Stock" value={products.reduce((s,p)=>s+(p.stock||0),0).toLocaleString("en-IN")} />
+              </div>
+              {enrollmentReceipt && (
+                <EnrollmentReceipt data={enrollmentReceipt} lang={lang} t={t} />
+              )}
             </div>
           )}
 
