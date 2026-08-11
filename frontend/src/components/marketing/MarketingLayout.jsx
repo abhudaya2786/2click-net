@@ -6,22 +6,26 @@ import InstallAppBanner from "@/components/marketing/InstallAppBanner";
 import AIAssistant from "@/components/AIAssistant";
 import AdSlot from "@/components/ads/AdSlot";
 import CatalogBrandStrip from "@/components/catalog/CatalogBrandStrip";
-import CatalogShowcase from "@/components/catalog/CatalogShowcase";
+
+/** Pages where live brand strip adds value — not on every marketing page */
+const BRAND_STRIP_PREFIXES = ["/store", "/mart", "/interior-boq", "/marketplace", "/boq-builder"];
 
 export default function MarketingLayout({ children }) {
   const { pathname } = useLocation();
-  const skipCompactShowcase = pathname === "/" || pathname.startsWith("/interior-boq") || pathname === "/mart" || pathname.startsWith("/store") || pathname === "/boq-builder";
+  const showBrandStrip = BRAND_STRIP_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const hideFooter = pathname.startsWith("/login") || pathname.startsWith("/register");
 
   return (
     <div className="App min-h-screen flex flex-col mobile-app-shell">
       <Navbar />
       <AdSlot placement="header" />
       <main className="flex-1 mobile-main-content">{children}</main>
-      {!skipCompactShowcase && <CatalogShowcase variant="compact" />}
-      <CatalogBrandStrip />
-      <div className="hidden md:block">
-        <Footer />
-      </div>
+      {showBrandStrip && <CatalogBrandStrip className="border-t border-border/40" />}
+      {!hideFooter && (
+        <div className="hidden md:block border-t border-border/40">
+          <Footer />
+        </div>
+      )}
       <AIAssistant />
       <InstallAppBanner />
       <MobileBottomNav />

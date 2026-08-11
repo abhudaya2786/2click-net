@@ -32,7 +32,7 @@ export default function PlatformToolsGrid({ compact = false }) {
           key={t.to}
           to={t.to}
           data-testid={`tool-${t.to.replace(/\//g, "")}`}
-          className="group flex items-start gap-3 p-4 border border-border rounded-xl bg-card hover:border-primary/50 hover:shadow-sm transition-all"
+          className="group flex items-start gap-3 p-4 border border-border/70 rounded-xl bg-card hover:border-primary/30 hover:shadow-sm transition-all duration-300"
         >
           <t.icon className="h-5 w-5 text-primary shrink-0 mt-0.5" strokeWidth={1.5} />
           <div className="min-w-0 flex-1">
