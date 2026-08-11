@@ -11,6 +11,8 @@ DB_NAME=test_database
 JWT_SECRET=dev-jwt-secret-change-in-production
 ADMIN_EMAIL=abbhuadaya@gmail.com
 ADMIN_PASSWORD=Admin@12345
+ADMIN_ACCESS_PIN=274831
+ENABLE_TEST_OTP=1
 CORS_ORIGINS=http://localhost:3000
 EOF
 }
