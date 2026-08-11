@@ -51,8 +51,8 @@ export default function CatalogBrandStrip({ className = "" }) {
             </Link>
           ))}
         </div>
-        <Link to="/mart" className="shrink-0 text-xs font-medium text-primary flex items-center gap-1 hover:underline hidden md:flex">
-          {hi ? "सभी दरें" : "All rates"}<ArrowRight className="h-3.5 w-3.5" />
+        <Link to="/store" className="shrink-0 text-xs font-medium text-primary flex items-center gap-1 hover:underline hidden md:flex">
+          {hi ? "पूरा स्टोर" : "Full store"}<ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
     </div>

@@ -2,11 +2,12 @@ import { Link } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext";
 import {
   Gavel, Store, Sun, Building2, Calculator, Users, Briefcase,
-  FileText, ClipboardList, ArrowRight, HardHat, Compass,
+  FileText, ClipboardList, ArrowRight, HardHat, Compass, ShoppingBag,
 } from "lucide-react";
 
 const TOOLS = [
   { to: "/tenders", icon: Gavel, en: "Tender Hub", hi: "टेंडर", descEn: "Live tenders & reverse auction", descHi: "लाइव टेंडर और ऑक्शन" },
+  { to: "/store", icon: ShoppingBag, en: "Store", hi: "स्टोर", descEn: "Myntra-style shop — all brands", descHi: "Myntra जैसा स्टोर — सभी ब्रांड" },
   { to: "/marketplace", icon: Store, en: "Marketplace", hi: "मार्केटप्लेस", descEn: "Materials & vendor catalog", descHi: "सामग्री और विक्रेता" },
   { to: "/mart", icon: Calculator, en: "Super Mart + BOQ", hi: "सुपर मार्ट + BOQ", descEn: "Brand-wise rates & BOQ", descHi: "ब्रांड-वार दर और BOQ" },
   { to: "/interior-boq", icon: ClipboardList, en: "Interior BOQ", hi: "इंटीरियर BOQ", descEn: "Tiles, ceiling, PVC, garden…", descHi: "टाइल्स, सीलिंग, PVC, गार्डन…" },

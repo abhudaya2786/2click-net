@@ -19,6 +19,7 @@ const COLS = [
   {
     h: "Platform",
     items: [
+      { label: "2click Store", to: "/store" },
       { label: "Marketplace", to: "/marketplace" },
       { label: "Tender Hub", to: "/tenders" },
       { label: "Solar Portal", to: "/solar" },

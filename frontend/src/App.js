@@ -7,6 +7,7 @@ import { PermissionProvider } from "@/context/PermissionContext";
 import { BrandingProvider } from "@/context/BrandingContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { CatalogProvider } from "@/context/CatalogContext";
+import { CartProvider } from "@/context/CartContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
@@ -33,6 +34,9 @@ import Dashboard from "@/pages/dashboard/Dashboard";
 import DownloadApp from "@/pages/DownloadApp";
 import InteriorBOQ from "@/pages/InteriorBOQ";
 import Consultants from "@/pages/Consultants";
+import Store from "@/pages/Store";
+import StoreProduct from "@/pages/StoreProduct";
+import Cart from "@/pages/Cart";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -46,6 +50,9 @@ function AppRouter() {
       <Route path="/pricing" element={M(<Pricing />)} />
       <Route path="/contact" element={M(<Contact />)} />
       <Route path="/marketplace" element={M(<Marketplace />)} />
+      <Route path="/store" element={M(<Store />)} />
+      <Route path="/store/product/:id" element={M(<StoreProduct />)} />
+      <Route path="/cart" element={M(<Cart />)} />
       <Route path="/mart" element={M(<Mart />)} />
       <Route path="/interior-boq" element={M(<InteriorBOQ />)} />
       <Route path="/interior-boq/:verticalId" element={M(<InteriorBOQ />)} />
@@ -78,7 +85,9 @@ export default function App() {
               <PermissionProvider>
                 <BrowserRouter>
                   <CatalogProvider>
-                    <AppRouter />
+                    <CartProvider>
+                      <AppRouter />
+                    </CartProvider>
                   </CatalogProvider>
                   <Toaster position="top-right" />
                 </BrowserRouter>

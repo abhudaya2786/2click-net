@@ -522,6 +522,132 @@ async def catalog_showcase():
     }
 
 
+@public_router.get("/store/meta")
+async def store_meta():
+    """Categories, brands and interior verticals for Myntra-style store filters."""
+    product_cats = await _db.products.distinct("category")
+    mart_cats = await _db.materials.distinct("category", {"status": "active"})
+    brands = set(await _db.materials.distinct("brand", {"status": "active"}))
+    for vn in await _db.products.distinct("vendor_name"):
+        if vn:
+            brands.add(vn)
+    verticals_out = []
+    for v in INTERIOR_VERTICALS:
+        row = dict(v)
+        cnt = await _db.materials.count_documents({"status": "active", "category": v["category"]})
+        row["item_count"] = cnt
+        verticals_out.append(row)
+    return {
+        "categories": sorted(set(product_cats + mart_cats)),
+        "brands": sorted(brands),
+        "verticals": verticals_out,
+        "product_count": await _db.products.count_documents({}),
+        "material_count": await _db.materials.count_documents({"status": "active"}),
+    }
+
+
+@public_router.get("/store/browse")
+async def store_browse(
+    category: Optional[str] = None,
+    brand: Optional[str] = None,
+    q: Optional[str] = None,
+    sort: Optional[str] = "name",
+    limit: int = 120,
+):
+    """Unified storefront: marketplace products + Super Mart / interior materials."""
+    items = []
+
+    pq = {}
+    if category and category != "all":
+        pq["category"] = category
+    if q:
+        pq["name"] = {"$regex": q, "$options": "i"}
+    for p in await _db.products.find(pq, {"_id": 0}).to_list(500):
+        vendor = p.get("vendor_name") or "Vendor"
+        if brand and brand != "all" and brand not in (vendor, p.get("brand", "")):
+            continue
+        items.append({
+            "id": p["id"],
+            "name": p["name"],
+            "brand": vendor,
+            "category": p["category"],
+            "price": float(p["price"]),
+            "unit": p.get("unit", "unit"),
+            "image": p.get("image"),
+            "rating": float(p.get("rating", 4.5)),
+            "source": "product",
+            "stock": p.get("stock"),
+            "description": p.get("description"),
+        })
+
+    mq = {"status": "active"}
+    if category and category != "all":
+        mq["category"] = category
+    if brand and brand != "all":
+        mq["brand"] = brand
+    if q:
+        mq["name"] = {"$regex": q, "$options": "i"}
+    for m in await _db.materials.find(mq, {"_id": 0}).to_list(2000):
+        items.append({
+            "id": m["id"],
+            "name": m["name"],
+            "brand": m["brand"],
+            "category": m["category"],
+            "price": float(m["rate"]),
+            "unit": m["unit"],
+            "image": resolve_material_image(m["category"], m["name"], m.get("image")),
+            "rating": 4.4,
+            "source": "material",
+            "description": f"{m['brand']} — {m['name']} at live market rate.",
+        })
+
+    if sort == "price_asc":
+        items.sort(key=lambda x: x["price"])
+    elif sort == "price_desc":
+        items.sort(key=lambda x: -x["price"])
+    elif sort == "brand":
+        items.sort(key=lambda x: (x["brand"], x["name"]))
+    else:
+        items.sort(key=lambda x: x["name"])
+
+    return {"items": items[:limit], "total": len(items)}
+
+
+@public_router.get("/store/product/{item_id}")
+async def store_product(item_id: str):
+    p = await _db.products.find_one({"id": item_id}, {"_id": 0})
+    if p:
+        return {
+            "id": p["id"],
+            "name": p["name"],
+            "brand": p.get("vendor_name") or "Vendor",
+            "category": p["category"],
+            "price": float(p["price"]),
+            "unit": p.get("unit", "unit"),
+            "image": p.get("image"),
+            "rating": float(p.get("rating", 4.5)),
+            "source": "product",
+            "stock": p.get("stock"),
+            "description": p.get("description") or f"Premium {p['name']} with GST invoice.",
+            "vendor_name": p.get("vendor_name"),
+        }
+    m = await _db.materials.find_one({"id": item_id, "status": "active"}, {"_id": 0})
+    if not m:
+        raise HTTPException(404, "Product not found")
+    return {
+        "id": m["id"],
+        "name": m["name"],
+        "brand": m["brand"],
+        "category": m["category"],
+        "price": float(m["rate"]),
+        "unit": m["unit"],
+        "image": resolve_material_image(m["category"], m["name"], m.get("image")),
+        "rating": 4.4,
+        "source": "material",
+        "description": f"{m['brand']} {m['name']} — brand-wise live rate from 2click Super Mart catalog.",
+    }
+
+
 @public_router.get("/mart/interior-verticals/{vid}/catalog")
 async def vertical_catalog(vid: str):
     """Products grouped by name with brand options sorted by rate (for brand comparison UI)."""
