@@ -69,6 +69,10 @@ const FALLBACK = {
     "nav.pricing": "Pricing",
     "nav.consultants": "Consultants",
     "nav.interior_boq": "Interior BOQ",
+    "nav.upcoming": "Upcoming Projects",
+    "nav.advisory": "Property Advisory",
+    "nav.rental": "Equipment Rental",
+    "nav.boq_builder": "Full BOQ",
   },
   hi: {
     create_account: "अपना 2Click.in खाता बनाएँ",
@@ -137,6 +141,10 @@ const FALLBACK = {
     "nav.pricing": "प्लान",
     "nav.consultants": "कंसल्टेंट",
     "nav.interior_boq": "इंटीरियर BOQ",
+    "nav.upcoming": "आगामी प्रोजेक्ट",
+    "nav.advisory": "प्रॉपर्टी सलाह",
+    "nav.rental": "उपकरण रेंटल",
+    "nav.boq_builder": "पूरा BOQ",
   },
 };
 

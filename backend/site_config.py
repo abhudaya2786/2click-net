@@ -73,10 +73,17 @@ DEFAULT_THEME = {
 
 DEFAULT_LOCALE_STRINGS = {
     "nav.marketplace": {"en": "Marketplace", "hi": "मार्केट"},
+    "nav.store": {"en": "Store", "hi": "स्टोर"},
     "nav.tenders": {"en": "Tenders", "hi": "टेंडर"},
     "nav.solar": {"en": "Solar", "hi": "सोलर"},
     "nav.mart": {"en": "Super Mart", "hi": "सुपर मार्ट"},
     "nav.pricing": {"en": "Pricing", "hi": "प्लान"},
+    "nav.consultants": {"en": "Consultants", "hi": "कंसल्टेंट"},
+    "nav.interior_boq": {"en": "Interior BOQ", "hi": "इंटीरियर BOQ"},
+    "nav.upcoming": {"en": "Upcoming Projects", "hi": "आगामी प्रोजेक्ट"},
+    "nav.advisory": {"en": "Property Advisory", "hi": "प्रॉपर्टी सलाह"},
+    "nav.rental": {"en": "Equipment Rental", "hi": "उपकरण रेंटल"},
+    "nav.boq_builder": {"en": "Full BOQ", "hi": "पूरा BOQ"},
     "nav.login": {"en": "Log in", "hi": "लॉग इन"},
     "nav.register": {"en": "Sign up", "hi": "रजिस्टर"},
     "hero.cta": {"en": "Get started free", "hi": "मुफ़्त शुरू करें"},
