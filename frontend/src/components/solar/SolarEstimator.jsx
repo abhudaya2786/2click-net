@@ -8,6 +8,8 @@ import {
   Upload, CheckCircle2, Download, Save, Building2, Home, BatteryCharging, Trash2, Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+import WhatsAppShare from "@/components/marketing/WhatsAppShare";
+import { buildSolarWhatsAppMessage } from "@/lib/moduleUpgrades";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
@@ -35,7 +37,7 @@ const Metric = ({ icon: Icon, label, value, color = "text-primary" }) => (
   </div>
 );
 
-export default function SolarEstimator({ embedded = false }) {
+export default function SolarEstimator({ embedded = false, onEstimate }) {
   const { user } = useAuth();
   const [f, setF] = useState({
     segment: "residential", system_type: "ongrid", tier: "standard",
@@ -92,6 +94,7 @@ export default function SolarEstimator({ embedded = false }) {
     try {
       const { data } = await api.post("/solar/epc/estimate", payload());
       setRes(data);
+      onEstimate?.(data);
     } catch { toast.error("Could not compute estimate"); } finally { setBusy(false); }
   };
 
@@ -344,6 +347,12 @@ export default function SolarEstimator({ embedded = false }) {
 
               {/* actions */}
               <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
+                <WhatsAppShare
+                  message={buildSolarWhatsAppMessage(res)}
+                  label="Solar quote on WhatsApp"
+                  variant="outline"
+                  className="rounded-none"
+                />
                 {!proposal ? (
                   <Button data-testid="epc-save" onClick={save} disabled={saving} className="rounded-none">
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-1.5" />{user ? "Save proposal" : "Log in to save"}</>}

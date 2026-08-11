@@ -3,6 +3,8 @@ import PageSEO from "@/components/marketing/PageSEO";
 import InteriorBOQHub from "@/components/dashboard/InteriorBOQHub";
 import VerticalCategoryCalculator from "@/components/dashboard/VerticalCategoryCalculator";
 import { useLang } from "@/context/LanguageContext";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { MODULE_SCREENS } from "@/lib/moduleUpgrades";
 
 export default function InteriorBOQ() {
   const { verticalId } = useParams();
@@ -10,6 +12,7 @@ export default function InteriorBOQ() {
   const hi = lang === "hi";
 
   const isHub = !verticalId || verticalId === "all";
+  const screenMeta = MODULE_SCREENS.find((m) => m.id === "interior-boq");
 
   return (
     <>
@@ -34,6 +37,15 @@ export default function InteriorBOQ() {
                   : "Photo catalogs with brand-wise prices — interior, vastu, fabrication (gates, railings, grills, sheds…), tiles, PVC, renovation."}
               </p>
             </div>
+            {screenMeta && (
+              <ModuleWorkflowBanner
+                hi={hi}
+                flowEn={screenMeta.flowEn}
+                flowHi={screenMeta.flowHi}
+                stepsEn={screenMeta.stepsEn}
+                stepsHi={screenMeta.stepsHi}
+              />
+            )}
             <InteriorBOQHub hideIntro />
           </>
         ) : (

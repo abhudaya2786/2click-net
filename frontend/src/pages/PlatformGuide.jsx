@@ -9,7 +9,8 @@ import {
   EQUIPMENT_MODULES,
   FREELANCER_MODULE,
 } from "@/lib/exploreNavMap";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { MODULE_SCREENS, ADVANCED_UPGRADES } from "@/lib/moduleUpgrades";
+import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
 
 export default function PlatformGuide() {
   const { lang } = useLang();
@@ -140,6 +141,79 @@ export default function PlatformGuide() {
         <Link to="/freelancers" className="inline-flex items-center gap-1 text-primary text-sm mt-4 hover:underline">
           {hi ? "फ्रीलांसर निर्देशिका" : "Freelancer directory"} <ArrowRight className="h-4 w-4" />
         </Link>
+      </section>
+
+      {/* 6–10. Core module screens */}
+      <section className="mt-12">
+        <h2 className="font-display font-bold text-xl mb-2 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          {hi ? "6. मुख्य मॉड्यूल — स्क्रीन वर्कफ़्लो" : "6. Core modules — screen workflows"}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          {hi
+            ? "प्रॉपर्टी सलाह, इंटीरियर BOQ, पूरा घर BOQ, टेक्नोलॉजी और सोलर — क्लिक-दर-क्लिक।"
+            : "Property advisory, interior BOQ, full home BOQ, technology suite, and solar EPC — click-by-click."}
+        </p>
+        <div className="space-y-4">
+          {MODULE_SCREENS.map((m, idx) => (
+            <div key={m.id} className="glass-card rounded-2xl p-5 border border-border/60">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-muted-foreground">
+                    Screen {idx + 1}
+                  </span>
+                  <h3 className="font-display font-bold text-base mt-0.5">
+                    {hi ? m.titleHi : m.titleEn}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 font-mono">{m.path}</p>
+                </div>
+                <Link
+                  to={m.path}
+                  className="text-primary text-xs hover:underline inline-flex items-center gap-1 shrink-0"
+                >
+                  {hi ? "खोलें" : "Open"} <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <p className="text-sm font-medium">{hi ? m.flowHi : m.flowEn}</p>
+              <ol className="mt-3 space-y-1 text-xs text-muted-foreground list-decimal list-inside">
+                {(hi ? m.stepsHi : m.stepsEn).map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Advanced upgrades roadmap */}
+      <section className="mt-12">
+        <h2 className="font-display font-bold text-xl mb-2">
+          {hi ? "7. उन्नत फ़ीचर अपग्रेड (रोडमैप)" : "7. Advanced feature upgrades (roadmap)"}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          {hi
+            ? "ऑल-इन-वन निर्माण इकोसिस्टम के लिए नियोजित क्षमताएँ — API हुक तैयार, लाइव एकीकरण जल्द।"
+            : "Planned capabilities for an all-in-one construction ecosystem — API hooks ready, live integrations rolling out."}
+        </p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {ADVANCED_UPGRADES.map((u) => (
+            <div key={u.id} className="rounded-2xl border border-border/60 p-5 bg-muted/10">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-display font-bold text-sm">{hi ? u.titleHi : u.titleEn}</h3>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
+                  {hi ? "जल्द" : "Soon"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">{hi ? u.descHi : u.descEn}</p>
+              <Link
+                to={u.route}
+                className="text-primary text-xs mt-3 inline-flex items-center gap-1 hover:underline"
+              >
+                {hi ? "संबंधित मॉड्यूल" : "Related module"} <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Extended links */}

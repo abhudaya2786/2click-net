@@ -15,6 +15,8 @@ import {
   Sparkles, Trash2, Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { MODULE_SCREENS } from "@/lib/moduleUpgrades";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
@@ -222,6 +224,12 @@ export default function FullBOQBuilder() {
     }
   };
 
+  const screenMeta = MODULE_SCREENS.find((m) => m.id === "boq-builder");
+  const stepLabels = hi
+    ? ["स्टोर चयन", "आइटम चुनें", "BOQ परिणाम"]
+    : ["Store selection", "Pick items", "BOQ result"];
+  const workflowStep = step === "select" ? 0 : step === "build" ? 1 : 2;
+
   if (loading) {
     return (
       <div className="flex justify-center py-24">
@@ -267,6 +275,29 @@ export default function FullBOQBuilder() {
             </div>
           )}
         </div>
+
+        <div className="flex flex-wrap gap-2 mb-6 text-xs">
+          {stepLabels.map((label, i) => (
+            <span
+              key={label}
+              className={`px-3 py-1 border rounded-full ${
+                workflowStep >= i ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground"
+              }`}
+            >
+              {i + 1}. {label}
+            </span>
+          ))}
+        </div>
+
+        {screenMeta && step === "select" && (
+          <ModuleWorkflowBanner
+            hi={hi}
+            flowEn={screenMeta.flowEn}
+            flowHi={screenMeta.flowHi}
+            stepsEn={screenMeta.stepsEn}
+            stepsHi={screenMeta.stepsHi}
+          />
+        )}
 
         {step === "select" && (
           <div className="space-y-6">
