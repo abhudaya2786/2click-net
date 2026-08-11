@@ -4,6 +4,19 @@ import BrandLogo from "@/components/marketing/BrandLogo";
 
 const COLS = [
   {
+    h: "Brand Catalogs",
+    items: [
+      { label: "All brand rates", to: "/mart" },
+      { label: "Interior Decoration", to: "/interior-boq/interior_decoration" },
+      { label: "Tiles", to: "/interior-boq/tiles" },
+      { label: "False Ceiling", to: "/interior-boq/false_ceiling" },
+      { label: "PVC Work", to: "/interior-boq/pvc_work" },
+      { label: "Renovation", to: "/interior-boq/renovation" },
+      { label: "Gardening", to: "/interior-boq/gardening" },
+      { label: "Vastu", to: "/interior-boq/vastu" },
+    ],
+  },
+  {
     h: "Platform",
     items: [
       { label: "Marketplace", to: "/marketplace" },
@@ -49,7 +62,7 @@ export default function Footer() {
   const { brand_name, tagline, footer_text } = useBranding();
   return (
     <footer className="border-t border-border bg-card">
-      <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+      <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-6">
         <div className="lg:col-span-1">
           <div className="flex items-center gap-2.5 mb-4">
             <BrandLogo className="h-9 w-9" iconClass="h-5 w-5" />

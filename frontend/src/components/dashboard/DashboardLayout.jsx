@@ -4,6 +4,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
 import { HardHat, LogOut, Sun, Moon, Globe } from "lucide-react";
 import { isNativeCapacitor } from "@/lib/pwa";
+import CatalogBrandStrip from "@/components/catalog/CatalogBrandStrip";
 
 const ROLE_LABEL = { super_admin: "Super Admin", vendor: "Vendor", customer: "Customer", contractor: "Contractor" };
 
@@ -105,6 +106,9 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
         <main className="flex-1 overflow-y-auto p-4 md:p-8 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <PersonalBanner user={user} />
           {children}
+          <div className="mt-8 -mx-4 md:-mx-8">
+            <CatalogBrandStrip />
+          </div>
         </main>
       </div>
     </div>

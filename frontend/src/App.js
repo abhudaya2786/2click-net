@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import { PermissionProvider } from "@/context/PermissionContext";
 import { BrandingProvider } from "@/context/BrandingContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { CatalogProvider } from "@/context/CatalogContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
@@ -76,7 +77,9 @@ export default function App() {
             <AuthProvider>
               <PermissionProvider>
                 <BrowserRouter>
-                  <AppRouter />
+                  <CatalogProvider>
+                    <AppRouter />
+                  </CatalogProvider>
                   <Toaster position="top-right" />
                 </BrowserRouter>
               </PermissionProvider>

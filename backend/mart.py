@@ -455,6 +455,73 @@ async def list_interior_verticals():
     return out
 
 
+@public_router.get("/mart/catalog-showcase")
+async def catalog_showcase():
+    """Single payload for site-wide brand/catalog widgets (verticals + featured rates)."""
+    verticals_out = []
+    featured = []
+    seen_names = set()
+
+    for v in INTERIOR_VERTICALS:
+        row = dict(v)
+        mats = await _db.materials.find(
+            {"status": "active", "category": v["category"]},
+            {"_id": 0},
+        ).sort("rate", 1).to_list(500)
+        row["brand_count"] = len(mats)
+        row["product_count"] = len({m["name"] for m in mats}) if mats else 0
+        if mats:
+            cheapest = mats[0]
+            row["from_rate"] = float(cheapest["rate"])
+            row["from_unit"] = cheapest["unit"]
+            row["from_brand"] = cheapest["brand"]
+        verticals_out.append(row)
+
+        per_vertical = 0
+        for m in mats:
+            if m["name"] in seen_names:
+                continue
+            seen_names.add(m["name"])
+            featured.append({
+                "id": m["id"],
+                "name": m["name"],
+                "brand": m["brand"],
+                "rate": float(m["rate"]),
+                "unit": m["unit"],
+                "category": v["category"],
+                "image": resolve_material_image(v["category"], m["name"], m.get("image")),
+                "vertical_id": v["id"],
+                "link": f"/interior-boq/{v['id']}",
+            })
+            per_vertical += 1
+            if per_vertical >= 2:
+                break
+
+    for cat in ["Cement", "Steel & TMT", "Tiles", "Paint"]:
+        mat = await _db.materials.find_one({"status": "active", "category": cat}, {"_id": 0}, sort=[("rate", 1)])
+        if not mat or mat["name"] in seen_names:
+            continue
+        seen_names.add(mat["name"])
+        featured.append({
+            "id": mat["id"],
+            "name": mat["name"],
+            "brand": mat["brand"],
+            "rate": float(mat["rate"]),
+            "unit": mat["unit"],
+            "category": cat,
+            "image": resolve_material_image(cat, mat["name"], mat.get("image")),
+            "vertical_id": None,
+            "link": "/mart",
+        })
+
+    total_brands = len(await _db.materials.distinct("brand", {"status": "active"}))
+    return {
+        "verticals": verticals_out,
+        "featured": featured[:28],
+        "total_brands": total_brands,
+    }
+
+
 @public_router.get("/mart/interior-verticals/{vid}/catalog")
 async def vertical_catalog(vid: str):
     """Products grouped by name with brand options sorted by rate (for brand comparison UI)."""

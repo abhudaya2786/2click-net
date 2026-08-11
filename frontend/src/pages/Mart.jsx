@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Search, Store, Loader2, ArrowRight, TrendingUp, TrendingDown, LineChart as LineIcon } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import InteriorBOQHub from "@/components/dashboard/InteriorBOQHub";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -134,6 +135,12 @@ export default function Mart() {
           <Link to="/interior-boq"><Button data-testid="mart-interior-boq-cta" variant="outline" className="rounded-none">Interior BOQ Calculator<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
           <Link to="/dashboard"><Button data-testid="mart-boq-cta" className="rounded-none">Open Material Calculator<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
         </div>
+      </div>
+
+      <div className="mt-16 border-t border-border pt-12">
+        <h2 className="font-display font-extrabold text-2xl tracking-tight mb-2">Interior & finishing catalogs</h2>
+        <p className="text-sm text-muted-foreground mb-6">Category-wise brand calculators with photos and live rates.</p>
+        <InteriorBOQHub hideIntro />
       </div>
     </div>
   );

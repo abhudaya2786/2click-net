@@ -18,6 +18,7 @@ const PRIMARY_LINKS = [
 ];
 
 const MORE_LINKS = [
+  { to: "/mart", label: "Brand Catalog", labelHi: "ब्रांड कैटलॉग" },
   { to: "/enroll", label: "Enrollment", labelHi: "पंजीकरण" },
   { to: "/solar", label: "Solar", labelHi: "सोलर" },
   { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },

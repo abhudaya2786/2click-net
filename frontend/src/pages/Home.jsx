@@ -6,6 +6,7 @@ import PageSEO from "@/components/marketing/PageSEO";
 import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
 import RegionalLanding from "@/components/marketing/RegionalLanding";
 import PlatformToolsGrid from "@/components/marketing/PlatformToolsGrid";
+import CatalogShowcase from "@/components/catalog/CatalogShowcase";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
@@ -68,6 +69,8 @@ export default function Home() {
       </section>
 
       <RegionalLanding />
+
+      <CatalogShowcase variant="full" />
 
       <section className="mx-auto max-w-[1400px] px-4 md:px-10 py-16 md:py-20 border-b border-border">
         <div className="max-w-2xl mb-10">
