@@ -1487,6 +1487,10 @@ async def startup():
     _sc.init(db)
     await _sc.ensure_indexes()
     await _sc.seed_geo()
+    import consultants
+    consultants.init(db, get_current_user)
+    await consultants.ensure_indexes()
+    await consultants.seed_consultants()
     import enrollment as _enr
     _enr.init(db, get_current_user, {
         "audit": audit, "hash_password": hash_password, "verify_password": verify_password,

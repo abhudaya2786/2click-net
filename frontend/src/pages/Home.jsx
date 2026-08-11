@@ -5,6 +5,7 @@ import TrustBadges from "@/components/marketing/TrustBadges";
 import PageSEO from "@/components/marketing/PageSEO";
 import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
 import RegionalLanding from "@/components/marketing/RegionalLanding";
+import PlatformToolsGrid from "@/components/marketing/PlatformToolsGrid";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
@@ -68,6 +69,23 @@ export default function Home() {
 
       <RegionalLanding />
 
+      <section className="mx-auto max-w-[1400px] px-4 md:px-10 py-16 md:py-20 border-b border-border">
+        <div className="max-w-2xl mb-10">
+          <span className="text-xs font-mono uppercase tracking-widest text-primary">
+            {lang === "hi" ? "प्लेटफ़ॉर्म" : "Platform"}
+          </span>
+          <h2 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight mt-3">
+            {lang === "hi" ? "सभी टूल्स — एक ही जगह" : "All tools — one platform"}
+          </h2>
+          <p className="mt-3 text-muted-foreground">
+            {lang === "hi"
+              ? "टेंडर, मार्केटप्लेस, सोलर, इंटीरियर BOQ, कंसल्टेंट, पंजीकरण — सब कुछ यहाँ से खोलें।"
+              : "Tenders, marketplace, solar, interior BOQ, consultants, enrollment — discover everything from here."}
+          </p>
+        </div>
+        <PlatformToolsGrid />
+      </section>
+
       <section className="mx-auto max-w-[1400px] px-4 md:px-10 py-16 md:py-24">
         <div className="max-w-2xl mb-12">
           <h2 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight">{c.modulesTitle}</h2>
@@ -100,9 +118,9 @@ export default function Home() {
             <h2 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight mt-3">{c.leadTitle}</h2>
             <p className="mt-3 text-muted-foreground">
               {lang === "hi" ? (
-                <>विक्रेता हैं? <Link to="/become-vendor" className="text-primary font-medium hover:underline">{c.leadVendor}</Link>। सोलर कोट चाहिए? <Link to="/solar" className="text-primary font-medium hover:underline">{c.leadSolar}</Link>।</>
+                <>विक्रेता हैं? <Link to="/become-vendor" className="text-primary font-medium hover:underline">{c.leadVendor}</Link>। दुकान पंजीकरण? <Link to="/enroll?mode=shop" className="text-primary font-medium hover:underline">{lang === "hi" ? "यहाँ" : "Enroll shop"}</Link>। सोलर? <Link to="/solar" className="text-primary font-medium hover:underline">{c.leadSolar}</Link>।</>
               ) : (
-                <>Are you a vendor? <Link to="/become-vendor" className="text-primary font-medium hover:underline">{c.leadVendor}</Link>. Need a solar quote? <Link to="/solar" className="text-primary font-medium hover:underline">{c.leadSolar}</Link>.</>
+                <>Are you a vendor? <Link to="/become-vendor" className="text-primary font-medium hover:underline">{c.leadVendor}</Link>. Shop enrollment? <Link to="/enroll?mode=shop" className="text-primary font-medium hover:underline">Enroll here</Link>. Solar? <Link to="/solar" className="text-primary font-medium hover:underline">{c.leadSolar}</Link>.</>
               )}
             </p>
           </div>

@@ -52,6 +52,8 @@ const FALLBACK = {
     "nav.solar": "Solar",
     "nav.mart": "Super Mart",
     "nav.pricing": "Pricing",
+    "nav.consultants": "Consultants",
+    "nav.interior_boq": "Interior BOQ",
   },
   hi: {
     create_account: "अपना 2Click.in खाता बनाएँ",
@@ -103,6 +105,8 @@ const FALLBACK = {
     "nav.solar": "सोलर",
     "nav.mart": "सुपर मार्ट",
     "nav.pricing": "प्लान",
+    "nav.consultants": "कंसल्टेंट",
+    "nav.interior_boq": "इंटीरियर BOQ",
   },
 };
 
