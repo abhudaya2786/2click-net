@@ -9,6 +9,9 @@ import { Search, Loader2, SlidersHorizontal, ShoppingBag } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
 import { useDemoMode } from "@/context/DemoModeContext";
 import { DEMO_STORE_ITEMS } from "@/lib/demoData";
+import MarketRateTicker from "@/components/store/MarketRateTicker";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { CORE_PLATFORM_SCREENS } from "@/lib/platformScreenArchitecture";
 
 export default function Store() {
   const { lang } = useLang();
@@ -77,8 +80,11 @@ export default function Store() {
     setSearchParams(next, { replace: true });
   };
 
+  const screenMeta = CORE_PLATFORM_SCREENS.find((s) => s.id === "store");
+
   return (
     <div className="min-h-screen bg-background" data-testid="construction-store">
+      <MarketRateTicker />
       <PageSEO
         title={hi ? "2click Store — ब्रांड-वार सामग्री" : "2click Store — Brand-wise materials"}
         description="Myntra-style construction store — tiles, cement, steel, interior, solar — brand catalogs with live rates and cart checkout."
@@ -127,6 +133,16 @@ export default function Store() {
       </div>
 
       <div className="mx-auto max-w-[1400px] px-4 md:px-10 py-6">
+        {screenMeta && (
+          <ModuleWorkflowBanner
+            hi={hi}
+            flowEn={screenMeta.flowEn}
+            flowHi={screenMeta.flowHi}
+            stepsEn={screenMeta.stepsEn}
+            stepsHi={screenMeta.stepsHi}
+          />
+        )}
+
         {/* Category store tiles — like Myntra shop by category */}
         <div className="mb-8">
           <h2 className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-3">

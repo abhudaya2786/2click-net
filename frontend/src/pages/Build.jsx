@@ -8,6 +8,8 @@ import { useLang } from "@/context/LanguageContext";
 import { SUPER_COPY } from "@/lib/superAppCopy";
 import { USER_PERSONAS, PROPERTY_SUBTYPES, QUALITY_TIERS } from "@/lib/platformArchitecture";
 import { ArrowRight, Check } from "lucide-react";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { CORE_PLATFORM_SCREENS } from "@/lib/platformScreenArchitecture";
 
 const LS_KEY = "bs_two_click_project";
 
@@ -48,6 +50,10 @@ export default function Build() {
     nav("/projects");
   };
 
+  const screen1 = CORE_PLATFORM_SCREENS.find((s) => s.id === "build-step-1");
+  const screen2 = CORE_PLATFORM_SCREENS.find((s) => s.id === "build-step-2");
+  const activeScreen = step === 0 ? screen1 : screen2;
+
   return (
     <div className="mx-auto max-w-3xl px-4 md:px-8 py-10 md:py-14">
       <PageSEO title="Start your project — 2click.in" description="2-click project setup" path="/build" />
@@ -59,11 +65,26 @@ export default function Build() {
       </h1>
       <p className="text-sm text-muted-foreground mt-2">{c.twoClickSub}</p>
 
-      <div className="mt-8 flex gap-2 mb-8">
+      <div className="mt-8 flex gap-2 mb-4">
         {[0, 1].map((i) => (
           <div key={i} className={`h-2 flex-1 rounded-full ${i <= step ? "bg-primary" : "bg-muted"}`} />
         ))}
       </div>
+      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground mb-6">
+        {step === 0
+          ? (hi ? "स्क्रीन 1 · चरण 1" : "Screen 1 · Step 1")
+          : (hi ? "स्क्रीन 2 · चरण 2" : "Screen 2 · Step 2")}
+      </p>
+
+      {activeScreen && (
+        <ModuleWorkflowBanner
+          hi={hi}
+          flowEn={activeScreen.flowEn}
+          flowHi={activeScreen.flowHi}
+          stepsEn={activeScreen.stepsEn}
+          stepsHi={activeScreen.stepsHi}
+        />
+      )}
 
       {step === 0 && (
         <div className="grid sm:grid-cols-2 gap-3">

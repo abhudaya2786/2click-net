@@ -3,6 +3,8 @@ import PageSEO from "@/components/marketing/PageSEO";
 import { useLang } from "@/context/LanguageContext";
 import { SUPER_COPY } from "@/lib/superAppCopy";
 import { Users, HardHat, PenTool, Sofa, Sun, Store, ArrowRight } from "lucide-react";
+import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
+import { CORE_PLATFORM_SCREENS } from "@/lib/platformScreenArchitecture";
 
 const PORTALS = [
   { to: "/consultants", icon: PenTool, en: "Architects & engineers", hi: "वास्तुकार और इंजीनियर", roleEn: "Receive design leads", roleHi: "डिज़ाइन लीड प्राप्त करें" },
@@ -16,6 +18,8 @@ const PORTALS = [
 export default function ProfessionalsHub() {
   const { lang } = useLang();
   const c = SUPER_COPY[lang] || SUPER_COPY.en;
+  const hi = lang === "hi";
+  const screenMeta = CORE_PLATFORM_SCREENS.find((s) => s.id === "professionals");
 
   return (
     <div className="mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-14">
@@ -27,7 +31,19 @@ export default function ProfessionalsHub() {
           : "Customer and professional portals — verified profiles, ratings and quotations."}
       </p>
 
-      <div className="grid sm:grid-cols-2 gap-4 mt-10">
+      {screenMeta && (
+        <div className="mt-6">
+          <ModuleWorkflowBanner
+            hi={hi}
+            flowEn={screenMeta.flowEn}
+            flowHi={screenMeta.flowHi}
+            stepsEn={screenMeta.stepsEn}
+            stepsHi={screenMeta.stepsHi}
+          />
+        </div>
+      )}
+
+      <div className="grid sm:grid-cols-2 gap-4 mt-6">
         {PORTALS.map((p) => {
           const Icon = p.icon;
           return (

@@ -10,7 +10,12 @@ import {
   FREELANCER_MODULE,
 } from "@/lib/exploreNavMap";
 import { MODULE_SCREENS, ADVANCED_UPGRADES } from "@/lib/moduleUpgrades";
-import { ArrowRight, ExternalLink, Sparkles } from "lucide-react";
+import {
+  CORE_PLATFORM_SCREENS,
+  ECOSYSTEM_ADVANCED_FEATURES,
+} from "@/lib/platformScreenArchitecture";
+import EndToEndWorkflowDiagram from "@/components/marketing/EndToEndWorkflowDiagram";
+import { ArrowRight, ExternalLink, Sparkles, Layers } from "lucide-react";
 
 export default function PlatformGuide() {
   const { lang } = useLang();
@@ -143,41 +148,114 @@ export default function PlatformGuide() {
         </Link>
       </section>
 
-      {/* 6–10. Core module screens */}
+      {/* 6. Core platform journey — 7 screens */}
       <section className="mt-12">
         <h2 className="font-display font-bold text-xl mb-2 flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          {hi ? "6. मुख्य मॉड्यूल — स्क्रीन वर्कफ़्लो" : "6. Core modules — screen workflows"}
+          <Layers className="h-5 w-5 text-primary" />
+          {hi ? "6. मुख्य प्लेटफ़ॉर्म यात्रा — 7 स्क्रीन" : "6. Core platform journey — 7 screens"}
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
           {hi
-            ? "प्रॉपर्टी सलाह, इंटीरियर BOQ, पूरा घर BOQ, टेक्नोलॉजी और सोलर — क्लिक-दर-क्लिक।"
-            : "Property advisory, interior BOQ, full home BOQ, technology suite, and solar EPC — click-by-click."}
+            ? "2-क्लिक बिल्डर से स्टोर चेकआउट तक — विकल्प-दर-विकल्प विश्लेषण और बैकएंड लॉजिक।"
+            : "From 2-click builder to store checkout — option-by-option analysis and backend logic."}
+        </p>
+        <div className="space-y-5">
+          {CORE_PLATFORM_SCREENS.map((s) => (
+            <div key={s.id} className="glass-card rounded-2xl p-5 border border-border/60">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-muted-foreground">
+                    Screen {s.screen}
+                  </span>
+                  <h3 className="font-display font-bold text-base mt-0.5">
+                    {hi ? s.titleHi : s.titleEn}
+                  </h3>
+                  <p className="text-xs font-mono text-muted-foreground mt-1">{s.path}</p>
+                </div>
+                <Link to={s.path} className="text-primary text-xs hover:underline inline-flex items-center gap-1 shrink-0">
+                  {hi ? "खोलें" : "Open"} <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+              <p className="text-sm font-medium">{hi ? s.headlineHi : s.headlineEn}</p>
+              <p className="text-xs text-muted-foreground mt-2">{hi ? s.visualsHi : s.visualsEn}</p>
+              <p className="text-sm font-medium mt-3">{hi ? s.flowHi : s.flowEn}</p>
+              <ol className="mt-2 space-y-1 text-xs text-muted-foreground list-decimal list-inside">
+                {(hi ? s.stepsHi : s.stepsEn).map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <p className="text-xs mt-3 px-3 py-2 rounded-lg bg-muted/40 border border-border/40">
+                <span className="font-mono uppercase text-[10px] text-primary">{hi ? "बैकएंड" : "Backend"}: </span>
+                {hi ? s.backendHi : s.backendEn}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 7. End-to-end workflow */}
+      <section className="mt-12 glass-card rounded-2xl p-6 border border-border/60">
+        <h2 className="font-display font-bold text-xl mb-4">
+          {hi ? "7. एंड-टू-एंड सिस्टम वर्कफ़्लो" : "7. End-to-end system workflow"}
+        </h2>
+        <EndToEndWorkflowDiagram />
+      </section>
+
+      {/* 8. Ecosystem advanced features */}
+      <section className="mt-12">
+        <h2 className="font-display font-bold text-xl mb-2">
+          {hi ? "8. इकोसिस्टम उन्नत फ़ीचर" : "8. Ecosystem advanced features"}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          {hi
+            ? "पूर्ण निर्माण इकोसिस्टम विस्तार — Vision AI, AR, लाइव टिकर, WhatsApp बॉट, Escrow, IoT/ड्रोन।"
+            : "Complete construction ecosystem expansion — Vision AI, AR, live ticker, WhatsApp bot, escrow, IoT/drone."}
+        </p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          {ECOSYSTEM_ADVANCED_FEATURES.map((u) => (
+            <div key={u.id} className="rounded-2xl border border-border/60 p-5 bg-muted/10">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-display font-bold text-sm">{hi ? u.titleHi : u.titleEn}</h3>
+                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-muted text-muted-foreground shrink-0">
+                  {hi ? "जल्द" : "Soon"}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">{hi ? u.descHi : u.descEn}</p>
+              <Link to={u.route} className="text-primary text-xs mt-3 inline-flex items-center gap-1 hover:underline">
+                {hi ? "संबंधित मॉड्यूल" : "Related module"} <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 9. Specialized module screens */}
+      <section className="mt-12">
+        <h2 className="font-display font-bold text-xl mb-2 flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" />
+          {hi ? "9. विशेष मॉड्यूल स्क्रीन" : "9. Specialized module screens"}
+        </h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          {hi
+            ? "प्रॉपर्टी सलाह, इंटीरियर BOQ, पूरा घर BOQ, टेक्नोलॉजी और सोलर।"
+            : "Property advisory, interior BOQ, full home BOQ, technology suite, and solar EPC."}
         </p>
         <div className="space-y-4">
-          {MODULE_SCREENS.map((m, idx) => (
+          {MODULE_SCREENS.map((m) => (
             <div key={m.id} className="glass-card rounded-2xl p-5 border border-border/60">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div>
-                  <span className="text-[10px] font-mono uppercase text-muted-foreground">
-                    Screen {idx + 1}
-                  </span>
-                  <h3 className="font-display font-bold text-base mt-0.5">
-                    {hi ? m.titleHi : m.titleEn}
-                  </h3>
+                  <h3 className="font-display font-bold text-base">{hi ? m.titleHi : m.titleEn}</h3>
                   <p className="text-xs text-muted-foreground mt-1 font-mono">{m.path}</p>
                 </div>
-                <Link
-                  to={m.path}
-                  className="text-primary text-xs hover:underline inline-flex items-center gap-1 shrink-0"
-                >
+                <Link to={m.path} className="text-primary text-xs hover:underline inline-flex items-center gap-1 shrink-0">
                   {hi ? "खोलें" : "Open"} <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
               <p className="text-sm font-medium">{hi ? m.flowHi : m.flowEn}</p>
               <ol className="mt-3 space-y-1 text-xs text-muted-foreground list-decimal list-inside">
-                {(hi ? m.stepsHi : m.stepsEn).map((s) => (
-                  <li key={s}>{s}</li>
+                {(hi ? m.stepsHi : m.stepsEn).map((step) => (
+                  <li key={step}>{step}</li>
                 ))}
               </ol>
             </div>
@@ -185,15 +263,15 @@ export default function PlatformGuide() {
         </div>
       </section>
 
-      {/* Advanced upgrades roadmap */}
+      {/* 10. Platform upgrade roadmap */}
       <section className="mt-12">
         <h2 className="font-display font-bold text-xl mb-2">
-          {hi ? "7. उन्नत फ़ीचर अपग्रेड (रोडमैप)" : "7. Advanced feature upgrades (roadmap)"}
+          {hi ? "10. प्लेटफ़ॉर्म अपग्रेड रोडमैप" : "10. Platform upgrade roadmap"}
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
           {hi
-            ? "ऑल-इन-वन निर्माण इकोसिस्टम के लिए नियोजित क्षमताएँ — API हुक तैयार, लाइव एकीकरण जल्द।"
-            : "Planned capabilities for an all-in-one construction ecosystem — API hooks ready, live integrations rolling out."}
+            ? "अतिरिक्त नियोजित क्षमताएँ — WebGL, ERP सिंक, सैटेलाइट सोलर।"
+            : "Additional planned capabilities — WebGL, ERP sync, satellite solar."}
         </p>
         <div className="grid sm:grid-cols-2 gap-4">
           {ADVANCED_UPGRADES.map((u) => (
@@ -205,10 +283,7 @@ export default function PlatformGuide() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-2">{hi ? u.descHi : u.descEn}</p>
-              <Link
-                to={u.route}
-                className="text-primary text-xs mt-3 inline-flex items-center gap-1 hover:underline"
-              >
+              <Link to={u.route} className="text-primary text-xs mt-3 inline-flex items-center gap-1 hover:underline">
                 {hi ? "संबंधित मॉड्यूल" : "Related module"} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
