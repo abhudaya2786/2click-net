@@ -1,17 +1,32 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
+import { FALLBACK_USER_TYPES, findUserType } from "@/lib/userTypes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HardHat, Loader2, Check, Star, Search, X, ArrowLeft, ArrowRight, Languages } from "lucide-react";
+import { HardHat, Loader2, Check, Star, Search, X, ArrowLeft, ArrowRight, Languages, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 import LocationPicker from "@/components/location/LocationPicker";
 
 const STEPS = ["step_type", "step_category", "step_business", "step_account"];
+
+async function fetchCategoriesForTypes(categoryTypes) {
+  if (!categoryTypes?.length) return [];
+  const batches = await Promise.all(
+    categoryTypes.map((ct) =>
+      api.get(`/categories/type/${ct}`).then((r) => r.data).catch(() => [])
+    )
+  );
+  const seen = new Set();
+  return batches.flat().filter((c) => {
+    if (!c?.id || seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+}
 
 export default function Register() {
   const { setSession } = useAuth();
@@ -23,10 +38,14 @@ export default function Register() {
 
   const [step, setStep] = useState(0);
   const [userTypes, setUserTypes] = useState([]);
-  const [ut, setUt] = useState(null);
+  const [typesLoading, setTypesLoading] = useState(true);
+  const [typesError, setTypesError] = useState("");
+  const [ut, setUt] = useState(() => (typeFromUrl ? findUserType(FALLBACK_USER_TYPES, typeFromUrl) : null));
   const [cats, setCats] = useState([]);
+  const [catsLoading, setCatsLoading] = useState(false);
+  const [catsError, setCatsError] = useState("");
   const [catQ, setCatQ] = useState("");
-  const [selected, setSelected] = useState([]);   // [{id,name}]
+  const [selected, setSelected] = useState([]);
   const [primaryId, setPrimaryId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", company: "", business_type: "", skills: "", service_area: "", portfolio_url: "", expected_pricing: "", availability: "" });
   const [location, setLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
@@ -34,27 +53,65 @@ export default function Register() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    api.get("/user-types").then(({ data }) => {
-      setUserTypes(data);
-      if (typeFromUrl) {
-        const match = data.find((u) => u.code === typeFromUrl);
-        if (match) setUt(match);
-      }
-    });
+  const applyTypeFromUrl = useCallback((types) => {
+    if (!typeFromUrl) return;
+    const match = findUserType(types, typeFromUrl);
+    if (match) setUt(match);
   }, [typeFromUrl]);
 
-  useEffect(() => {
-    if (step === 1 && ut) {
-      const cts = ut.category_types || [];
-      if (cts.length === 0) { setCats([]); return; }
-      Promise.all(cts.map((ct) => api.get(`/categories/type/${ct}`).then((r) => r.data).catch(() => [])))
-        .then((arr) => setCats(arr.flat()));
+  const loadUserTypes = useCallback(() => {
+    setTypesLoading(true);
+    setTypesError("");
+    api.get("/user-types")
+      .then(({ data }) => {
+        const types = data?.length ? data : FALLBACK_USER_TYPES;
+        setUserTypes(types);
+        applyTypeFromUrl(types);
+      })
+      .catch(() => {
+        setUserTypes(FALLBACK_USER_TYPES);
+        applyTypeFromUrl(FALLBACK_USER_TYPES);
+        setTypesError(t("api_offline_types"));
+      })
+      .finally(() => setTypesLoading(false));
+  }, [applyTypeFromUrl, t]);
+
+  useEffect(() => { loadUserTypes(); }, [loadUserTypes]);
+
+  const loadCategories = useCallback(async (categoryTypes) => {
+    if (!categoryTypes?.length) {
+      setCats([]);
+      setCatsError("");
+      return;
     }
-  }, [step, ut]);
+    setCatsLoading(true);
+    setCatsError("");
+    try {
+      const list = await fetchCategoriesForTypes(categoryTypes);
+      setCats(list);
+      if (list.length === 0) setCatsError(t("no_categories_found"));
+    } catch {
+      setCats([]);
+      setCatsError(t("categories_load_failed"));
+    } finally {
+      setCatsLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    if (ut) loadCategories(ut.category_types || []);
+  }, [ut, loadCategories]);
 
   const hasField = (f) => (ut?.fields || []).includes(f);
   const needsCategories = (ut?.category_types || []).length > 0;
+  const displayTypes = userTypes.length ? userTypes : FALLBACK_USER_TYPES;
+
+  const selectUserType = (u) => {
+    setUt(u);
+    setSelected([]);
+    setPrimaryId(null);
+    setCatQ("");
+  };
 
   const toggleCat = (c) => {
     setSelected((s) => {
@@ -123,7 +180,6 @@ export default function Register() {
         <h1 className="font-display font-extrabold text-3xl tracking-tight">{t("create_account")}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t("onboarding_sub")}</p>
 
-        {/* stepper */}
         <div className="mt-6 flex items-center gap-2">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-2 flex-1">
@@ -139,20 +195,31 @@ export default function Register() {
         {err && <div data-testid="register-error" className="mt-5 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">{err}</div>}
 
         <div className="mt-6">
-          {/* STEP 1 — user type */}
           {step === 0 && (
-            <div data-testid="step-user-type" className="grid sm:grid-cols-3 gap-px bg-border border border-border">
-              {userTypes.map((u) => (
-                <button key={u.code} data-testid={`usertype-${u.code}`} type="button" onClick={() => { setUt(u); setSelected([]); setPrimaryId(null); }}
-                  className={`p-5 text-left transition-colors ${ut?.code === u.code ? "bg-primary text-white" : "bg-card hover:bg-accent/40"}`}>
-                  <div className="font-display font-bold">{u.label}</div>
-                  <div className={`text-xs mt-1 ${ut?.code === u.code ? "text-white/80" : "text-muted-foreground"}`}>{(u.category_types || []).slice(0, 2).join(", ") || "General"}</div>
-                </button>
-              ))}
+            <div data-testid="step-user-type">
+              {typesLoading ? (
+                <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+              ) : (
+                <>
+                  {typesError && (
+                    <p className="text-xs text-amber-600 mb-3">{typesError}</p>
+                  )}
+                  <div className="grid sm:grid-cols-3 gap-px bg-border border border-border">
+                    {displayTypes.map((u) => (
+                      <button key={u.code} data-testid={`usertype-${u.code}`} type="button" onClick={() => selectUserType(u)}
+                        className={`p-5 text-left transition-colors ${ut?.code === u.code ? "bg-primary text-white" : "bg-card hover:bg-accent/40"}`}>
+                        <div className="font-display font-bold">{u.label}</div>
+                        <div className={`text-xs mt-1 ${ut?.code === u.code ? "text-white/80" : "text-muted-foreground"}`}>
+                          {(u.category_types || []).slice(0, 2).join(", ") || t("general")}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
-          {/* STEP 2 — categories */}
           {step === 1 && (
             <div data-testid="step-categories">
               <div className="flex items-center justify-between mb-3">
@@ -160,9 +227,19 @@ export default function Register() {
                 {selected.length > 0 && <button onClick={() => { setSelected([]); setPrimaryId(null); }} className="text-xs text-primary">{t("clear_all")}</button>}
               </div>
               {!needsCategories ? (
-                <p className="text-sm text-muted-foreground py-6">No categories required for this account type. Continue →</p>
+                <p className="text-sm text-muted-foreground py-6">{t("no_categories_required")}</p>
+              ) : catsLoading ? (
+                <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
               ) : (
                 <>
+                  {catsError && (
+                    <div className="mb-4 flex items-center justify-between gap-3 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">
+                      <span>{catsError}</span>
+                      <button type="button" onClick={() => loadCategories(ut.category_types)} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                        <RefreshCw className="h-3.5 w-3.5" />{t("retry")}
+                      </button>
+                    </div>
+                  )}
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input data-testid="cat-search-signup" value={catQ} onChange={(e) => setCatQ(e.target.value)} placeholder={t("search_categories")} className="rounded-none pl-9" />
@@ -179,25 +256,28 @@ export default function Register() {
                     </div>
                   )}
                   <div className="space-y-4 max-h-80 overflow-y-auto border border-border p-4">
-                    {Object.entries(grouped).map(([type, list]) => (
-                      <div key={type}>
-                        <div className="font-mono text-[10px] uppercase tracking-wider text-primary mb-2">{type.replace("_", " ")}</div>
-                        <div className="flex flex-wrap gap-1.5">
-                          {list.map((c) => {
-                            const on = selected.find((x) => x.id === c.id);
-                            return <button key={c.id} type="button" data-testid={`signup-cat-${c.slug}`} onClick={() => toggleCat(c)}
-                              className={`text-xs px-2.5 py-1 border transition-colors ${on ? "bg-primary text-white border-primary" : "border-border hover:border-primary"}`}>{c.name}</button>;
-                          })}
+                    {Object.keys(grouped).length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">{t("no_categories_found")}</p>
+                    ) : (
+                      Object.entries(grouped).map(([type, list]) => (
+                        <div key={type}>
+                          <div className="font-mono text-[10px] uppercase tracking-wider text-primary mb-2">{type.replace(/_/g, " ")}</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {list.map((c) => {
+                              const on = selected.find((x) => x.id === c.id);
+                              return <button key={c.id} type="button" data-testid={`signup-cat-${c.slug}`} onClick={() => toggleCat(c)}
+                                className={`text-xs px-2.5 py-1 border transition-colors ${on ? "bg-primary text-white border-primary" : "border-border hover:border-primary"}`}>{c.name}</button>;
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </>
               )}
             </div>
           )}
 
-          {/* STEP 3 — business details */}
           {step === 2 && (
             <div data-testid="step-business" className="space-y-4 max-w-lg">
               {hasField("company") && <div><label className="text-sm font-medium mb-1.5 block">{t("company_name")}</label>
@@ -218,11 +298,10 @@ export default function Register() {
                 <Input data-testid="biz-pricing" value={form.expected_pricing} onChange={(e) => setForm({ ...form, expected_pricing: e.target.value })} placeholder="₹ / hour or project" className="rounded-none" /></div>}
               {hasField("availability") && <div><label className="text-sm font-medium mb-1.5 block">{t("availability")}</label>
                 <Input data-testid="biz-availability" value={form.availability} onChange={(e) => setForm({ ...form, availability: e.target.value })} placeholder="Full-time / Part-time" className="rounded-none" /></div>}
-              {(ut?.fields || []).length === 0 && <p className="text-sm text-muted-foreground py-6">No extra details needed. Continue →</p>}
+              {(ut?.fields || []).length === 0 && <p className="text-sm text-muted-foreground py-6">{t("no_extra_details")}</p>}
             </div>
           )}
 
-          {/* STEP 4 — account */}
           {step === 3 && (
             <form onSubmit={submit} data-testid="step-account" className="space-y-4 max-w-lg">
               <Input data-testid="register-name" placeholder={t("full_name")} required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-none" />
@@ -239,7 +318,6 @@ export default function Register() {
           )}
         </div>
 
-        {/* nav buttons */}
         <div className="mt-8 flex items-center justify-between">
           <Button variant="ghost" onClick={back} disabled={step === 0} data-testid="wizard-back" className="rounded-none"><ArrowLeft className="h-4 w-4 mr-1.5" />{t("back")}</Button>
           {step < STEPS.length - 1
