@@ -8,7 +8,13 @@ import {
   HardHat, Loader2, ArrowLeft, ShieldCheck, Languages, ChevronRight, LogIn,
 } from "lucide-react";
 import { toast } from "sonner";
-import { LOGIN_PROFILES, getProfile } from "@/lib/loginProfiles";
+import { LOGIN_PROFILES } from "@/lib/loginProfiles";
+
+const PUBLIC_LOGIN_PROFILES = LOGIN_PROFILES.filter((p) => p.id !== "admin");
+
+function getPublicProfile(id) {
+  return PUBLIC_LOGIN_PROFILES.find((p) => p.id === id) || PUBLIC_LOGIN_PROFILES[0];
+}
 
 export default function Login() {
   const { setSession } = useAuth();
@@ -24,7 +30,7 @@ export default function Login() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const profile = getProfile(profileId);
+  const profile = getPublicProfile(profileId);
   const hi = lang === "hi";
   const t = (en, h) => (hi ? h : en);
 
@@ -73,7 +79,7 @@ export default function Login() {
 
   const selectProfile = (id) => {
     setProfileId(id);
-    const p = getProfile(id);
+    const p = getPublicProfile(id);
     if (p.demo) setForm({ email: p.demo.email, password: p.demo.password });
     else setForm({ email: "", password: "" });
   };
@@ -196,7 +202,7 @@ export default function Login() {
 
                 {/* Role selector */}
                 <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2" data-testid="login-role-grid">
-                  {LOGIN_PROFILES.map((p) => {
+                  {PUBLIC_LOGIN_PROFILES.map((p) => {
                     const PIcon = p.icon;
                     const active = profileId === p.id;
                     return (
@@ -293,7 +299,7 @@ export default function Login() {
 
                 <p className="text-sm text-muted-foreground mt-6 text-center">
                   {t("No account?", "खाता नहीं है?")}{" "}
-                  <Link to={`/register?type=${profileId === "admin" ? "customer" : profileId}`} className="text-primary font-medium hover:underline">
+                  <Link to={`/register?type=${profileId}`} className="text-primary font-medium hover:underline">
                     {t("Sign up", "रजिस्टर करें")}
                   </Link>
                 </p>
