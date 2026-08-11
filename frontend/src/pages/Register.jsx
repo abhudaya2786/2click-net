@@ -5,14 +5,28 @@ import { useAuth } from "@/context/AuthContext";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
 import { FALLBACK_USER_TYPES, findUserType } from "@/lib/userTypes";
-import CategoryPicker from "@/components/signup/CategoryPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { HardHat, Loader2, Check, ArrowLeft, ArrowRight, Languages } from "lucide-react";
+import { HardHat, Loader2, Check, Star, Search, X, ArrowLeft, ArrowRight, Languages, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import LocationPicker from "@/components/location/LocationPicker";
 
 const STEPS = ["step_type", "step_category", "step_business", "step_account"];
+
+async function fetchCategoriesForTypes(categoryTypes) {
+  if (!categoryTypes?.length) return [];
+  const batches = await Promise.all(
+    categoryTypes.map((ct) =>
+      api.get(`/categories/type/${ct}`).then((r) => r.data).catch(() => [])
+    )
+  );
+  const seen = new Set();
+  return batches.flat().filter((c) => {
+    if (!c?.id || seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+}
 
 export default function Register() {
   const { setSession } = useAuth();
@@ -25,7 +39,12 @@ export default function Register() {
   const [step, setStep] = useState(0);
   const [userTypes, setUserTypes] = useState([]);
   const [typesLoading, setTypesLoading] = useState(true);
+  const [typesError, setTypesError] = useState("");
   const [ut, setUt] = useState(() => (typeFromUrl ? findUserType(FALLBACK_USER_TYPES, typeFromUrl) : null));
+  const [cats, setCats] = useState([]);
+  const [catsLoading, setCatsLoading] = useState(false);
+  const [catsError, setCatsError] = useState("");
+  const [catQ, setCatQ] = useState("");
   const [selected, setSelected] = useState([]);
   const [primaryId, setPrimaryId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", company: "", business_type: "", skills: "", service_area: "", portfolio_url: "", expected_pricing: "", availability: "" });
@@ -40,8 +59,9 @@ export default function Register() {
     if (match) setUt(match);
   }, [typeFromUrl]);
 
-  useEffect(() => {
+  const loadUserTypes = useCallback(() => {
     setTypesLoading(true);
+    setTypesError("");
     api.get("/user-types")
       .then(({ data }) => {
         const types = data?.length ? data : FALLBACK_USER_TYPES;
@@ -51,13 +71,47 @@ export default function Register() {
       .catch(() => {
         setUserTypes(FALLBACK_USER_TYPES);
         applyTypeFromUrl(FALLBACK_USER_TYPES);
+        setTypesError(t("api_offline_types"));
       })
       .finally(() => setTypesLoading(false));
-  }, [applyTypeFromUrl]);
+  }, [applyTypeFromUrl, t]);
+
+  useEffect(() => { loadUserTypes(); }, [loadUserTypes]);
+
+  const loadCategories = useCallback(async (categoryTypes) => {
+    if (!categoryTypes?.length) {
+      setCats([]);
+      setCatsError("");
+      return;
+    }
+    setCatsLoading(true);
+    setCatsError("");
+    try {
+      const list = await fetchCategoriesForTypes(categoryTypes);
+      setCats(list);
+      if (list.length === 0) setCatsError(t("no_categories_found"));
+    } catch {
+      setCats([]);
+      setCatsError(t("categories_load_failed"));
+    } finally {
+      setCatsLoading(false);
+    }
+  }, [t]);
+
+  useEffect(() => {
+    if (ut) loadCategories(ut.category_types || []);
+  }, [ut, loadCategories]);
 
   const hasField = (f) => (ut?.fields || []).includes(f);
   const needsCategories = (ut?.category_types || []).length > 0;
   const displayTypes = userTypes.length ? userTypes : FALLBACK_USER_TYPES;
+
+  const selectUserType = (u) => {
+    setUt(u);
+    setSelected([]);
+    setPrimaryId(null);
+    setCatQ("");
+  };
 
   const selectUserType = (u) => {
     setUt(u);
@@ -140,41 +194,82 @@ export default function Register() {
               {typesLoading ? (
                 <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
               ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {displayTypes.map((u) => (
-                    <button
-                      key={u.code}
-                      data-testid={`usertype-${u.code}`}
-                      type="button"
-                      onClick={() => selectUserType(u)}
-                      className={`p-4 text-left border rounded-xl transition-all ${
-                        ut?.code === u.code
-                          ? "bg-primary text-white border-primary shadow-md scale-[1.02]"
-                          : "bg-card border-border hover:border-primary/40 hover:shadow-sm"
-                      }`}
-                    >
-                      <div className="font-display font-bold">{u.label}</div>
-                      <div className={`text-xs mt-1 ${ut?.code === u.code ? "text-white/80" : "text-muted-foreground"}`}>
-                        {(u.category_types || []).length
-                          ? `${(u.category_types || []).length} ${t("category_groups")}`
-                          : t("general")}
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                <>
+                  {typesError && (
+                    <p className="text-xs text-amber-600 mb-3">{typesError}</p>
+                  )}
+                  <div className="grid sm:grid-cols-3 gap-px bg-border border border-border">
+                    {displayTypes.map((u) => (
+                      <button key={u.code} data-testid={`usertype-${u.code}`} type="button" onClick={() => selectUserType(u)}
+                        className={`p-5 text-left transition-colors ${ut?.code === u.code ? "bg-primary text-white" : "bg-card hover:bg-accent/40"}`}>
+                        <div className="font-display font-bold">{u.label}</div>
+                        <div className={`text-xs mt-1 ${ut?.code === u.code ? "text-white/80" : "text-muted-foreground"}`}>
+                          {(u.category_types || []).slice(0, 2).join(", ") || t("general")}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           )}
 
           {step === 1 && (
-            <CategoryPicker
-              categoryTypes={ut?.category_types || []}
-              selected={selected}
-              primaryId={primaryId}
-              onChange={(next, pid) => { setSelected(next); setPrimaryId(pid); }}
-              lang={lang}
-              t={t}
-            />
+            <div data-testid="step-categories">
+              <div className="flex items-center justify-between mb-3">
+                <div><h3 className="font-display font-bold">{t("select_categories")}</h3><p className="text-xs text-muted-foreground">{t("categories_hint")}</p></div>
+                {selected.length > 0 && <button onClick={() => { setSelected([]); setPrimaryId(null); }} className="text-xs text-primary">{t("clear_all")}</button>}
+              </div>
+              {!needsCategories ? (
+                <p className="text-sm text-muted-foreground py-6">{t("no_categories_required")}</p>
+              ) : catsLoading ? (
+                <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+              ) : (
+                <>
+                  {catsError && (
+                    <div className="mb-4 flex items-center justify-between gap-3 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">
+                      <span>{catsError}</span>
+                      <button type="button" onClick={() => loadCategories(ut.category_types)} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                        <RefreshCw className="h-3.5 w-3.5" />{t("retry")}
+                      </button>
+                    </div>
+                  )}
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input data-testid="cat-search-signup" value={catQ} onChange={(e) => setCatQ(e.target.value)} placeholder={t("search_categories")} className="rounded-none pl-9" />
+                  </div>
+                  {selected.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                      {selected.map((s) => (
+                        <span key={s.id} className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 border ${primaryId === s.id ? "bg-primary text-white border-primary" : "border-border"}`}>
+                          {primaryId === s.id && <Star className="h-3 w-3 fill-current" />}{s.name}
+                          {primaryId !== s.id && <button type="button" onClick={() => setPrimaryId(s.id)} title={t("make_primary")}><Star className="h-3 w-3" /></button>}
+                          <button type="button" onClick={() => toggleCat(s)}><X className="h-3 w-3" /></button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="space-y-4 max-h-80 overflow-y-auto border border-border p-4">
+                    {Object.keys(grouped).length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">{t("no_categories_found")}</p>
+                    ) : (
+                      Object.entries(grouped).map(([type, list]) => (
+                        <div key={type}>
+                          <div className="font-mono text-[10px] uppercase tracking-wider text-primary mb-2">{type.replace(/_/g, " ")}</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {list.map((c) => {
+                              const on = selected.find((x) => x.id === c.id);
+                              return <button key={c.id} type="button" data-testid={`signup-cat-${c.slug}`} onClick={() => toggleCat(c)}
+                                className={`text-xs px-2.5 py-1 border transition-colors ${on ? "bg-primary text-white border-primary" : "border-border hover:border-primary"}`}>{c.name}</button>;
+                            })}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
           {step === 2 && (
@@ -196,7 +291,7 @@ export default function Register() {
               {hasField("pricing") && <div><label className="text-sm font-medium mb-1.5 block">{t("pricing")}</label>
                 <Input data-testid="biz-pricing" value={form.expected_pricing} onChange={(e) => setForm({ ...form, expected_pricing: e.target.value })} placeholder="₹ / hour or project" className="rounded-lg" /></div>}
               {hasField("availability") && <div><label className="text-sm font-medium mb-1.5 block">{t("availability")}</label>
-                <Input data-testid="biz-availability" value={form.availability} onChange={(e) => setForm({ ...form, availability: e.target.value })} placeholder="Full-time / Part-time" className="rounded-lg" /></div>}
+                <Input data-testid="biz-availability" value={form.availability} onChange={(e) => setForm({ ...form, availability: e.target.value })} placeholder="Full-time / Part-time" className="rounded-none" /></div>}
               {(ut?.fields || []).length === 0 && <p className="text-sm text-muted-foreground py-6">{t("no_extra_details")}</p>}
             </div>
           )}

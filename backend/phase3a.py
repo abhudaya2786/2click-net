@@ -583,9 +583,11 @@ async def seed_phase3a():
                                           {"$set": {"key": "phase3a_categories_seeded", "value": True,
                                                     "updated_at": iso(now_utc())}}, upsert=True)
 
+    # Add architecture categories on existing deployments (additive)
     arch_flag = await _db.app_settings.find_one({"key": "phase3a_architecture_seeded"})
     if not arch_flag:
-        if await _db.categories.count_documents({"category_type": "architecture"}) == 0:
+        existing = await _db.categories.count_documents({"category_type": "architecture"})
+        if existing == 0:
             order = await _db.categories.count_documents({})
             parent_name, (ctype, children) = "Architecture", ("architecture", [
                 "Residential", "Commercial", "Interior Design", "Vastu",

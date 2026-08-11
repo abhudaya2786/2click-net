@@ -1,20 +1,9 @@
 """Smoke tests for all major API surface areas."""
 import requests
 import pytest
-from conftest import get_backend_url
+from auth_helpers import login, admin_login, ADMIN, VENDOR, CUSTOMER, CONTRACTOR, API
 
-API = get_backend_url() + "/api"
-ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-VENDOR = ("vendor@2click.in", "Demo@12345")
-CUSTOMER = ("customer@2click.in", "Demo@12345")
 ARCHITECT = ("architect@2click.in", "Demo@12345")
-CONTRACTOR = ("contractor@2click.in", "Demo@12345")
-
-
-def _login(email, pw):
-    r = requests.post(f"{API}/auth/login", json={"email": email, "password": pw}, timeout=30)
-    assert r.status_code == 200, f"{email}: {r.text}"
-    return r.json()["token"]
 
 
 def _h(tok):
@@ -24,11 +13,11 @@ def _h(tok):
 @pytest.fixture(scope="module")
 def tokens():
     return {
-        "admin": _login(*ADMIN),
-        "vendor": _login(*VENDOR),
-        "customer": _login(*CUSTOMER),
-        "architect": _login(*ARCHITECT),
-        "contractor": _login(*CONTRACTOR),
+        "admin": admin_login()[0],
+        "vendor": login(*VENDOR)[0],
+        "customer": login(*CUSTOMER)[0],
+        "architect": login(*ARCHITECT)[0],
+        "contractor": login(*CONTRACTOR)[0],
     }
 
 

@@ -4,20 +4,7 @@ import time
 import uuid
 import requests
 import pytest
-
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL")
-            or "https://wallet-vendor-mvp.preview.emergentagent.com").rstrip("/")
-API = f"{BASE_URL}/api"
-
-ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-VENDOR = ("vendor@2click.in", "Demo@12345")
-CUSTOMER = ("customer@2click.in", "Demo@12345")
-
-
-def _login(email, pw):
-    r = requests.post(f"{API}/auth/login", json={"email": email, "password": pw}, timeout=30)
-    assert r.status_code == 200, r.text
-    return r.json()["token"]
+from auth_helpers import login, admin_login, ADMIN, VENDOR, CUSTOMER, API
 
 
 def h(t):
@@ -26,17 +13,17 @@ def h(t):
 
 @pytest.fixture(scope="module")
 def admin_tok():
-    return _login(*ADMIN)
+    return admin_login()[0]
 
 
 @pytest.fixture(scope="module")
 def vendor_tok():
-    return _login(*VENDOR)
+    return login(*VENDOR)[0]
 
 
 @pytest.fixture(scope="module")
 def cust_tok():
-    return _login(*CUSTOMER)
+    return login(*CUSTOMER)[0]
 
 
 # ---------------------------------------------------------------
@@ -312,6 +299,7 @@ class TestPhase3ARegression:
         assert all("category_type" in c for c in d)
 
     def test_seeded_logins(self):
-        for cred in [ADMIN, VENDOR, CUSTOMER, ("contractor@2click.in", "Demo@12345")]:
+        admin_login()
+        for cred in [VENDOR, CUSTOMER, ("contractor@2click.in", "Demo@12345")]:
             r = requests.post(f"{API}/auth/login", json={"email": cred[0], "password": cred[1]})
             assert r.status_code == 200, f"{cred[0]} login failed"

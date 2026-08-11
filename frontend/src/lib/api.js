@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const PRODUCTION_API = "https://wallet-vendor-mvp.emergent.host";
+const PRODUCTION_APIS = [
+  "https://wallet-vendor-mvp.emergent.host",
+  "https://wallet-vendor-mvp.preview.emergentagent.com",
+];
+const PRODUCTION_API = PRODUCTION_APIS[0];
 
 function resolveBackendUrl() {
   let url = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/$/, "");

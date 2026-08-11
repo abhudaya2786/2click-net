@@ -14,19 +14,7 @@ import os
 import time
 import requests
 import pytest
-
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://wallet-vendor-mvp.preview.emergentagent.com").rstrip("/")
-API = f"{BASE_URL}/api"
-
-ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-VENDOR = ("vendor@2click.in", "Demo@12345")
-CUSTOMER = ("customer@2click.in", "Demo@12345")
-
-
-def login(email, password):
-    r = requests.post(f"{API}/auth/login", json={"email": email, "password": password}, timeout=30)
-    assert r.status_code == 200, f"Login failed: {r.status_code} {r.text}"
-    return r.json()["token"], r.json()["user"]
+from auth_helpers import login, admin_login, ADMIN, VENDOR, CUSTOMER, API
 
 
 def hdr(tok):
@@ -35,7 +23,7 @@ def hdr(tok):
 
 @pytest.fixture(scope="module")
 def toks():
-    return {"admin": login(*ADMIN), "vendor": login(*VENDOR), "customer": login(*CUSTOMER)}
+    return {"admin": admin_login(), "vendor": login(*VENDOR), "customer": login(*CUSTOMER)}
 
 
 # ---------------------- Effective permissions ----------------------

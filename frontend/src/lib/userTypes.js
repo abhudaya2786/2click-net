@@ -1,4 +1,4 @@
-/** Fallback when /user-types API is unreachable */
+/** Fallback when /user-types API is unreachable — mirrors backend phase3a USER_TYPES */
 export const FALLBACK_USER_TYPES = [
   { code: "customer", label: "Customer", category_types: ["marketplace", "construction", "solar", "logistics", "professional_service", "freelancer"], fields: [] },
   { code: "contractor", label: "Contractor", category_types: ["construction"], fields: ["company", "department"] },
