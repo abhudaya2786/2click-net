@@ -29,6 +29,7 @@ import AdsPortal from "@/pages/AdsPortal";
 import BecomeVendor from "@/pages/BecomeVendor";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import DownloadApp from "@/pages/DownloadApp";
+import InteriorBOQ from "@/pages/InteriorBOQ";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -43,6 +44,7 @@ function AppRouter() {
       <Route path="/contact" element={M(<Contact />)} />
       <Route path="/marketplace" element={M(<Marketplace />)} />
       <Route path="/mart" element={M(<Mart />)} />
+      <Route path="/interior-boq" element={M(<InteriorBOQ />)} />
       <Route path="/solar" element={M(<Solar />)} />
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />

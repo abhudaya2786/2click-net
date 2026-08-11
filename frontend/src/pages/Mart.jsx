@@ -130,7 +130,10 @@ export default function Mart() {
           <div className="font-display font-bold text-lg tracking-tight">Build a BOQ at these rates</div>
           <p className="text-sm text-muted-foreground">Use ready templates (3BHK Villa, 2BHK Flat…) or pick materials by brand.</p>
         </div>
-        <Link to="/dashboard"><Button data-testid="mart-boq-cta" className="rounded-none">Open Material Calculator<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
+        <div className="flex flex-wrap gap-3">
+          <Link to="/interior-boq"><Button data-testid="mart-interior-boq-cta" variant="outline" className="rounded-none">Interior BOQ Calculator<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
+          <Link to="/dashboard"><Button data-testid="mart-boq-cta" className="rounded-none">Open Material Calculator<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
+        </div>
       </div>
     </div>
   );

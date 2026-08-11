@@ -63,7 +63,34 @@ CATEGORY_IMAGES = {
     "Electrical": "https://images.unsplash.com/photo-1584774354932-62ceb99e6053?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
     "Plywood & Wood": "https://images.unsplash.com/photo-1422246654994-34520d5a0340?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
     "Waterproofing": "https://images.unsplash.com/photo-1674485169641-bcb2bf6f1df9?crop=entropy&cs=srgb&fm=jpg&q=85&w=800",
+    "Interior Decoration": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800",
+    "Vastu": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+    "Fabrication": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800",
+    "False Ceiling": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800",
+    "PVC Work": "https://images.pexels.com/photos/12142829/pexels-photo-12142829.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "Renovation": "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800",
+    "Gardening": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
 }
+
+# Interior / finishing verticals for BOQ calculator (column-wise breakdown)
+INTERIOR_VERTICALS = [
+    {"id": "interior_decoration", "name": "Interior Decoration", "name_hi": "इंटीरियर डेकोरेशन",
+     "category": "Interior Decoration", "icon": "sofa"},
+    {"id": "vastu", "name": "Vastu", "name_hi": "वास्तु",
+     "category": "Vastu", "icon": "compass"},
+    {"id": "fabrication", "name": "Fabrication", "name_hi": "फैब्रिकेशन",
+     "category": "Fabrication", "icon": "wrench"},
+    {"id": "tiles", "name": "Tiles", "name_hi": "टाइल्स",
+     "category": "Tiles", "icon": "grid"},
+    {"id": "false_ceiling", "name": "False Ceiling", "name_hi": "फॉल्स सीलिंग",
+     "category": "False Ceiling", "icon": "layers"},
+    {"id": "pvc_work", "name": "PVC Work", "name_hi": "PVC वर्क",
+     "category": "PVC Work", "icon": "pipe"},
+    {"id": "renovation", "name": "Renovation", "name_hi": "रेनोवेशन",
+     "category": "Renovation", "icon": "hammer"},
+    {"id": "gardening", "name": "Gardening", "name_hi": "गार्डनिंग",
+     "category": "Gardening", "icon": "leaf"},
+]
 
 
 # category -> [ (material_name, unit, [(brand, rate), ...]) ]
@@ -117,6 +144,51 @@ SEED = {
     "Waterproofing": [
         ("Waterproofing Coat", "kg", [("Dr Fixit", 240), ("Fosroc", 220), ("Asian SmartCare", 210)]),
     ],
+    "Interior Decoration": [
+        ("Modular Kitchen Base Unit", "sqft", [("Sleek", 2200), ("Hafele", 2400), ("Godrej Interio", 2100), ("Hettich", 2500)]),
+        ("Wardrobe Sliding Door", "sqft", [("Hafele", 1800), ("Ebco", 1650), ("Godrej Interio", 1700)]),
+        ("TV Unit Panel", "sqft", [("Greenlam", 450), ("Merino", 480), ("Century", 420)]),
+        ("Curtains & Blinds", "sqft", [("SOMFY", 320), ("Hunter Douglas", 380), ("Local", 180)]),
+        ("Wall Wallpaper", "sqft", [("DDecor", 85), ("Marshalls", 95), ("Asian Paints", 78)]),
+    ],
+    "Vastu": [
+        ("Vastu Consultation (Site Visit)", "visit", [("Certified Vastu", 5000), ("Premium Vastu", 8500), ("Online Vastu", 2500)]),
+        ("Vastu Report + Layout", "report", [("Certified Vastu", 12000), ("Premium Vastu", 18000), ("Online Vastu", 6000)]),
+        ("Pyramid / Remedy Kit", "set", [("Vastu Store", 3500), ("Premium Vastu", 5500)]),
+    ],
+    "Fabrication": [
+        ("MS Gate Fabrication", "sqft", [("Local MS", 650), ("Tata Structura", 720), ("Jindal", 680)]),
+        ("SS Railing", "rft", [("Jindal SS", 850), ("Local SS", 720), ("Neelcon", 780)]),
+        ("MS Grill Window", "sqft", [("Local MS", 420), ("Tata Structura", 480)]),
+        ("Main Door Frame MS", "set", [("Local MS", 8500), ("Jindal", 9200)]),
+    ],
+    "False Ceiling": [
+        ("POP False Ceiling", "sqft", [("Gyproc", 95), ("Saint Gobain", 105), ("Local POP", 78)]),
+        ("Gypsum Board Ceiling", "sqft", [("Gyproc", 110), ("USG Boral", 115), ("Saint Gobain", 108)]),
+        ("PVC Ceiling Panel", "sqft", [("Finolex", 85), ("Supreme", 82), ("Prince", 75)]),
+        ("Wooden Ceiling Panel", "sqft", [("Greenlam", 280), ("Century", 260), ("Merino", 295)]),
+    ],
+    "PVC Work": [
+        ("PVC Door", "piece", [("Finolex", 8500), ("Supreme", 8200), ("Prince", 7800)]),
+        ("UPVC Window", "sqft", [("Fenesta", 520), ("Weatherseal", 480), ("Encraft", 450)]),
+        ("PVC Pipe 2 inch", "meter", [("Finolex", 95), ("Supreme", 90), ("Prince", 85)]),
+        ("PVC Casing & Capping", "meter", [("Finolex", 28), ("Supreme", 26), ("Prince", 24)]),
+        ("PVC Flooring", "sqft", [("Welspun", 65), ("Responsive", 58), ("Gerflor", 72)]),
+    ],
+    "Renovation": [
+        ("Bathroom Renovation Package", "set", [("Jaquar Package", 125000), ("Kohler Package", 145000), ("Local Contractor", 95000)]),
+        ("Kitchen Renovation", "set", [("Hafele Package", 180000), ("Sleek Package", 165000), ("Local", 120000)]),
+        ("Wall Demolition", "sqft", [("Local Labour", 45), ("Contractor Grade", 55)]),
+        ("Debris Removal", "trip", [("Local", 3500), ("UrbanClap", 4200)]),
+        ("Terrace Waterproofing", "sqft", [("Dr Fixit", 95), ("Fosroc", 88), ("Asian SmartCare", 82)]),
+    ],
+    "Gardening": [
+        ("Landscape Design", "sqft", [("Urban Greens", 120), ("Green Yard", 95), ("Local", 75)]),
+        ("Artificial Grass", "sqft", [("Grass Carpet Co", 85), ("Green Yard", 78), ("Local", 65)]),
+        ("Drip Irrigation System", "sqft", [("Rain Bird", 45), ("Netafim", 52), ("Local", 35)]),
+        ("Outdoor Plants (mixed)", "sqft", [("Urban Greens", 180), ("Green Yard", 150), ("Local", 120)]),
+        ("Garden Lighting LED", "point", [("Havells", 850), ("Philips", 920), ("Syska", 780)]),
+    ],
 }
 
 
@@ -168,6 +240,91 @@ SEED_TEMPLATES = [
             {"category": "Paint", "name": "Exterior Emulsion", "qty": 30},
         ],
     },
+    {
+        "id": "tpl_interior_2bhk", "name": "2BHK Interior Package", "area": "~1000 sqft",
+        "description": "Interior decoration BOQ: kitchen, wardrobe, TV unit, wallpaper.",
+        "image": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800",
+        "vertical": "interior_decoration",
+        "items": [
+            {"category": "Interior Decoration", "name": "Modular Kitchen Base Unit", "qty": 80},
+            {"category": "Interior Decoration", "name": "Wardrobe Sliding Door", "qty": 120},
+            {"category": "Interior Decoration", "name": "TV Unit Panel", "qty": 40},
+            {"category": "Interior Decoration", "name": "Wall Wallpaper", "qty": 200},
+        ],
+    },
+    {
+        "id": "tpl_false_ceiling_1000", "name": "False Ceiling 1000 sqft", "area": "1000 sqft",
+        "description": "POP + gypsum false ceiling material estimate.",
+        "image": "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800",
+        "vertical": "false_ceiling",
+        "items": [
+            {"category": "False Ceiling", "name": "POP False Ceiling", "qty": 1000},
+            {"category": "False Ceiling", "name": "Gypsum Board Ceiling", "qty": 200},
+        ],
+    },
+    {
+        "id": "tpl_tiles_3bhk", "name": "3BHK Tiles Package", "area": "~1800 sqft",
+        "description": "Floor + wall tiles for 3BHK with brand-wise rates.",
+        "image": "https://images.unsplash.com/photo-1647102256335-7a7370d99924?w=800",
+        "vertical": "tiles",
+        "items": [
+            {"category": "Tiles", "name": "Vitrified Tile", "qty": 1800},
+            {"category": "Tiles", "name": "Wall Tile", "qty": 600},
+            {"category": "Tiles", "name": "Ceramic Floor Tile", "qty": 400},
+        ],
+    },
+    {
+        "id": "tpl_pvc_3bhk", "name": "3BHK PVC Package", "area": "doors + windows",
+        "description": "PVC doors, UPVC windows, casing for 3BHK.",
+        "image": "https://images.pexels.com/photos/12142829/pexels-photo-12142829.jpeg?auto=compress&cs=tinysrgb&w=800",
+        "vertical": "pvc_work",
+        "items": [
+            {"category": "PVC Work", "name": "PVC Door", "qty": 4},
+            {"category": "PVC Work", "name": "UPVC Window", "qty": 120},
+            {"category": "PVC Work", "name": "PVC Casing & Capping", "qty": 200},
+        ],
+    },
+    {
+        "id": "tpl_renovation_bathroom", "name": "Bathroom Renovation", "area": "2 bathrooms",
+        "description": "Complete bathroom renovation with waterproofing.",
+        "image": "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800",
+        "vertical": "renovation",
+        "items": [
+            {"category": "Renovation", "name": "Bathroom Renovation Package", "qty": 2},
+        ],
+    },
+    {
+        "id": "tpl_garden_500", "name": "Garden 500 sqft", "area": "500 sqft lawn",
+        "description": "Landscape, grass, irrigation for small garden.",
+        "image": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
+        "vertical": "gardening",
+        "items": [
+            {"category": "Gardening", "name": "Landscape Design", "qty": 500},
+            {"category": "Gardening", "name": "Artificial Grass", "qty": 300},
+            {"category": "Gardening", "name": "Drip Irrigation System", "qty": 500},
+        ],
+    },
+    {
+        "id": "tpl_fabrication_gate", "name": "Gate + Railing Package", "area": "standard plot",
+        "description": "MS gate, SS railing, window grills.",
+        "image": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800",
+        "vertical": "fabrication",
+        "items": [
+            {"category": "Fabrication", "name": "MS Gate Fabrication", "qty": 80},
+            {"category": "Fabrication", "name": "SS Railing", "qty": 40},
+            {"category": "Fabrication", "name": "MS Grill Window", "qty": 60},
+        ],
+    },
+    {
+        "id": "tpl_vastu_site", "name": "Vastu Site Package", "area": "site visit + report",
+        "description": "Vastu consultation, report, and remedy kit.",
+        "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+        "vertical": "vastu",
+        "items": [
+            {"category": "Vastu", "name": "Vastu Consultation (Site Visit)", "qty": 1},
+            {"category": "Vastu", "name": "Vastu Report + Layout", "qty": 1},
+        ],
+    },
 ]
 
 
@@ -216,9 +373,70 @@ async def mart_materials(category: Optional[str] = None, brand: Optional[str] = 
 
 
 @public_router.get("/mart/boq-templates")
-async def list_boq_templates():
+async def list_boq_templates(vertical: Optional[str] = None):
+    tpls = SEED_TEMPLATES
+    if vertical:
+        tpls = [t for t in SEED_TEMPLATES if t.get("vertical") == vertical or not t.get("vertical")]
     return [{"id": t["id"], "name": t["name"], "description": t["description"],
-             "image": t["image"], "area": t["area"], "items": len(t["items"])} for t in SEED_TEMPLATES]
+             "image": t["image"], "area": t["area"], "items": len(t["items"]),
+             "vertical": t.get("vertical")} for t in tpls]
+
+
+@public_router.get("/mart/interior-verticals")
+async def list_interior_verticals():
+    return INTERIOR_VERTICALS
+
+
+@public_router.get("/mart/interior-verticals/{vid}/materials")
+async def vertical_materials(vid: str, brand: Optional[str] = None):
+    v = next((x for x in INTERIOR_VERTICALS if x["id"] == vid), None)
+    if not v:
+        raise HTTPException(404, "Vertical not found")
+    q = {"status": "active", "category": v["category"]}
+    if brand and brand != "all":
+        q["brand"] = brand
+    mats = await _db.materials.find(q, {"_id": 0}).sort([("name", 1), ("rate", 1)]).to_list(500)
+    brands = sorted({m["brand"] for m in mats})
+    return {"vertical": v, "materials": mats, "brands": brands}
+
+
+@public_router.post("/mart/interior-boq/estimate")
+async def interior_boq_estimate(body: dict):
+    """Resolve line items with brand-wise rates; returns column totals per vertical."""
+    lines_in = body.get("lines") or []
+    resolved = []
+    column_totals = {v["id"]: 0.0 for v in INTERIOR_VERTICALS}
+    for row in lines_in:
+        vid = row.get("vertical_id")
+        cat = row.get("category")
+        name = row.get("name")
+        brand = row.get("brand")
+        qty = float(row.get("qty") or 0)
+        if not name or qty <= 0:
+            continue
+        q = {"status": "active", "name": name}
+        if cat:
+            q["category"] = cat
+        if brand:
+            q["brand"] = brand
+        mat = await _db.materials.find_one(q, {"_id": 0}, sort=[("rate", 1)])
+        if not mat:
+            continue
+        rate = float(mat["rate"])
+        amount = round(rate * qty, 2)
+        v = next((x for x in INTERIOR_VERTICALS if x["id"] == vid), None)
+        line = {
+            "vertical_id": vid or (v["id"] if v else None),
+            "vertical": v["name"] if v else mat.get("category"),
+            "category": mat["category"], "name": mat["name"], "brand": mat["brand"],
+            "unit": mat["unit"], "rate": rate, "qty": qty, "amount": amount,
+        }
+        resolved.append(line)
+        key = vid or next((x["id"] for x in INTERIOR_VERTICALS if x["category"] == mat["category"]), None)
+        if key and key in column_totals:
+            column_totals[key] = round(column_totals[key] + amount, 2)
+    total = round(sum(column_totals.values()), 2)
+    return {"lines": resolved, "column_totals": column_totals, "total": total}
 
 
 @public_router.get("/mart/boq-templates/{tid}")
@@ -307,6 +525,28 @@ async def seed_mart():
     for category, items in SEED.items():
         for name, unit, brands in items:
             for brand, rate in brands:
+                order += 1
+                await _db.materials.insert_one({
+                    "id": new_id("mat"), "category": category, "name": name,
+                    "brand": brand, "unit": unit, "rate": float(rate), "hsn": None,
+                    "image": CATEGORY_IMAGES.get(category), "status": "active", "sort_order": order,
+                    "rate_history": _gen_history(float(rate), f"{category}-{name}-{brand}"),
+                    "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+                })
+
+
+async def seed_interior_verticals():
+    """Idempotent seed for interior/finishing vertical categories + brand materials."""
+    order = await _db.materials.count_documents({})
+    vertical_cats = [v["category"] for v in INTERIOR_VERTICALS]
+    for category in vertical_cats:
+        items = SEED.get(category, [])
+        for name, unit, brands in items:
+            for brand, rate in brands:
+                exists = await _db.materials.find_one(
+                    {"category": category, "name": name, "brand": brand}, {"_id": 1})
+                if exists:
+                    continue
                 order += 1
                 await _db.materials.insert_one({
                     "id": new_id("mat"), "category": category, "name": name,

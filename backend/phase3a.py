@@ -63,7 +63,10 @@ def dashboard_for_user_type(ut):
 SEED_TREE = {
     "Construction": ("construction", ["Civil Work", "Plumbing", "Electrical", "Painting", "Tiles",
                                        "Flooring", "Wood Work", "Renovation", "Gardening",
-                                       "Road Construction", "Building Construction", "Interior"]),
+                                       "Road Construction", "Building Construction", "Interior",
+                                       "Interior Decoration", "False Ceiling", "PVC Work", "Fabrication"]),
+    "Interior & Finishing": ("construction", ["Interior Decoration", "Vastu", "Fabrication", "Tiles",
+                                              "False Ceiling", "PVC Work", "Renovation", "Gardening"]),
     "Professional Services": ("professional_service", ["Architect", "Engineer", "CA", "Legal", "Consultant", "Freelancer"]),
     "Marketplace": ("marketplace", ["Cement", "Steel", "Sand", "Aggregate", "Bricks",
                                      "Electrical Material", "Plumbing Material", "Hardware", "Paint", "Tiles"]),
