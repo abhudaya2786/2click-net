@@ -1504,6 +1504,9 @@ async def startup():
     _upc.init(db)
     await _upc.ensure_indexes()
     await _upc.seed_upcoming_projects()
+    import property_advisory as _padv
+    _padv.init(db, get_current_user)
+    await _padv.ensure_indexes()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1552,6 +1555,8 @@ _enrollment.init(db, get_current_user, {
 })
 import upcoming_projects as _upcoming
 _upcoming.init(db)
+import property_advisory as _padv
+_padv.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1575,6 +1580,7 @@ app.include_router(_site.admin_router)
 app.include_router(_enrollment.router)
 app.include_router(_enrollment.admin_router)
 app.include_router(_upcoming.router)
+app.include_router(_padv.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

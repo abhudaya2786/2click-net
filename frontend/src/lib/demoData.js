@@ -16,6 +16,7 @@ export const DEMO_FEATURES = [
   { id: "mart", path: "/mart", en: "Super Mart", hi: "सुपर मार्ट", descEn: "Live brand rates", descHi: "लाइव ब्रांड दर", icon: "mart" },
   { id: "tenders", path: "/tenders", en: "Tender Hub", hi: "टेंडर", descEn: "Live auctions", descHi: "लाइव ऑक्शन", icon: "tenders" },
   { id: "upcoming", path: "/upcoming-projects", en: "Upcoming Projects", hi: "आगामी प्रोजेक्ट", descEn: "Plots by city & BHK", descHi: "शहर और BHK वाइज प्लॉट", icon: "upcoming" },
+  { id: "advisory", path: "/property-advisory", en: "Property Advisory", hi: "प्रॉपर्टी सलाह", descEn: "Expert + real estate guide", descHi: "विशेषज्ञ रियल एस्टेट गाइड", icon: "advisory" },
   { id: "solar", path: "/solar", en: "Solar EPC", hi: "सोलर EPC", descEn: "Subsidy & EMI", descHi: "सब्सिडी और EMI", icon: "solar" },
   { id: "enroll", path: "/enroll", en: "Enrollment", hi: "पंजीकरण", descEn: "Shop & user signup", descHi: "दुकान पंजीकरण", icon: "enroll" },
   { id: "customer", path: "/dashboard", en: "Customer Demo", hi: "ग्राहक डेमो", descEn: "Mera Ghar dashboard", descHi: "मेरा घर डैशबोर्ड", icon: "customer", loginProfile: "customer" },
@@ -285,3 +286,73 @@ export const DEMO_UPCOMING_PROJECTS = [
     image: UPC_IMG.plot, featured: false,
   },
 ];
+
+export const DEMO_PROPERTY_ADVISORY_META = {
+  property_needs: [
+    { id: "new_building", name: "New building construction", name_hi: "नया बिल्डिंग निर्माण", desc: "Land to handover", desc_hi: "जमीन से हैंडOver" },
+    { id: "residential_plot", name: "Residential plot", name_hi: "आवासीय प्लॉट", desc: "Land purchase", desc_hi: "जमीन खरीद" },
+    { id: "commercial_space", name: "Commercial property", name_hi: "कॉमर्शियल", desc: "Office, retail", desc_hi: "ऑफिस, रिटेल" },
+    { id: "industrial_shed", name: "Industrial shed", name_hi: "औद्योगिक शेड", desc: "Factory, warehouse", desc_hi: "फैक्टरी, गोदाम" },
+    { id: "villa_home", name: "Villa / home", name_hi: "विला / घर", desc: "Custom build", desc_hi: "कस्टम निर्माण" },
+    { id: "apartment_flat", name: "Apartment", name_hi: "अपार्टमेंट", desc: "Flat purchase", desc_hi: "फ्लैट खरीद" },
+    { id: "renovation", name: "Renovation", name_hi: "नवीनीकरण", desc: "Remodel", desc_hi: "रीमॉडल" },
+    { id: "township", name: "Township", name_hi: "टाउनशिप", desc: "Large project", desc_hi: "बड़ा प्रोजेक्ट" },
+  ],
+  timelines: [
+    { id: "urgent", label: "Within 3 months", label_hi: "3 महीने के अंदर" },
+    { id: "short", label: "3–6 months", label_hi: "3–6 महीने" },
+    { id: "medium", label: "6–12 months", label_hi: "6–12 महीने" },
+    { id: "long", label: "1–2 years", label_hi: "1–2 वर्ष" },
+    { id: "planning", label: "Planning only", label_hi: "केवल योजना" },
+  ],
+  client_types: [
+    { id: "company", label: "Company / developer", label_hi: "कंपनी / डेवलपर" },
+    { id: "individual", label: "Individual / family", label_hi: "व्यक्ति / परिवार" },
+    { id: "contractor", label: "Contractor", label_hi: "ठेकेदार" },
+    { id: "investor", label: "Investor", label_hi: "निवेशक" },
+  ],
+};
+
+const DEMO_GUIDANCE_NEW_BUILDING = [
+  { step: 1, title_en: "Site & land advisory", title_hi: "साइट और जमीन सलाह", detail_en: "Title, zoning, utilities.", detail_hi: "टाइटल, ज़ोनिंग, उपयोगिताएँ।", tools: ["/upcoming-projects", "/consultants"] },
+  { step: 2, title_en: "Architectural naksha", title_hi: "आर्किटेक्ट नक्शा", detail_en: "Plans, 3D, FAR compliance.", detail_hi: "प्लान, 3D, FAR।", tools: ["/consultants"] },
+  { step: 3, title_en: "Vastu review", title_hi: "वास्तु समीक्षा", detail_en: "Orientation and layout.", detail_hi: "ओरिएंटेशन और लेआउट।", tools: ["/consultants"] },
+  { step: 4, title_en: "Structural design", title_hi: "स्ट्रक्चरल डिज़ाइन", detail_en: "RCC, soil test, IS codes.", detail_hi: "RCC, मिट्टी परीक्षण।", tools: ["/consultants"] },
+  { step: 5, title_en: "BOQ & costing", title_hi: "BOQ और लागत", detail_en: "Brand-wise material BOQ.", detail_hi: "ब्रांड-वार BOQ।", tools: ["/boq-builder", "/mart"] },
+  { step: 6, title_en: "Tender & vendors", title_hi: "टेंडर और विक्रेता", detail_en: "Reverse auction, verified vendors.", detail_hi: "रिवर्स ऑक्शन।", tools: ["/tenders", "/store"] },
+  { step: 7, title_en: "Construction & handover", title_hi: "निर्माण और हैंडOver", detail_en: "Supervision, snagging.", detail_hi: "पर्यवेक्षण, स्नैगिंग।", tools: ["/dashboard"] },
+];
+
+const DEMO_CONSULTANTS_MATCH = [
+  { id: "demo-cns-re", name: "Rajesh Malhotra", consultant_role: "real_estate", role_name: "Real Estate Advisor", role_name_hi: "रियल एस्टेट सलाहकार", rating: 4.8, experience_years: 18, verified: true, service_area: "Delhi NCR" },
+  { id: "demo-cns-arch", name: "Priya Sharma", consultant_role: "architect", role_name: "Architect", role_name_hi: "आर्किटेक्ट", rating: 4.7, experience_years: 12, verified: true, service_area: "Maharashtra" },
+  { id: "demo-cns-struct", name: "Vikram Singh", consultant_role: "structural", role_name: "Structural Engineer", role_name_hi: "स्ट्रक्चरल इंजीनियर", rating: 4.6, experience_years: 14, verified: true, service_area: "Delhi NCR" },
+];
+
+export function demoPropertyAdvisoryMatch(payload) {
+  const need = DEMO_PROPERTY_ADVISORY_META.property_needs.find((n) => n.id === payload.property_need) || DEMO_PROPERTY_ADVISORY_META.property_needs[0];
+  let projects = DEMO_UPCOMING_PROJECTS;
+  if (payload.state) projects = projects.filter((p) => p.state === payload.state);
+  if (payload.city) projects = projects.filter((p) => p.city === payload.city);
+  return {
+    property_need: payload.property_need,
+    property_need_meta: need,
+    guidance_steps: DEMO_GUIDANCE_NEW_BUILDING,
+    expert_opinions: [
+      { topic_en: "Is my plot suitable for G+2 or G+3?", topic_hi: "मेरा प्लॉट G+2 या G+3 के लिए उपयुक्त?" },
+      { topic_en: "Estimated cost per sqft?", topic_hi: "प्रति वर्ग फुट अनुमानित लागत?" },
+      { topic_en: "Mandatory approvals before start?", topic_hi: "शुरू करने से पहले अनिवार्य अनुमोदन?" },
+    ],
+    recommended_roles: ["architect", "real_estate", "structural", "vastu"],
+    matched_consultants: DEMO_CONSULTANTS_MATCH,
+    matched_projects: projects.slice(0, 4).map((p) => ({
+      id: p.id, title: p.title, title_hi: p.title_hi, city: p.city, state: p.state, price_label: p.price_label,
+    })),
+    recommended_tools: [
+      { path: "/boq-builder", en: "Full Home BOQ", hi: "पूरा घर BOQ" },
+      { path: "/upcoming-projects", en: "Upcoming projects", hi: "आगामी प्रोजेक्ट" },
+      { path: "/tenders", en: "Tender Hub", hi: "टेंडर" },
+    ],
+    demo: true,
+  };
+}

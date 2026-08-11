@@ -21,14 +21,15 @@ export default function UpcomingProjects() {
 
       <section className="mt-12 p-6 border border-border rounded-xl bg-secondary/20">
         <h3 className="font-display font-bold text-lg">
-          {hi ? "प्रोजेक्ट में दिलचस्प?" : "Interested in a project?"}
+          {hi ? "कंपनी / नया बिल्डिंग — पूरी विशेषज्ञ गाइडेंस?" : "Company or new building — full expert guidance?"}
         </h3>
         <p className="text-sm text-muted-foreground mt-2 max-w-xl">
           {hi
-            ? "पंजीकरण करें, कंसल्टेंट से बात करें या टेंडर/BOQ के लिए प्लेटफ़ॉर्म का उपयोग करें।"
-            : "Register for details, talk to a consultant, or use tenders and BOQ tools on the platform."}
+            ? "प्रॉपर्टी प्रकार चुनें — रियल एस्टेट सलाहकार, आर्किटेक्ट और चरण-दर-चरण मार्गदर्शन पाएँ।"
+            : "Pick your property type — get real estate advisors, architects and step-by-step guidance."}
         </p>
         <div className="flex flex-wrap gap-3 mt-4">
+          <Link to="/property-advisory" className="text-sm font-medium text-primary hover:underline">{hi ? "प्रॉपर्टी सलाह शुरू करें →" : "Start property advisory →"}</Link>
           <Link to="/register" className="text-sm text-primary hover:underline">{hi ? "पंजीकरण →" : "Sign up →"}</Link>
           <Link to="/consultants" className="text-sm text-primary hover:underline">{hi ? "कंसल्टेंट →" : "Consultants →"}</Link>
           <Link to="/tenders" className="text-sm text-primary hover:underline">{hi ? "टेंडर →" : "Tenders →"}</Link>
