@@ -4,20 +4,7 @@ import time
 import uuid
 import pytest
 import requests
-
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL").rstrip("/")
-API = f"{BASE_URL}/api"
-
-ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-CUSTOMER = ("customer@2click.in", "Demo@12345")
-VENDOR = ("vendor@2click.in", "Demo@12345")
-CONTRACTOR = ("contractor@2click.in", "Demo@12345")
-
-
-def login(email, password):
-    r = requests.post(f"{API}/auth/login", json={"email": email, "password": password}, timeout=15)
-    assert r.status_code == 200, f"login failed {email}: {r.status_code} {r.text}"
-    return r.json()["token"]
+from auth_helpers import login, admin_login, ADMIN, CUSTOMER, VENDOR, CONTRACTOR, API
 
 
 def auth_h(token):
@@ -25,9 +12,16 @@ def auth_h(token):
 
 
 # -------------------- Regression: existing logins --------------------
-@pytest.mark.parametrize("creds", [ADMIN, CUSTOMER, VENDOR, CONTRACTOR])
+def test_regression_admin_login():
+    tok = admin_login()[0]
+    me = requests.get(f"{API}/auth/me", headers=auth_h(tok), timeout=15)
+    assert me.status_code == 200
+    assert me.json()["email"] == ADMIN[0]
+
+
+@pytest.mark.parametrize("creds", [CUSTOMER, VENDOR, CONTRACTOR])
 def test_regression_logins(creds):
-    tok = login(*creds)
+    tok = login(*creds)[0]
     me = requests.get(f"{API}/auth/me", headers=auth_h(tok), timeout=15)
     assert me.status_code == 200
     assert me.json()["email"] == creds[0]
@@ -71,8 +65,8 @@ def test_category_get_by_id_and_404():
 
 # -------------------- Category RBAC --------------------
 def test_category_rbac_admin_crud_and_customer_forbidden():
-    admin_tok = login(*ADMIN)
-    cust_tok = login(*CUSTOMER)
+    admin_tok = admin_login(*ADMIN)[0]
+    cust_tok = login(*CUSTOMER)[0]
 
     unique = uuid.uuid4().hex[:6]
     payload = {"name": f"TEST_Cat_{unique}", "category_type": "general", "description": "t"}
@@ -114,7 +108,7 @@ def test_category_rbac_admin_crud_and_customer_forbidden():
 
 
 def test_category_delete_soft_when_referenced():
-    admin_tok = login(*ADMIN)
+    admin_tok = admin_login(*ADMIN)[0]
     # Create category + register a user referencing it
     unique = uuid.uuid4().hex[:6]
     cat = requests.post(f"{API}/categories", json={"name": f"TEST_RefCat_{unique}", "category_type": "freelancer"},
@@ -138,7 +132,7 @@ def test_category_delete_soft_when_referenced():
 
 
 def test_audit_log_module_categories_written():
-    admin_tok = login(*ADMIN)
+    admin_tok = admin_login(*ADMIN)[0]
     unique = uuid.uuid4().hex[:6]
     r = requests.post(f"{API}/categories", json={"name": f"TEST_Audit_{unique}", "category_type": "general"},
                       headers=auth_h(admin_tok), timeout=15)
@@ -182,7 +176,7 @@ def test_register_freelancer_creates_user_categories_and_role():
         "skills": ["autocad", "revit"], "service_area": "Mumbai",
     }, timeout=15)
     assert r.status_code in (200, 201), r.text
-    tok = r.json().get("token") or login(email, "Demo@12345")
+    tok = r.json().get("token") or login(email, "Demo@12345")[0]
     session = requests.get(f"{API}/auth/session", headers=auth_h(tok), timeout=15).json()
     assert session["user"]["user_type"] == "freelancer"
     # role for freelancer -> customer per spec
@@ -202,7 +196,7 @@ def test_register_contractor_dashboard():
         "user_type": "contractor", "primary_category_id": cats[0]["id"], "category_ids": [cats[0]["id"]],
     }, timeout=15)
     assert r.status_code in (200, 201)
-    tok = login(email, "Demo@12345")
+    tok = login(email, "Demo@12345")[0]
     s = requests.get(f"{API}/auth/session", headers=auth_h(tok), timeout=15).json()
     assert s["user"]["role"] == "contractor"
     assert s["default_dashboard"] == "contractor"
@@ -216,7 +210,7 @@ def test_register_vendor_role():
         "user_type": "vendor", "primary_category_id": cats[0]["id"], "category_ids": [cats[0]["id"]],
     }, timeout=15)
     assert r.status_code in (200, 201)
-    tok = login(email, "Demo@12345")
+    tok = login(email, "Demo@12345")[0]
     s = requests.get(f"{API}/auth/session", headers=auth_h(tok), timeout=15).json()
     assert s["user"]["role"] == "vendor"
 
@@ -229,7 +223,7 @@ def test_register_escalation_protection():
     }, timeout=15)
     # Either rejected or coerced — but must NOT be super_admin
     if r.status_code in (200, 201):
-        tok = login(email, "Demo@12345")
+        tok = login(email, "Demo@12345")[0]
         s = requests.get(f"{API}/auth/session", headers=auth_h(tok), timeout=15).json()
         assert s["user"].get("role") != "super_admin"
         assert s.get("is_super") is False
@@ -237,7 +231,7 @@ def test_register_escalation_protection():
 
 # -------------------- Session profile --------------------
 def test_super_admin_session_is_super():
-    tok = login(*ADMIN)
+    tok = admin_login(*ADMIN)[0]
     s = requests.get(f"{API}/auth/session", headers=auth_h(tok), timeout=15).json()
     assert s["is_super"] is True
     for key in ("user", "company", "user_type", "categories", "departments",
@@ -274,7 +268,7 @@ def test_freelancer_enquiry_requires_auth_and_writes():
     assert r.status_code in (401, 403)
 
     # With auth → 200 & persisted
-    tok = login(*CUSTOMER)
+    tok = login(*CUSTOMER)[0]
     r = requests.post(f"{API}/freelancers/{target['id']}/enquiry",
                       json={"message": "Hi from TEST", "category": "Web Development"},
                       headers=auth_h(tok), timeout=15)
@@ -289,7 +283,7 @@ def test_freelancer_enquiry_requires_auth_and_writes():
 
 # -------------------- Admin edit profile --------------------
 def test_admin_edit_user_profile_changes_type_and_categories():
-    admin_tok = login(*ADMIN)
+    admin_tok = admin_login(*ADMIN)[0]
     # Create test user
     email = f"TEST_prof_{uuid.uuid4().hex[:6]}@example.com"
     reg = requests.post(f"{API}/auth/register", json={
@@ -299,11 +293,11 @@ def test_admin_edit_user_profile_changes_type_and_categories():
     assert reg.status_code in (200, 201)
     uid = reg.json().get("user", {}).get("id")
     if not uid:
-        tok = login(email, "Demo@12345")
+        tok = login(email, "Demo@12345")[0]
         uid = requests.get(f"{API}/auth/me", headers=auth_h(tok), timeout=15).json()["id"]
 
     # Non-admin -> 403
-    cust_tok = login(*CUSTOMER)
+    cust_tok = login(*CUSTOMER)[0]
     r = requests.patch(f"{API}/admin/users/{uid}/profile", json={"user_type": "vendor"},
                        headers=auth_h(cust_tok), timeout=15)
     assert r.status_code == 403
@@ -316,7 +310,7 @@ def test_admin_edit_user_profile_changes_type_and_categories():
     }, headers=auth_h(admin_tok), timeout=15)
     assert r.status_code == 200, r.text
 
-    tok = login(email, "Demo@12345")
+    tok = login(email, "Demo@12345")[0]
     s = requests.get(f"{API}/auth/session", headers=auth_h(tok), timeout=15).json()
     assert s["user"]["user_type"] == "vendor"
     assert s["user"]["role"] == "vendor"
@@ -325,13 +319,13 @@ def test_admin_edit_user_profile_changes_type_and_categories():
 
 
 def test_admin_edit_cannot_escalate_to_super_admin():
-    admin_tok = login(*ADMIN)
+    admin_tok = admin_login(*ADMIN)[0]
     # Create user
     email = f"TEST_esc2_{uuid.uuid4().hex[:6]}@example.com"
     reg = requests.post(f"{API}/auth/register", json={
         "email": email, "password": "Demo@12345", "name": "TEST Esc2",
     }, timeout=15)
-    tok = login(email, "Demo@12345")
+    tok = login(email, "Demo@12345")[0]
     uid = requests.get(f"{API}/auth/me", headers=auth_h(tok), timeout=15).json()["id"]
     r = requests.patch(f"{API}/admin/users/{uid}/profile", json={"user_type": "super_admin"},
                        headers=auth_h(admin_tok), timeout=15)
