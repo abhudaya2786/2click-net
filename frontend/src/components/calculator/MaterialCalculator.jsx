@@ -6,8 +6,8 @@ import { useLang } from "@/context/LanguageContext";
 import {
   calculateConstructionMaterials,
   MATERIAL_QUALITY_TIERS,
-  MATERIAL_BRANDS,
 } from "@/lib/materialCalculator";
+import { getCoefficients, getBrandRecommendations } from "@/lib/platformArchitecture";
 import { Calculator, Store, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
@@ -91,17 +91,17 @@ export default function MaterialCalculator({ embedded = false }) {
     setResult(calculateConstructionMaterials(sqft, tier.rate));
   };
 
-  const brand = (key) => MATERIAL_BRANDS[key][lang] || MATERIAL_BRANDS[key].en;
+  const brandList = (key) => (result?.brands?.[key]?.join(", ") || "");
 
   const items = result
     ? [
-        { label: t.cement, value: result.cement_bags, unit: t.cementUnit, brands: brand("cement") },
-        { label: t.steel, value: result.steel_kg, unit: t.steelUnit, brands: brand("steel") },
+        { label: t.cement, value: result.cement_bags, unit: t.cementUnit, brands: brandList("cement") },
+        { label: t.steel, value: result.steel_kg, unit: t.steelUnit, brands: brandList("steel") },
         { label: t.sand, value: result.sand_cu_ft, unit: t.sandUnit },
         { label: t.aggregate, value: result.aggregate_cu_ft, unit: t.aggregateUnit },
         { label: t.bricks, value: result.bricks, unit: t.bricksUnit },
-        { label: t.tiles, value: result.tiles_sqft, unit: t.tilesUnit, brands: brand("tiles") },
-        { label: t.paint, value: result.paint_liters, unit: t.paintUnit, brands: brand("paint") },
+        { label: t.tiles, value: result.tiles_sqft, unit: t.tilesUnit, brands: brandList("tiles") },
+        { label: t.paint, value: result.paint_liters, unit: t.paintUnit, brands: brandList("paint") },
       ]
     : [];
 
