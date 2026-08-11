@@ -7,10 +7,13 @@ import PageSEO from "@/components/marketing/PageSEO";
 import StoreProductCard from "@/components/store/StoreProductCard";
 import { Search, Loader2, SlidersHorizontal, ShoppingBag } from "lucide-react";
 import { useLang } from "@/context/LanguageContext";
+import { useDemoMode } from "@/context/DemoModeContext";
+import { DEMO_STORE_ITEMS } from "@/lib/demoData";
 
 export default function Store() {
   const { lang } = useLang();
   const hi = lang === "hi";
+  const { demoMode, markSampleData, enableDemo } = useDemoMode();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [meta, setMeta] = useState({ categories: [], brands: [], verticals: [] });
@@ -41,10 +44,22 @@ export default function Store() {
       .then(({ data }) => {
         setItems(data.items || []);
         setTotal(data.total || 0);
+        markSampleData(false);
       })
-      .catch(() => setItems([]))
+      .catch(() => {
+        enableDemo();
+        let list = [...DEMO_STORE_ITEMS];
+        if (category !== "all") list = list.filter((i) => i.category === category);
+        if (q) {
+          const s = q.toLowerCase();
+          list = list.filter((i) => i.name.toLowerCase().includes(s) || i.brand.toLowerCase().includes(s));
+        }
+        setItems(list);
+        setTotal(list.length);
+        markSampleData(true);
+      })
       .finally(() => setLoading(false));
-  }, [category, brand, q, sort]);
+  }, [category, brand, q, sort, markSampleData, enableDemo]);
 
   useEffect(() => { load(); }, [load]);
 

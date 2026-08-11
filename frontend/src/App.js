@@ -8,6 +8,8 @@ import { BrandingProvider } from "@/context/BrandingContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { CatalogProvider } from "@/context/CatalogContext";
 import { CartProvider } from "@/context/CartContext";
+import { DemoModeProvider } from "@/context/DemoModeContext";
+import DemoPanel from "@/components/demo/PlatformDemo";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
@@ -90,18 +92,21 @@ export default function App() {
       <LanguageProvider>
         <BrandingProvider>
           <ThemeProvider>
-            <AuthProvider>
-              <PermissionProvider>
-                <BrowserRouter>
-                  <CatalogProvider>
-                    <CartProvider>
-                      <AppRouter />
-                    </CartProvider>
-                  </CatalogProvider>
-                  <Toaster position="top-right" />
-                </BrowserRouter>
-              </PermissionProvider>
-            </AuthProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <PermissionProvider>
+                      <DemoModeProvider>
+                        <CatalogProvider>
+                          <CartProvider>
+                            <AppRouter />
+                            <DemoPanel />
+                          </CartProvider>
+                        </CatalogProvider>
+                      </DemoModeProvider>
+                </PermissionProvider>
+              </AuthProvider>
+              <Toaster position="top-right" />
+            </BrowserRouter>
           </ThemeProvider>
         </BrandingProvider>
       </LanguageProvider>

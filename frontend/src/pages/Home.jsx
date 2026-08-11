@@ -13,6 +13,7 @@ import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp,
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
 import { HOME_COPY } from "@/lib/homeCopy";
+import { useDemoMode } from "@/context/DemoModeContext";
 
 const HERO = "https://images.unsplash.com/photo-1527335988388-b40ee248d80c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NzF8MHwxfHNlYXJjaHwxfHxjb25zdHJ1Y3Rpb24lMjBzaXRlJTIwY3JhbmUlMjBtb2Rlcm4lMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzg2MDc3Mzc4fDA&ixlib=rb-4.1.0&q=85";
 
@@ -25,6 +26,7 @@ export default function Home() {
   const { lang } = useLang();
   const c = HOME_COPY[lang] || HOME_COPY.en;
   const centered = hero_layout === "centered";
+  const { openPanel } = useDemoMode();
 
   return (
     <div>
@@ -49,6 +51,9 @@ export default function Home() {
               <TrustBadges className="mt-6" />
               <div className={`mt-8 flex flex-wrap gap-3 ${centered ? "justify-center" : ""}`}>
                 <Link to="/register"><Button data-testid="hero-cta" size="lg" className="btn-premium">{c.ctaStart} <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+                <Button data-testid="hero-demo-cta" size="lg" variant="secondary" className="btn-premium" onClick={openPanel}>
+                  {lang === "hi" ? "डेमो देखें" : "Try demo"}
+                </Button>
                 <Link to="/tenders"><Button data-testid="hero-tenders" size="lg" variant="outline" className="btn-premium">{c.ctaTenders}</Button></Link>
                 <WhatsAppShare message={c.waMsg} label={c.waLabel} size="lg" />
               </div>

@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
+import { useDemoMode } from "@/context/DemoModeContext";
 import PageSEO from "@/components/marketing/PageSEO";
+import { DEMO_BOQ_SECTIONS, demoBoqCatalog, demoGenerateBOQ } from "@/lib/demoData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +21,7 @@ const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractio
 export default function FullBOQBuilder() {
   const { lang } = useLang();
   const hi = lang === "hi";
+  const { demoMode, markSampleData, enableDemo, usingSampleData } = useDemoMode();
 
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,16 +43,29 @@ export default function FullBOQBuilder() {
     setLoading(true);
     setLoadError(false);
     api.get("/mart/boq-builder/sections")
-      .then(({ data }) => setSections(data || []))
+      .then(({ data }) => {
+        setSections(data || []);
+        markSampleData(false);
+      })
       .catch(() => {
-        setSections([]);
-        setLoadError(true);
-        toast.error(hi ? "स्टोर लोड नहीं हो सके — बैकएंड अपडेट ज़रूरी" : "Could not load stores — backend update required");
+        enableDemo();
+        setSections(DEMO_BOQ_SECTIONS);
+        setLoadError(false);
+        markSampleData(true);
+        toast.message(hi ? "डेमो BOQ स्टोर दिखाए जा रहे हैं" : "Showing demo BOQ stores");
       })
       .finally(() => setLoading(false));
-  }, [hi]);
+  }, [hi, markSampleData, enableDemo]);
 
-  useEffect(() => { loadSections(); }, [loadSections]);
+  useEffect(() => {
+    if (demoMode) {
+      setSections(DEMO_BOQ_SECTIONS);
+      markSampleData(true);
+      setLoading(false);
+    } else {
+      loadSections();
+    }
+  }, [demoMode, loadSections, markSampleData]);
 
   const toggleSection = (id) => {
     setSelected((prev) => {
@@ -72,13 +88,14 @@ export default function FullBOQBuilder() {
           const { data } = await api.get(`/mart/boq-builder/sections/${sid}/catalog`);
           entries[sid] = data;
         } catch {
-          entries[sid] = { products: [] };
+          entries[sid] = demoBoqCatalog(sid);
+          markSampleData(true);
         }
       }),
     );
     setCatalogs((prev) => ({ ...prev, ...entries }));
     setCatalogLoading(false);
-  }, []);
+  }, [markSampleData]);
 
   const goToBuild = async () => {
     if (selected.size === 0) {
@@ -163,6 +180,13 @@ export default function FullBOQBuilder() {
         qty: l.qty,
         section_id: l.section_id,
       }));
+      if (demoMode || usingSampleData) {
+        const data = demoGenerateBOQ(sectionIds, manualLines);
+        setBoq(data);
+        setStep("result");
+        toast.success(hi ? "डेमो BOQ जनरेट हो गया" : "Demo BOQ generated");
+        return;
+      }
       const { data } = await api.post("/mart/boq-builder/generate", {
         lines,
         sections: sectionIds,
@@ -171,7 +195,12 @@ export default function FullBOQBuilder() {
       setStep("result");
       toast.success(hi ? "BOQ जनरेट हो गया" : "BOQ generated");
     } catch {
-      toast.error(hi ? "BOQ जनरेट नहीं हो सका" : "Could not generate BOQ");
+      const sectionIds = [...selected];
+      const data = demoGenerateBOQ(sectionIds, manualLines);
+      setBoq(data);
+      setStep("result");
+      markSampleData(true);
+      toast.success(hi ? "डेमो BOQ (सैंपल)" : "Demo BOQ (sample data)");
     } finally {
       setGenerating(false);
     }

@@ -7,6 +7,7 @@ import AIAssistant from "@/components/AIAssistant";
 import AdSlot from "@/components/ads/AdSlot";
 import CatalogBrandStrip from "@/components/catalog/CatalogBrandStrip";
 import CatalogShowcase from "@/components/catalog/CatalogShowcase";
+import DemoPanel, { DemoFloatingButton, DemoModeBanner } from "@/components/demo/PlatformDemo";
 
 export default function MarketingLayout({ children }) {
   const { pathname } = useLocation();
@@ -15,6 +16,7 @@ export default function MarketingLayout({ children }) {
   return (
     <div className="App min-h-screen flex flex-col mobile-app-shell">
       <Navbar />
+      <DemoModeBanner />
       <AdSlot placement="header" />
       <main className="flex-1 mobile-main-content">{children}</main>
       {!skipCompactShowcase && <CatalogShowcase variant="compact" />}
@@ -25,6 +27,7 @@ export default function MarketingLayout({ children }) {
       <AIAssistant />
       <InstallAppBanner />
       <MobileBottomNav />
+      <DemoFloatingButton />
     </div>
   );
 }

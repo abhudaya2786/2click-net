@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext";
+import { withDemoParam } from "@/lib/demoData";
 import {
   Gavel, Store, Sun, Building2, Calculator, Users, Briefcase,
   FileText, ClipboardList, ArrowRight, HardHat, Compass, ShoppingBag, Wand2,
@@ -30,7 +31,7 @@ export default function PlatformToolsGrid({ compact = false }) {
       {TOOLS.map((t) => (
         <Link
           key={t.to}
-          to={t.to}
+          to={withDemoParam(t.to)}
           data-testid={`tool-${t.to.replace(/\//g, "")}`}
           className="group flex items-start gap-3 p-4 border border-border rounded-xl bg-card hover:border-primary/50 hover:shadow-sm transition-all"
         >

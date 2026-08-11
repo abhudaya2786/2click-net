@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { LOGIN_PROFILES } from "@/lib/loginProfiles";
+import { useDemoMode } from "@/context/DemoModeContext";
 
 const PUBLIC_LOGIN_PROFILES = LOGIN_PROFILES.filter((p) => p.id !== "admin");
 
@@ -32,6 +33,7 @@ export default function Login() {
 
   const profile = getPublicProfile(profileId);
   const hi = lang === "hi";
+  const { openPanel } = useDemoMode();
   const t = (en, h) => (hi ? h : en);
 
   const toggleLang = () => {
@@ -302,6 +304,11 @@ export default function Login() {
                   <Link to={`/register?type=${profileId}`} className="text-primary font-medium hover:underline">
                     {t("Sign up", "रजिस्टर करें")}
                   </Link>
+                </p>
+                <p className="text-sm text-center mt-3">
+                  <button type="button" onClick={openPanel} className="text-primary font-medium hover:underline" data-testid="login-try-demo">
+                    {t("Try interactive demo (no signup)", "बिना साइनअप डेमो देखें")}
+                  </button>
                 </p>
               </>
             )}

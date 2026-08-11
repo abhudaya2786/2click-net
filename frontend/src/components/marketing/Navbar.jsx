@@ -9,6 +9,7 @@ import { useLang } from "@/context/LanguageContext";
 import BrandLogo from "@/components/marketing/BrandLogo";
 import CartNavButton from "@/components/store/CartNavButton";
 import { NAV_COPY } from "@/lib/homeCopy";
+import { useDemoMode } from "@/context/DemoModeContext";
 
 const PRIMARY_LINKS = [
   { to: "/store", key: "nav.store", label: "Store", labelHi: "स्टोर" },
@@ -44,6 +45,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const nav = useNavigate();
+  const { openPanel } = useDemoMode();
   const lbl = (l) => t(l.key) || (lang === "hi" ? l.labelHi : l.label);
 
   return (
@@ -109,6 +111,8 @@ export default function Navbar() {
               className="btn-premium hidden sm:inline-flex h-9">{navCopy.dashboard}</Button>
           ) : (
             <>
+              <Button variant="ghost" data-testid="nav-demo-btn" onClick={openPanel}
+                className="rounded-lg hidden sm:inline-flex h-9 text-primary">{lang === "hi" ? "डेमो" : "Demo"}</Button>
               <Button variant="ghost" data-testid="nav-login-btn" onClick={() => nav("/login")}
                 className="rounded-lg hidden sm:inline-flex h-9">{navCopy.login}</Button>
               <Button data-testid="nav-signup-btn" onClick={() => nav("/register")}
