@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext";
 import {
   Gavel, Store, Sun, Building2, Calculator, Users, Briefcase,
-  FileText, ClipboardList, ArrowRight, HardHat, Compass, ShoppingBag,
+  FileText, ClipboardList, ArrowRight, HardHat, Compass, ShoppingBag, Wand2,
 } from "lucide-react";
 
 const TOOLS = [
@@ -10,6 +10,7 @@ const TOOLS = [
   { to: "/store", icon: ShoppingBag, en: "Store", hi: "स्टोर", descEn: "Myntra-style shop — all brands", descHi: "Myntra जैसा स्टोर — सभी ब्रांड" },
   { to: "/marketplace", icon: Store, en: "Marketplace", hi: "मार्केटप्लेस", descEn: "Materials & vendor catalog", descHi: "सामग्री और विक्रेता" },
   { to: "/mart", icon: Calculator, en: "Super Mart + BOQ", hi: "सुपर मार्ट + BOQ", descEn: "Brand-wise rates & BOQ", descHi: "ब्रांड-वार दर और BOQ" },
+  { to: "/boq-builder", icon: Wand2, en: "Full Home BOQ", hi: "पूरा घर BOQ", descEn: "Kitchen, bath, plumber, paint…", descHi: "किचन, बाथ, प्लंबर, पेंट…" },
   { to: "/interior-boq", icon: ClipboardList, en: "Interior BOQ", hi: "इंटीरियर BOQ", descEn: "Tiles, ceiling, PVC, garden…", descHi: "टाइल्स, सीलिंग, PVC, गार्डन…" },
   { to: "/solar", icon: Sun, en: "Solar EPC", hi: "सोलर EPC", descEn: "Sizing, subsidy & quotes", descHi: "साइज़िंग, सब्सिडी, कोट" },
   { to: "/consultants", icon: Compass, en: "Consultants", hi: "कंसल्टेंट", descEn: "Architect, vastu, interior…", descHi: "आर्किटेक्ट, वास्तु, इंटीरियर…" },

@@ -85,9 +85,12 @@ export default function Store() {
                   : "Thousands of brands — materials, tiles, ceiling, solar — browse like Myntra, add to bag."}
               </p>
             </div>
-            <Link to="/cart" className="flex items-center gap-2 bg-white/15 backdrop-blur px-4 py-2 rounded-full text-sm font-medium hover:bg-white/25 transition-colors">
-              <ShoppingBag className="h-4 w-4" />{hi ? "मेरा बैग" : "My bag"}
-            </Link>
+          <Link to="/cart" className="flex items-center gap-2 bg-white/15 backdrop-blur px-4 py-2 rounded-full text-sm font-medium hover:bg-white/25 transition-colors">
+            <ShoppingBag className="h-4 w-4" />{hi ? "मेरा बैग" : "My bag"}
+          </Link>
+          <Link to="/boq-builder" className="flex items-center gap-2 bg-white text-primary px-4 py-2 rounded-full text-sm font-medium hover:bg-white/90 transition-colors">
+            {hi ? "पूरा BOQ" : "Full BOQ"}
+          </Link>
           </div>
           <div className="mt-6 flex gap-2 max-w-xl">
             <div className="relative flex-1">

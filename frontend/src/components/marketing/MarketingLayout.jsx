@@ -10,7 +10,7 @@ import CatalogShowcase from "@/components/catalog/CatalogShowcase";
 
 export default function MarketingLayout({ children }) {
   const { pathname } = useLocation();
-  const skipCompactShowcase = pathname === "/" || pathname.startsWith("/interior-boq") || pathname === "/mart" || pathname.startsWith("/store");
+  const skipCompactShowcase = pathname === "/" || pathname.startsWith("/interior-boq") || pathname === "/mart" || pathname.startsWith("/store") || pathname === "/boq-builder";
 
   return (
     <div className="App min-h-screen flex flex-col mobile-app-shell">

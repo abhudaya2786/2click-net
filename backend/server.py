@@ -1467,6 +1467,7 @@ async def startup():
     await mart.ensure_indexes()
     await mart.seed_mart()
     await mart.seed_interior_verticals()
+    await mart.seed_boq_store_materials()
     await mart.migrate_mart()
     import payments_stripe
     payments_stripe.init(db, get_current_user)

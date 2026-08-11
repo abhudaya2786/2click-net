@@ -37,6 +37,7 @@ import Consultants from "@/pages/Consultants";
 import Store from "@/pages/Store";
 import StoreProduct from "@/pages/StoreProduct";
 import Cart from "@/pages/Cart";
+import FullBOQBuilder from "@/pages/FullBOQBuilder";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -56,6 +57,7 @@ function AppRouter() {
       <Route path="/mart" element={M(<Mart />)} />
       <Route path="/interior-boq" element={M(<InteriorBOQ />)} />
       <Route path="/interior-boq/:verticalId" element={M(<InteriorBOQ />)} />
+      <Route path="/boq-builder" element={M(<FullBOQBuilder />)} />
       <Route path="/solar" element={M(<Solar />)} />
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />

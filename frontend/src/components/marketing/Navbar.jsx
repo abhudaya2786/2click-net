@@ -14,6 +14,7 @@ const PRIMARY_LINKS = [
   { to: "/store", key: "nav.store", label: "Store", labelHi: "स्टोर" },
   { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
   { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
+  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
   { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
 ];

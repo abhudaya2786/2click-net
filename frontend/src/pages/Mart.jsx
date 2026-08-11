@@ -133,6 +133,7 @@ export default function Mart() {
         </div>
         <div className="flex flex-wrap gap-3">
           <Link to="/store"><Button data-testid="mart-store-cta" className="rounded-none">Open 2click Store<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
+          <Link to="/boq-builder"><Button data-testid="mart-full-boq-cta" variant="outline" className="rounded-none">Full Home BOQ<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
           <Link to="/interior-boq"><Button data-testid="mart-interior-boq-cta" variant="outline" className="rounded-none">Interior BOQ Calculator<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
           <Link to="/dashboard"><Button data-testid="mart-boq-cta" className="rounded-none">Open Material Calculator<ArrowRight className="h-4 w-4 ml-1.5" /></Button></Link>
         </div>

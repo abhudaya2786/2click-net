@@ -145,6 +145,169 @@ INTERIOR_VERTICALS = [
      "image": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800"},
 ]
 
+# Room / trade stores for full-home BOQ builder (select stores → pick items → generate BOQ)
+BOQ_SECTIONS = [
+    {
+        "id": "plumbing", "name": "Plumber Store", "name_hi": "प्लंबर स्टोर",
+        "image": CATEGORY_IMAGES.get("Plumbing"),
+        "categories": ["Plumbing"],
+        "presets": [
+            {"category": "Plumbing", "name": "CPVC Pipe", "qty": 80},
+            {"category": "Plumbing", "name": "PVC Pipe", "qty": 40},
+            {"category": "Plumbing", "name": "Water Tank 1000L", "qty": 1},
+        ],
+    },
+    {
+        "id": "electrical", "name": "Electrical, Wire & Switch", "name_hi": "इलेक्ट्रिकल, वायर, स्विच",
+        "image": CATEGORY_IMAGES.get("Electrical"),
+        "categories": ["Electrical"],
+        "presets": [
+            {"category": "Electrical", "name": "Wire 2.5 sqmm", "qty": 350},
+            {"category": "Electrical", "name": "Wire 1.5 sqmm", "qty": 200},
+            {"category": "Electrical", "name": "Modular Switch", "qty": 30},
+            {"category": "Electrical", "name": "MCB 32A", "qty": 4},
+            {"category": "Electrical", "name": "LED Panel Light 18W", "qty": 12},
+        ],
+    },
+    {
+        "id": "paint_putty", "name": "Paint & Putty", "name_hi": "पेंट और पुट्टी",
+        "image": CATEGORY_IMAGES.get("Paint"),
+        "categories": ["Paint"],
+        "presets": [
+            {"category": "Paint", "name": "Interior Emulsion", "qty": 80},
+            {"category": "Paint", "name": "Wall Putty", "qty": 120},
+            {"category": "Paint", "name": "Wall Primer", "qty": 50},
+            {"category": "Paint", "name": "Exterior Emulsion", "qty": 40},
+        ],
+    },
+    {
+        "id": "pvc_panel", "name": "PVC Panel & Ceiling", "name_hi": "PVC पैनल और सीलिंग",
+        "image": CATEGORY_IMAGES.get("False Ceiling"),
+        "categories": ["False Ceiling", "PVC Work"],
+        "presets": [
+            {"category": "False Ceiling", "name": "PVC Ceiling Panel", "qty": 350},
+            {"category": "False Ceiling", "name": "Gypsum Board Ceiling", "qty": 200},
+            {"category": "PVC Work", "name": "PVC Casing & Capping", "qty": 100},
+        ],
+    },
+    {
+        "id": "interior", "name": "Interior & Décor", "name_hi": "इंटीरियर डेकोर",
+        "image": CATEGORY_IMAGES.get("Interior Decoration"),
+        "categories": ["Interior Decoration", "Plywood & Wood"],
+        "presets": [
+            {"category": "Interior Decoration", "name": "Curtains & Blinds", "qty": 150},
+            {"category": "Interior Decoration", "name": "Wall Wallpaper", "qty": 180},
+            {"category": "Plywood & Wood", "name": "Laminate Sheet", "qty": 120},
+        ],
+    },
+    {
+        "id": "kitchen", "name": "Kitchen", "name_hi": "किचन",
+        "image": "https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=800",
+        "categories": ["Interior Decoration", "Renovation", "Tiles", "Plumbing", "Electrical", "Paint"],
+        "presets": [
+            {"category": "Interior Decoration", "name": "Modular Kitchen Base Unit", "qty": 70},
+            {"category": "Renovation", "name": "Kitchen Renovation", "qty": 1},
+            {"category": "Tiles", "name": "Vitrified Tile", "qty": 90},
+            {"category": "Plumbing", "name": "CPVC Pipe", "qty": 35},
+            {"category": "Electrical", "name": "Modular Switch", "qty": 10},
+            {"category": "Paint", "name": "Interior Emulsion", "qty": 25},
+        ],
+    },
+    {
+        "id": "bathroom", "name": "Bathroom", "name_hi": "बाथरूम",
+        "image": "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=800",
+        "categories": ["Renovation", "Plumbing", "Tiles", "PVC Work", "Waterproofing"],
+        "presets": [
+            {"category": "Renovation", "name": "Bathroom Renovation Package", "qty": 1},
+            {"category": "Tiles", "name": "Wall Tile", "qty": 120},
+            {"category": "Plumbing", "name": "CPVC Pipe", "qty": 25},
+            {"category": "PVC Work", "name": "PVC Door", "qty": 1},
+            {"category": "Waterproofing", "name": "Waterproofing Coat", "qty": 40},
+        ],
+    },
+    {
+        "id": "bedroom", "name": "Bedroom", "name_hi": "बेडरूम",
+        "image": "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=800",
+        "categories": ["Interior Decoration", "Paint", "Tiles", "False Ceiling"],
+        "presets": [
+            {"category": "Interior Decoration", "name": "Wardrobe Sliding Door", "qty": 100},
+            {"category": "Interior Decoration", "name": "Curtains & Blinds", "qty": 60},
+            {"category": "Tiles", "name": "Vitrified Tile", "qty": 150},
+            {"category": "Paint", "name": "Interior Emulsion", "qty": 35},
+            {"category": "False Ceiling", "name": "POP False Ceiling", "qty": 120},
+        ],
+    },
+    {
+        "id": "lobby", "name": "Lobby / Living", "name_hi": "लॉबी / लिविंग",
+        "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+        "categories": ["Interior Decoration", "Tiles", "False Ceiling", "Paint"],
+        "presets": [
+            {"category": "Interior Decoration", "name": "TV Unit Panel", "qty": 45},
+            {"category": "Tiles", "name": "Vitrified Tile", "qty": 200},
+            {"category": "False Ceiling", "name": "Gypsum Board Ceiling", "qty": 180},
+            {"category": "Paint", "name": "Interior Emulsion", "qty": 45},
+            {"category": "Interior Decoration", "name": "Wall Wallpaper", "qty": 80},
+        ],
+    },
+    {
+        "id": "tv_panel", "name": "TV Panel & Feature Wall", "name_hi": "TV पैनल और वॉल",
+        "image": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800",
+        "categories": ["Interior Decoration", "Plywood & Wood", "Paint"],
+        "presets": [
+            {"category": "Interior Decoration", "name": "TV Unit Panel", "qty": 55},
+            {"category": "Plywood & Wood", "name": "Plywood 18mm", "qty": 80},
+            {"category": "Plywood & Wood", "name": "Laminate Sheet", "qty": 55},
+            {"category": "Paint", "name": "Wall Putty", "qty": 30},
+        ],
+    },
+    {
+        "id": "tiles", "name": "Tiles & Flooring", "name_hi": "टाइल्स और फ्लोरिंग",
+        "image": CATEGORY_IMAGES.get("Tiles"),
+        "categories": ["Tiles", "PVC Work"],
+        "presets": [
+            {"category": "Tiles", "name": "Vitrified Tile", "qty": 500},
+            {"category": "Tiles", "name": "Ceramic Floor Tile", "qty": 200},
+            {"category": "PVC Work", "name": "PVC Flooring", "qty": 150},
+        ],
+    },
+    {
+        "id": "civil", "name": "Civil & Structure", "name_hi": "सिविल और स्ट्रक्चर",
+        "image": CATEGORY_IMAGES.get("Cement"),
+        "categories": ["Cement", "Steel & TMT", "Bricks & Blocks", "Sand & Aggregate"],
+        "presets": [
+            {"category": "Cement", "name": "OPC 53 Grade", "qty": 200},
+            {"category": "Steel & TMT", "name": "TMT Bar Fe500", "qty": 2500},
+            {"category": "Bricks & Blocks", "name": "AAC Block", "qty": 3000},
+            {"category": "Sand & Aggregate", "name": "River Sand", "qty": 800},
+        ],
+    },
+]
+
+
+async def _resolve_cheapest_material(category: str, name: str):
+    return await _db.materials.find_one(
+        {"status": "active", "category": category, "name": name},
+        {"_id": 0},
+        sort=[("rate", 1)],
+    )
+
+
+async def _material_to_line(mat, qty: float, section_id: str = None, section_name: str = None):
+    rate = float(mat["rate"])
+    q = float(qty)
+    return {
+        "material_id": mat["id"],
+        "section_id": section_id,
+        "section_name": section_name,
+        "category": mat["category"],
+        "name": mat["name"],
+        "brand": mat["brand"],
+        "unit": mat["unit"],
+        "rate": rate,
+        "qty": q,
+        "amount": round(rate * q, 2),
+        "image": resolve_material_image(mat["category"], mat["name"], mat.get("image")),
+    }
 
 # category -> [ (material_name, unit, [(brand, rate), ...]) ]
 SEED = {
@@ -173,6 +336,8 @@ SEED = {
         ("Interior Emulsion", "litre", [("Asian Paints", 280), ("Berger", 260), ("Nerolac", 250), ("Dulux", 270)]),
         ("Exterior Emulsion", "litre", [("Asian Apex", 320), ("Berger Weathercoat", 300), ("Nerolac Excel", 290)]),
         ("Wall Primer", "litre", [("Asian", 180), ("Berger", 170)]),
+        ("Wall Putty", "kg", [("Asian", 42), ("Berger", 40), ("Nerolac", 38), ("Dulux", 41)]),
+        ("Acrylic Putty", "kg", [("Asian", 52), ("Berger", 48), ("Nerolac", 46)]),
     ],
     "Tiles": [
         ("Vitrified Tile", "sqft", [("Kajaria", 65), ("Somany", 60), ("Nitco", 58), ("Johnson", 62)]),
@@ -189,6 +354,9 @@ SEED = {
         ("Wire 2.5 sqmm", "meter", [("Havells", 34), ("Polycab", 32), ("Finolex", 33)]),
         ("Modular Switch", "piece", [("Havells", 85), ("Anchor", 60), ("Legrand", 120), ("GM", 55)]),
         ("MCB 32A", "piece", [("Havells", 320), ("Schneider", 380), ("Legrand", 350)]),
+        ("LED Panel Light 18W", "piece", [("Havells", 650), ("Philips", 720), ("Syska", 580)]),
+        ("Conduit Pipe 1 inch", "meter", [("Precision", 45), ("Finolex", 42), ("Local", 38)]),
+        ("Switch Board 8 Module", "piece", [("Havells", 420), ("Legrand", 480), ("Anchor", 380)]),
     ],
     "Plywood & Wood": [
         ("Plywood 18mm", "sqft", [("Century", 95), ("Greenply", 90), ("Kitply", 80)]),
@@ -648,6 +816,124 @@ async def store_product(item_id: str):
     }
 
 
+@public_router.get("/mart/boq-builder/sections")
+async def boq_builder_sections():
+    out = []
+    for s in BOQ_SECTIONS:
+        row = dict(s)
+        cats = s["categories"]
+        cnt = await _db.materials.count_documents({"status": "active", "category": {"$in": cats}})
+        row["item_count"] = cnt
+        row.pop("presets", None)
+        out.append(row)
+    return out
+
+
+@public_router.get("/mart/boq-builder/sections/{sid}/catalog")
+async def boq_section_catalog(sid: str):
+    sec = next((x for x in BOQ_SECTIONS if x["id"] == sid), None)
+    if not sec:
+        raise HTTPException(404, "Section not found")
+    mats = await _db.materials.find(
+        {"status": "active", "category": {"$in": sec["categories"]}},
+        {"_id": 0},
+    ).sort([("category", 1), ("name", 1), ("rate", 1)]).to_list(800)
+    products = []
+    by_name = {}
+    for m in mats:
+        key = f"{m['category']}|{m['name']}"
+        by_name.setdefault(key, {"name": m["name"], "category": m["category"], "unit": m["unit"], "brands": []})
+        by_name[key]["brands"].append({
+            "id": m["id"], "brand": m["brand"], "rate": float(m["rate"]),
+            "unit": m["unit"], "image": resolve_material_image(m["category"], m["name"], m.get("image")),
+        })
+    for pdata in by_name.values():
+        brands = sorted(pdata["brands"], key=lambda x: x["rate"])
+        products.append({
+            "name": pdata["name"],
+            "category": pdata["category"],
+            "unit": pdata["unit"],
+            "image": brands[0]["image"] if brands else None,
+            "from_rate": brands[0]["rate"] if brands else None,
+            "brands": brands,
+            "cheapest_id": brands[0]["id"] if brands else None,
+        })
+    products.sort(key=lambda x: (x["category"], x["name"]))
+    return {"section": sec, "products": products}
+
+
+@public_router.get("/mart/boq-builder/sections/{sid}/presets")
+async def boq_section_presets(sid: str):
+    sec = next((x for x in BOQ_SECTIONS if x["id"] == sid), None)
+    if not sec:
+        raise HTTPException(404, "Section not found")
+    lines = []
+    for p in sec.get("presets", []):
+        mat = await _resolve_cheapest_material(p["category"], p["name"])
+        if not mat:
+            continue
+        lines.append(await _material_to_line(mat, p["qty"], sid, sec["name"]))
+    total = round(sum(l["amount"] for l in lines), 2)
+    return {"section": sec, "lines": lines, "total": total}
+
+
+@public_router.post("/mart/boq-builder/generate")
+async def boq_builder_generate(body: dict):
+    """Build grouped BOQ from selected lines across room/trade stores."""
+    lines_in = body.get("lines") or []
+    section_ids = body.get("sections") or []
+    resolved = []
+    section_totals = {}
+
+    for row in lines_in:
+        mid = row.get("material_id")
+        qty = float(row.get("qty") or 0)
+        sid = row.get("section_id")
+        if not mid or qty <= 0:
+            continue
+        mat = await _db.materials.find_one({"id": mid, "status": "active"}, {"_id": 0})
+        if not mat:
+            continue
+        sec = next((x for x in BOQ_SECTIONS if x["id"] == sid), None)
+        sec_name = sec["name"] if sec else mat.get("category")
+        line = await _material_to_line(mat, qty, sid, sec_name)
+        resolved.append(line)
+        if sid:
+            section_totals[sid] = round(section_totals.get(sid, 0) + line["amount"], 2)
+
+    # Auto-load presets for selected sections with no manual lines
+    if section_ids:
+        for sid in section_ids:
+            if section_totals.get(sid):
+                continue
+            sec = next((x for x in BOQ_SECTIONS if x["id"] == sid), None)
+            if not sec:
+                continue
+            for p in sec.get("presets", []):
+                mat = await _resolve_cheapest_material(p["category"], p["name"])
+                if not mat:
+                    continue
+                line = await _material_to_line(mat, p["qty"], sid, sec["name"])
+                resolved.append(line)
+                section_totals[sid] = round(section_totals.get(sid, 0) + line["amount"], 2)
+
+    grouped = {}
+    for line in resolved:
+        key = line.get("section_id") or "general"
+        grouped.setdefault(key, {"section_id": line.get("section_id"), "section_name": line.get("section_name") or "General", "lines": [], "total": 0})
+        grouped[key]["lines"].append(line)
+        grouped[key]["total"] = round(grouped[key]["total"] + line["amount"], 2)
+
+    total = round(sum(g["total"] for g in grouped.values()), 2)
+    return {
+        "groups": list(grouped.values()),
+        "lines": resolved,
+        "section_totals": section_totals,
+        "total": total,
+        "line_count": len(resolved),
+    }
+
+
 @public_router.get("/mart/interior-verticals/{vid}/catalog")
 async def vertical_catalog(vid: str):
     """Products grouped by name with brand options sorted by rate (for brand comparison UI)."""
@@ -837,6 +1123,32 @@ async def seed_interior_verticals():
     order = await _db.materials.count_documents({})
     vertical_cats = [v["category"] for v in INTERIOR_VERTICALS]
     for category in vertical_cats:
+        items = SEED.get(category, [])
+        for name, unit, brands in items:
+            for brand, rate in brands:
+                exists = await _db.materials.find_one(
+                    {"category": category, "name": name, "brand": brand}, {"_id": 1})
+                if exists:
+                    continue
+                order += 1
+                await _db.materials.insert_one({
+                    "id": new_id("mat"), "category": category, "name": name,
+                    "brand": brand, "unit": unit, "rate": float(rate), "hsn": None,
+                    "image": resolve_material_image(category, name), "status": "active", "sort_order": order,
+                    "rate_history": _gen_history(float(rate), f"{category}-{name}-{brand}"),
+                    "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
+                })
+
+
+async def seed_boq_store_materials():
+    """Idempotent: ensure materials for all BOQ builder room/trade stores exist."""
+    order = await _db.materials.count_documents({})
+    cats = set()
+    for sec in BOQ_SECTIONS:
+        cats.update(sec.get("categories", []))
+        for p in sec.get("presets", []):
+            cats.add(p["category"])
+    for category in sorted(cats):
         items = SEED.get(category, [])
         for name, unit, brands in items:
             for brand, rate in brands:

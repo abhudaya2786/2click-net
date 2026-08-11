@@ -25,6 +25,7 @@ const COLS = [
       { label: "Solar Portal", to: "/solar" },
       { label: "Super Mart", to: "/mart" },
       { label: "Interior BOQ", to: "/interior-boq" },
+      { label: "Full Home BOQ", to: "/boq-builder" },
       { label: "Become Vendor", to: "/become-vendor" },
     ],
   },
