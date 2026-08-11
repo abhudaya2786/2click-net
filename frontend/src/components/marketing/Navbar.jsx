@@ -21,6 +21,7 @@ const PRIMARY_LINKS = [
 ];
 
 const EXPLORE_LINKS = [
+  { to: "/material-calculator", key: "nav.material_calc", label: "Material calculator", labelHi: "सामग्री कैलकुलेटर" },
   { to: "/store", key: "materials" },
   { to: "/professionals", key: "professionals" },
   { to: "/solar", key: "solar" },

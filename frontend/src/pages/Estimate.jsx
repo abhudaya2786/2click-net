@@ -8,6 +8,7 @@ import { api } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
 import { SUPER_COPY } from "@/lib/superAppCopy";
 import { LoadingSkeleton } from "@/components/superapp/EmptyState";
+import MaterialCalculator from "@/components/calculator/MaterialCalculator";
 import { Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 
@@ -149,6 +150,18 @@ export default function Estimate() {
           )}
         </div>
       </div>
+
+      <section className="mt-14 border-t border-border/40 pt-12">
+        <h2 className="font-display font-bold text-xl mb-2 text-center">
+          {lang === "hi" ? "मकान निर्माण सामग्री कैलकुलेटर" : "House material calculator"}
+        </h2>
+        <p className="text-sm text-muted-foreground text-center mb-8 max-w-xl mx-auto">
+          {lang === "hi"
+            ? "सीमेंट, सरिया, ईंट, टाइल्स और पेंट — बिल्ट-अप एरिया से तुरंत अनुमान"
+            : "Cement, steel, bricks, tiles and paint — instant estimate from built-up area"}
+        </p>
+        <MaterialCalculator embedded />
+      </section>
     </div>
   );
 }
