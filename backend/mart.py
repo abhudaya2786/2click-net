@@ -376,7 +376,7 @@ async def mart_materials(category: Optional[str] = None, brand: Optional[str] = 
 async def list_boq_templates(vertical: Optional[str] = None):
     tpls = SEED_TEMPLATES
     if vertical:
-        tpls = [t for t in SEED_TEMPLATES if t.get("vertical") == vertical or not t.get("vertical")]
+        tpls = [t for t in SEED_TEMPLATES if t.get("vertical") == vertical]
     return [{"id": t["id"], "name": t["name"], "description": t["description"],
              "image": t["image"], "area": t["area"], "items": len(t["items"]),
              "vertical": t.get("vertical")} for t in tpls]
@@ -385,6 +385,38 @@ async def list_boq_templates(vertical: Optional[str] = None):
 @public_router.get("/mart/interior-verticals")
 async def list_interior_verticals():
     return INTERIOR_VERTICALS
+
+
+@public_router.get("/mart/interior-verticals/{vid}/catalog")
+async def vertical_catalog(vid: str):
+    """Products grouped by name with brand options sorted by rate (for brand comparison UI)."""
+    v = next((x for x in INTERIOR_VERTICALS if x["id"] == vid), None)
+    if not v:
+        raise HTTPException(404, "Vertical not found")
+    mats = await _db.materials.find(
+        {"status": "active", "category": v["category"]},
+        {"_id": 0},
+    ).sort([("name", 1), ("rate", 1)]).to_list(500)
+    by_name = {}
+    for m in mats:
+        entry = {
+            "id": m["id"], "brand": m["brand"], "rate": float(m["rate"]),
+            "unit": m["unit"], "name": m["name"], "image": m.get("image"),
+        }
+        by_name.setdefault(m["name"], {"name": m["name"], "unit": m["unit"], "brands": []})
+        by_name[m["name"]]["brands"].append(entry)
+    products = []
+    for pname, pdata in by_name.items():
+        brands = sorted(pdata["brands"], key=lambda x: x["rate"])
+        products.append({
+            "name": pname,
+            "unit": pdata["unit"],
+            "brands": brands,
+            "cheapest": brands[0] if brands else None,
+        })
+    products.sort(key=lambda x: x["name"])
+    all_brands = sorted({m["brand"] for m in mats})
+    return {"vertical": v, "products": products, "brands": all_brands}
 
 
 @public_router.get("/mart/interior-verticals/{vid}/materials")

@@ -45,6 +45,7 @@ function AppRouter() {
       <Route path="/marketplace" element={M(<Marketplace />)} />
       <Route path="/mart" element={M(<Mart />)} />
       <Route path="/interior-boq" element={M(<InteriorBOQ />)} />
+      <Route path="/interior-boq/:verticalId" element={M(<InteriorBOQ />)} />
       <Route path="/solar" element={M(<Solar />)} />
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />
