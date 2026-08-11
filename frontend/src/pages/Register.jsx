@@ -35,7 +35,7 @@ export default function Register() {
     name: "", email: "", password: "", company: "", business_type: "",
     skills: "", service_area: "", portfolio_url: "", expected_pricing: "", availability: "",
   });
-  const [location, setLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
+  const [location, setLocation] = useState({ state: "", city: "", district: "", pincode: "", lat: null, lng: null, location: "" });
   const [agreements, setAgreements] = useState([]);
   const [accepted, setAccepted] = useState({});
   const [err, setErr] = useState("");
@@ -139,6 +139,7 @@ export default function Register() {
         service_area: location.location || form.service_area || null,
         state: location.state || null,
         city: location.city || null,
+        district: location.district || null,
         pincode: location.pincode || null,
         lat: location.lat,
         lng: location.lng,
@@ -270,7 +271,7 @@ export default function Register() {
               {hasField("service_area") && (
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">{t("service_area")}</label>
-                  <LocationPicker value={location} onChange={setLocation} />
+                  <LocationPicker pincodeFirst value={location} onChange={setLocation} />
                 </div>
               )}
               {hasField("portfolio") && (

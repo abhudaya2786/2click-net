@@ -210,6 +210,7 @@ class ShopIn(BaseModel):
     address_line: Optional[str] = None
     state: Optional[str] = None
     city: Optional[str] = None
+    district: Optional[str] = None
     pincode: Optional[str] = None
     business_type: Optional[str] = None
     primary_category_id: Optional[str] = None
@@ -229,6 +230,7 @@ class EnrollmentCompleteIn(BaseModel):
     category_ids: Optional[List[str]] = None
     state: Optional[str] = None
     city: Optional[str] = None
+    district: Optional[str] = None
     pincode: Optional[str] = None
     service_area: Optional[str] = None
     skills: Optional[List[str]] = None
@@ -319,6 +321,7 @@ async def complete_enrollment(body: EnrollmentCompleteIn, request: Request, resp
         "state": body.state or (body.shop.state if body.shop else None),
         "city": body.city or (body.shop.city if body.shop else None),
         "pincode": body.pincode or (body.shop.pincode if body.shop else None),
+        "district": body.district or (body.shop.district if body.shop else None),
         "service_area": body.service_area,
         "skills": body.skills or [],
         "portfolio_url": body.portfolio_url,
@@ -359,7 +362,7 @@ async def complete_enrollment(body: EnrollmentCompleteIn, request: Request, resp
             "phone": body.shop.phone or body.phone,
             "email": (body.shop.email or email).lower(),
             "address_line": body.shop.address_line,
-            "state": body.shop.state, "city": body.shop.city, "pincode": body.shop.pincode,
+            "state": body.shop.state, "city": body.shop.city, "district": body.shop.district, "pincode": body.shop.pincode,
             "business_type": body.shop.business_type,
             "primary_category_id": body.shop.primary_category_id,
             "category_ids": body.shop.category_ids or [],
@@ -447,7 +450,7 @@ async def create_shop(body: ShopIn, request: Request, user=Depends(_user_dep)):
         "gst_number": body.gst_number, "pan_number": body.pan_number,
         "phone": body.phone, "email": (body.email or user.get("email", "")).lower(),
         "address_line": body.address_line,
-        "state": body.state, "city": body.city, "pincode": body.pincode,
+        "state": body.state, "city": body.city, "district": body.district, "pincode": body.pincode,
         "business_type": body.business_type,
         "primary_category_id": body.primary_category_id,
         "category_ids": body.category_ids or [],
@@ -476,7 +479,7 @@ async def update_shop(shop_id: str, body: ShopIn, user=Depends(_user_dep)):
         "gst_number": body.gst_number, "pan_number": body.pan_number,
         "phone": body.phone, "email": body.email,
         "address_line": body.address_line,
-        "state": body.state, "city": body.city, "pincode": body.pincode,
+        "state": body.state, "city": body.city, "district": body.district, "pincode": body.pincode,
         "business_type": body.business_type,
         "primary_category_id": body.primary_category_id,
         "category_ids": body.category_ids or [],

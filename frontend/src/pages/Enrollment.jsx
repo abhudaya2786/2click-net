@@ -40,13 +40,13 @@ export default function Enrollment() {
   const [accepted, setAccepted] = useState({});
   const [selectedCats, setSelectedCats] = useState([]);
   const [primaryCatId, setPrimaryCatId] = useState(null);
-  const [userForm, setUserForm] = useState({ name: "", phone: "", company: "", business_type: "", state: "", city: "", pincode: "", service_area: "" });
-  const [location, setLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
+  const [userForm, setUserForm] = useState({ name: "", phone: "", company: "", business_type: "", state: "", city: "", district: "", pincode: "", service_area: "" });
+  const [location, setLocation] = useState({ state: "", city: "", district: "", pincode: "", lat: null, lng: null, location: "" });
   const [shopForm, setShopForm] = useState({
     name: "", shop_type: "material_store", gst_number: "", pan_number: "",
-    phone: "", email: "", address_line: "", state: "", city: "", pincode: "", business_type: "",
+    phone: "", email: "", address_line: "", state: "", city: "", district: "", pincode: "", business_type: "",
   });
-  const [shopLocation, setShopLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
+  const [shopLocation, setShopLocation] = useState({ state: "", city: "", district: "", pincode: "", lat: null, lng: null, location: "" });
   const [account, setAccount] = useState({ email: "", password: "" });
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -94,6 +94,7 @@ export default function Enrollment() {
         phone: userForm.phone || shopForm.phone || null,
         state: userForm.state || shopForm.state,
         city: userForm.city || shopForm.city,
+        district: userForm.district || shopForm.district,
         pincode: userForm.pincode || shopForm.pincode,
         service_area: userForm.service_area || shopLocation.location || location.location,
         category_ids: selectedCats.map((c) => c.id),
