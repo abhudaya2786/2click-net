@@ -108,12 +108,13 @@ export default function Navbar() {
             <Button data-testid="nav-dashboard-btn" onClick={() => nav("/dashboard")}
               className="btn-premium hidden sm:inline-flex h-9">{navCopy.dashboard}</Button>
           ) : (
-            <>
-              <Button variant="ghost" data-testid="nav-login-btn" onClick={() => nav("/login")}
-                className="rounded-lg hidden sm:inline-flex h-9">{navCopy.login}</Button>
-              <Button data-testid="nav-signup-btn" onClick={() => nav("/register")}
-                className="btn-premium hidden sm:inline-flex h-9 text-sm px-3">{navCopy.join}</Button>
-            </>
+            <Button
+              data-testid="nav-auth-btn"
+              onClick={() => nav("/login")}
+              className="btn-premium hidden sm:inline-flex h-9 text-sm px-3"
+            >
+              {navCopy.authCta}
+            </Button>
           )}
           <button className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg border border-border" onClick={() => setOpen(!open)} data-testid="nav-mobile-toggle">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -126,6 +127,11 @@ export default function Navbar() {
           {ALL_LINKS.map((l) => (
             <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-medium py-2 px-1 active:text-primary">{lbl(l)}</Link>
           ))}
+          {!user && (
+            <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-semibold py-2 px-1 text-primary">
+              {navCopy.authCta}
+            </Link>
+          )}
         </div>
       )}
     </header>

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import LocationPicker from "@/components/location/LocationPicker";
 import AgreementPanel from "@/components/enrollment/AgreementPanel";
 import CategoryPicker from "@/components/signup/CategoryPicker";
+import AuthTabs from "@/components/auth/AuthTabs";
 
 const STEPS = ["step_type", "step_category", "step_business", "step_account"];
 
@@ -157,6 +158,10 @@ export default function Register() {
       </div>
 
       <div className="flex-1 mx-auto max-w-3xl w-full px-5 py-8">
+        <AuthTabs
+          active="register"
+          registerTo={typeFromUrl ? `/register?type=${typeFromUrl}` : "/register"}
+        />
         <h1 className="font-display font-extrabold text-3xl tracking-tight">{t("create_account")}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t("onboarding_sub")}</p>
 

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { LOGIN_PROFILES } from "@/lib/loginProfiles";
+import AuthTabs from "@/components/auth/AuthTabs";
 
 const PUBLIC_LOGIN_PROFILES = LOGIN_PROFILES.filter((p) => p.id !== "admin");
 
@@ -191,6 +192,7 @@ export default function Login() {
 
         <div className="flex-1 flex items-center justify-center p-4 md:p-8">
           <div className="w-full max-w-md">
+            {stage === "login" && <AuthTabs active="login" registerTo={`/register?type=${profileId}`} />}
             {stage === "login" && (
               <>
                 <h1 data-testid="login-title" className="font-display font-extrabold text-2xl md:text-3xl tracking-tight">
@@ -296,13 +298,6 @@ export default function Login() {
                 <Button data-testid="login-google" variant="outline" onClick={google} className="w-full rounded-none">
                   {t("Continue with Google", "Google से जारी रखें")}
                 </Button>
-
-                <p className="text-sm text-muted-foreground mt-6 text-center">
-                  {t("No account?", "खाता नहीं है?")}{" "}
-                  <Link to={`/register?type=${profileId}`} className="text-primary font-medium hover:underline">
-                    {t("Sign up", "रजिस्टर करें")}
-                  </Link>
-                </p>
               </>
             )}
 
