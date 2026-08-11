@@ -47,7 +47,13 @@ export default function Navbar() {
   const [exploreOpen, setExploreOpen] = useState(false);
   const nav = useNavigate();
   const { openPanel } = useDemoMode();
-  const lbl = (l) => t(l.key) || (lang === "hi" ? l.labelHi : l.label);
+  const lbl = (l) => {
+    const fallback = lang === "hi" ? l.labelHi : l.label;
+    if (!l.key) return fallback;
+    const translated = t(l.key);
+    if (translated && translated !== l.key) return translated;
+    return fallback;
+  };
 
   return (
     <header
@@ -61,7 +67,7 @@ export default function Navbar() {
           <span className="font-display font-extrabold text-base tracking-tight hidden sm:inline">{brand_name}</span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
           {PRIMARY_LINKS.map((l) => (
             <Link
               key={l.to}
