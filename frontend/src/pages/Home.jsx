@@ -6,6 +6,7 @@ import PageSEO from "@/components/marketing/PageSEO";
 import SiteJsonLd from "@/components/marketing/SiteJsonLd";
 import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
 import RegionalLanding from "@/components/marketing/RegionalLanding";
+import UpcomingProjectsBlock from "@/components/marketing/UpcomingProjectsBlock";
 import PlatformToolsGrid from "@/components/marketing/PlatformToolsGrid";
 import CatalogShowcase from "@/components/catalog/CatalogShowcase";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
@@ -81,6 +82,10 @@ export default function Home() {
       </section>
 
       <RegionalLanding />
+
+      <section className="mx-auto max-w-[1400px] px-4 md:px-10 py-16 md:py-20 border-b border-border bg-gradient-to-b from-background to-secondary/10">
+        <UpcomingProjectsBlock compact limit={6} />
+      </section>
 
       <CatalogShowcase variant="full" />
 

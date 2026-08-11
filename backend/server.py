@@ -1500,6 +1500,10 @@ async def startup():
     })
     await _enr.ensure_indexes()
     await _enr.seed_agreements()
+    import upcoming_projects as _upc
+    _upc.init(db)
+    await _upc.ensure_indexes()
+    await _upc.seed_upcoming_projects()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1546,6 +1550,8 @@ _enrollment.init(db, get_current_user, {
     "create_access_token": create_access_token, "set_auth_cookie": set_auth_cookie,
     "clean": clean, "new_id": new_id, "iso": iso, "now_utc": now_utc,
 })
+import upcoming_projects as _upcoming
+_upcoming.init(db)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1568,6 +1574,7 @@ app.include_router(_site.public_router)
 app.include_router(_site.admin_router)
 app.include_router(_enrollment.router)
 app.include_router(_enrollment.admin_router)
+app.include_router(_upcoming.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
