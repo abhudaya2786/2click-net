@@ -1500,6 +1500,21 @@ async def startup():
     })
     await _enr.ensure_indexes()
     await _enr.seed_agreements()
+    import upcoming_projects as _upc
+    _upc.init(db)
+    await _upc.ensure_indexes()
+    await _upc.seed_upcoming_projects()
+    import property_advisory as _padv
+    _padv.init(db, get_current_user)
+    await _padv.ensure_indexes()
+    import equipment_rental as _eqr
+    _eqr.init(db, get_current_user)
+    await _eqr.ensure_indexes()
+    await _eqr.seed_equipment_rentals()
+    import landing as _landing
+    _landing.init(db)
+    await _landing.ensure_indexes()
+    await _landing.seed_landing()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1546,6 +1561,15 @@ _enrollment.init(db, get_current_user, {
     "create_access_token": create_access_token, "set_auth_cookie": set_auth_cookie,
     "clean": clean, "new_id": new_id, "iso": iso, "now_utc": now_utc,
 })
+import upcoming_projects as _upcoming
+_upcoming.init(db)
+import property_advisory as _padv
+_padv.init(db, get_current_user)
+import equipment_rental as _eqr
+_eqr.init(db, get_current_user)
+import landing as _landing
+_landing.init(db)
+import backup as _backup
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1568,6 +1592,12 @@ app.include_router(_site.public_router)
 app.include_router(_site.admin_router)
 app.include_router(_enrollment.router)
 app.include_router(_enrollment.admin_router)
+app.include_router(_upcoming.router)
+app.include_router(_padv.router)
+app.include_router(_eqr.router)
+app.include_router(_landing.public_router)
+app.include_router(_landing.admin_router)
+app.include_router(_backup.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

@@ -145,6 +145,82 @@ INTERIOR_VERTICALS = [
      "image": "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800"},
 ]
 
+# Fabrication work types → what can be done + linked material SKUs (category Fabrication)
+FABRICATION_WORK_TYPES = [
+    {
+        "id": "gate_entry", "name": "Main gate & entry", "name_hi": "मुख्य गेट और प्रवेश",
+        "desc_en": "MS gate, sliding gate, designer gate, automation",
+        "desc_hi": "एमएस गेट, स्लाइडिंग गेट, डिज़ाइनर गेट, ऑटोमेशन",
+        "materials": ["MS Gate Fabrication", "MS Sliding Gate", "Designer Fancy Gate", "Gate Automation Motor Kit", "Main Door Frame MS"],
+    },
+    {
+        "id": "railing_balcony", "name": "Railing & balcony", "name_hi": "रेलिंग और बालकनी",
+        "desc_en": "SS/MS balcony railing, glass railing with SS",
+        "desc_hi": "एसएस/एमएस बालकनी रेलिंग, ग्लास रेलिंग",
+        "materials": ["SS Railing", "MS Balcony Railing", "Glass Railing with SS", "SS Staircase Handrail"],
+    },
+    {
+        "id": "window_grill", "name": "Window grill & safety", "name_hi": "विंडो ग्रिल और सुरक्षा",
+        "desc_en": "Fixed grill, sliding grill, SS grill, safety door",
+        "desc_hi": "फिक्स्ड ग्रिल, स्लाइडिंग ग्रिल, एसएस ग्रिल, सेफ्टी दरवाज़ा",
+        "materials": ["MS Grill Window", "SS Window Grill", "MS Safety Door", "Expanded Metal Sheet"],
+    },
+    {
+        "id": "staircase", "name": "Staircase MS/SS", "name_hi": "सीढ़ी एमएस/एसएस",
+        "desc_en": "MS staircase structure, railing, handrail",
+        "desc_hi": "एमएस सीढ़ी संरचना, रेलिंग, हैंडरेल",
+        "materials": ["MS Staircase Structure", "MS Staircase Railing", "SS Staircase Handrail", "SS Railing"],
+    },
+    {
+        "id": "boundary_fence", "name": "Boundary & fencing", "name_hi": "बाउंड्री और फेंसिंग",
+        "desc_en": "Boundary wall railing, chain link, barricade",
+        "desc_hi": "बाउंड्री वॉल रेलिंग, चेन लिंक, बैरिकेड",
+        "materials": ["Boundary Wall MS Railing", "Chain Link Fencing", "MS Gate Fabrication"],
+    },
+    {
+        "id": "structural_ms", "name": "Structural MS work", "name_hi": "स्ट्रक्चरल एमएस वर्क",
+        "desc_en": "Angle, channel, beam, truss, columns",
+        "desc_hi": "एंगल, चैनल, बीम, ट्रस, कॉलम",
+        "materials": ["MS Angle 50x50", "MS Channel 75x40", "MS Flat 25x6", "MS Beam Fabrication", "MS Roof Truss", "GI Sheet 1mm"],
+    },
+    {
+        "id": "roof_shed", "name": "Roof & shed", "name_hi": "छत और शेड",
+        "desc_en": "PEB shed, roof truss, polycarbonate roofing",
+        "desc_hi": "PEB शेड, रूफ ट्रस, पॉलीकार्बोनेट छत",
+        "materials": ["PEB Shed Fabrication", "MS Roof Truss", "Polycarbonate Roofing Sheet", "GI Sheet 1mm"],
+    },
+    {
+        "id": "carport_pergola", "name": "Car porch & pergola", "name_hi": "कार पोर्च और पर्गोला",
+        "desc_en": "Car porch MS, pergola, shade structure",
+        "desc_hi": "कार पोर्च एमएस, पर्गोला, शेड संरचना",
+        "materials": ["Car Porch MS Structure", "Pergola MS Fabrication", "MS Roof Truss"],
+    },
+    {
+        "id": "facade_cladding", "name": "Facade & cladding support", "name_hi": "फेसाड और क्लैडिंग सपोर्ट",
+        "desc_en": "ACP fixing frame, aluminium louvers, facade brackets",
+        "desc_hi": "ACP फिक्सिंग फ्रेम, एल्युमिनियम लूवर, फेसाड ब्रैकेट",
+        "materials": ["ACP Fixing MS Frame", "Aluminium Louver Panel", "MS Facade Bracket System"],
+    },
+    {
+        "id": "industrial", "name": "Industrial / factory", "name_hi": "औद्योगिक / फैक्टरी",
+        "desc_en": "Mezzanine, platform, conveyor support",
+        "desc_hi": "मेज़ानिन, प्लेटफॉर्म, कन्वेयर सपोर्ट",
+        "materials": ["MS Mezzanine Floor", "MS Platform Fabrication", "MS Beam Fabrication", "PEB Shed Fabrication"],
+    },
+    {
+        "id": "stainless_commercial", "name": "Stainless commercial", "name_hi": "स्टेनलेस कॉमर्शियल",
+        "desc_en": "SS kitchen counter, sink unit, commercial railing",
+        "desc_hi": "एसएस किचन काउंटर, सिंक यूनिट, कॉमर्शियल रेलिंग",
+        "materials": ["SS Kitchen Counter", "SS Sink Unit with Stand", "SS Railing", "SS Main Door Frame"],
+    },
+    {
+        "id": "consumables", "name": "Welding & finishing", "name_hi": "वेल्डिंग और फिनिशिंग",
+        "desc_en": "Welding rod, primer, enamel paint, polish",
+        "desc_hi": "वेल्डिंग रॉड, प्राइमर, एनामेल पेंट, पॉलिश",
+        "materials": ["Welding Rod 12mm", "Cutting Disc", "MS Primer Red Oxide", "MS Enamel Paint", "SS Polish Finish"],
+    },
+]
+
 # Room / trade stores for full-home BOQ builder (select stores → pick items → generate BOQ)
 BOQ_SECTIONS = [
     {
@@ -281,6 +357,18 @@ BOQ_SECTIONS = [
             {"category": "Sand & Aggregate", "name": "River Sand", "qty": 800},
         ],
     },
+    {
+        "id": "fabrication", "name": "Fabrication / MS-SS", "name_hi": "फैब्रिकेशन / एमएस-एसएस",
+        "image": CATEGORY_IMAGES.get("Fabrication"),
+        "categories": ["Fabrication"],
+        "presets": [
+            {"category": "Fabrication", "name": "MS Gate Fabrication", "qty": 80},
+            {"category": "Fabrication", "name": "SS Railing", "qty": 50},
+            {"category": "Fabrication", "name": "MS Grill Window", "qty": 60},
+            {"category": "Fabrication", "name": "MS Staircase Railing", "qty": 35},
+            {"category": "Fabrication", "name": "Welding Rod 12mm", "qty": 25},
+        ],
+    },
 ]
 
 
@@ -379,9 +467,47 @@ SEED = {
     ],
     "Fabrication": [
         ("MS Gate Fabrication", "sqft", [("Local MS", 650), ("Tata Structura", 720), ("Jindal", 680)]),
+        ("MS Sliding Gate", "sqft", [("Local MS", 780), ("Tata Structura", 850), ("Jindal", 820)]),
+        ("Designer Fancy Gate", "sqft", [("Local MS", 950), ("Art Gate Works", 1100), ("Jindal", 980)]),
+        ("Gate Automation Motor Kit", "set", [("Nice", 18500), ("CAME", 16800), ("Local", 12500)]),
         ("SS Railing", "rft", [("Jindal SS", 850), ("Local SS", 720), ("Neelcon", 780)]),
+        ("MS Balcony Railing", "rft", [("Local MS", 420), ("Tata Structura", 480), ("Jindal", 450)]),
+        ("Glass Railing with SS", "rft", [("Saint Gobain", 1200), ("Local SS", 980), ("Jindal SS", 1050)]),
         ("MS Grill Window", "sqft", [("Local MS", 420), ("Tata Structura", 480)]),
+        ("SS Window Grill", "sqft", [("Jindal SS", 620), ("Local SS", 550)]),
         ("Main Door Frame MS", "set", [("Local MS", 8500), ("Jindal", 9200)]),
+        ("SS Main Door Frame", "set", [("Jindal SS", 14500), ("Neelcon", 13200)]),
+        ("MS Safety Door", "piece", [("Local MS", 6500), ("Jindal", 7200), ("Tata Structura", 6800)]),
+        ("MS Staircase Structure", "sqft", [("Local MS", 520), ("Tata Structura", 580), ("Jindal", 550)]),
+        ("MS Staircase Railing", "rft", [("Local MS", 380), ("Tata Structura", 420), ("Jindal", 400)]),
+        ("SS Staircase Handrail", "rft", [("Jindal SS", 720), ("Local SS", 650), ("Neelcon", 680)]),
+        ("Boundary Wall MS Railing", "rft", [("Local MS", 350), ("Tata Structura", 390), ("Jindal", 370)]),
+        ("Chain Link Fencing", "rft", [("Local", 180), ("Tata Structura", 210), ("Jindal", 195)]),
+        ("MS Angle 50x50", "kg", [("Tata Structura", 68), ("Jindal", 65), ("Local MS", 62)]),
+        ("MS Channel 75x40", "kg", [("Tata Structura", 70), ("Jindal", 67), ("Local MS", 64)]),
+        ("MS Flat 25x6", "kg", [("Tata Structura", 66), ("Jindal", 63), ("Local MS", 60)]),
+        ("MS Beam Fabrication", "kg", [("Local MS", 95), ("Tata Structura", 105), ("Jindal", 98)]),
+        ("MS Roof Truss", "sqft", [("Local MS", 280), ("Tata Structura", 320), ("Jindal", 295)]),
+        ("PEB Shed Fabrication", "sqft", [("Tata Structura", 420), ("Jindal", 395), ("Local MS", 360)]),
+        ("Polycarbonate Roofing Sheet", "sqft", [("Sabic", 85), ("Local", 72), ("Onduline", 78)]),
+        ("GI Sheet 1mm", "sqft", [("Tata Steel", 95), ("JSW", 92), ("Local", 85)]),
+        ("Car Porch MS Structure", "sqft", [("Local MS", 450), ("Tata Structura", 520), ("Jindal", 480)]),
+        ("Pergola MS Fabrication", "sqft", [("Local MS", 520), ("Art Metal", 580), ("Jindal", 550)]),
+        ("ACP Fixing MS Frame", "sqft", [("Local MS", 180), ("Tata Structura", 195), ("Jindal", 188)]),
+        ("Aluminium Louver Panel", "sqft", [("Hindalco", 320), ("Jindal Aluminium", 295), ("Local", 260)]),
+        ("MS Facade Bracket System", "sqft", [("Tata Structura", 220), ("Local MS", 195), ("Jindal", 205)]),
+        ("MS Mezzanine Floor", "sqft", [("Tata Structura", 380), ("Local MS", 340), ("Jindal", 360)]),
+        ("MS Platform Fabrication", "sqft", [("Local MS", 420), ("Tata Structura", 460), ("Jindal", 440)]),
+        ("SS Kitchen Counter", "sqft", [("Jindal SS", 2200), ("Neelcon", 2100), ("Local SS", 1850)]),
+        ("SS Sink Unit with Stand", "set", [("Jindal SS", 12500), ("Neelcon", 11800), ("Local SS", 9800)]),
+        ("Expanded Metal Sheet", "sqft", [("Local MS", 120), ("Tata Structura", 135), ("Jindal", 128)]),
+        ("Welding Rod 12mm", "kg", [("Ador", 145), ("Esab", 155), ("Local", 125)]),
+        ("Cutting Disc", "piece", [("Bosch", 85), ("Black+Decker", 78), ("Local", 55)]),
+        ("MS Primer Red Oxide", "litre", [("Asian Paints", 95), ("Berger", 88), ("Nerolac", 82)]),
+        ("MS Enamel Paint", "litre", [("Asian Paints", 180), ("Berger", 165), ("Nerolac", 158)]),
+        ("SS Polish Finish", "sqft", [("Jindal SS", 45), ("Local SS", 38), ("Neelcon", 42)]),
+        ("Fabrication Labour MS Gate", "sqft", [("Local Labour", 180), ("Contractor Grade", 220)]),
+        ("Fabrication Labour SS Railing", "rft", [("Local Labour", 220), ("Contractor Grade", 260)]),
     ],
     "False Ceiling": [
         ("POP False Ceiling", "sqft", [("Gyproc", 95), ("Saint Gobain", 105), ("Local POP", 78)]),
@@ -537,6 +663,50 @@ SEED_TEMPLATES = [
         ],
     },
     {
+        "id": "tpl_fabrication_staircase", "name": "Staircase MS Package", "area": "G+1 home",
+        "description": "MS staircase structure, railing and handrail.",
+        "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+        "vertical": "fabrication",
+        "items": [
+            {"category": "Fabrication", "name": "MS Staircase Structure", "qty": 45},
+            {"category": "Fabrication", "name": "MS Staircase Railing", "qty": 35},
+            {"category": "Fabrication", "name": "SS Staircase Handrail", "qty": 35},
+        ],
+    },
+    {
+        "id": "tpl_fabrication_boundary", "name": "Boundary + Chain Link", "area": "200 rft boundary",
+        "description": "Boundary railing and chain link fencing.",
+        "image": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800",
+        "vertical": "fabrication",
+        "items": [
+            {"category": "Fabrication", "name": "Boundary Wall MS Railing", "qty": 120},
+            {"category": "Fabrication", "name": "Chain Link Fencing", "qty": 80},
+            {"category": "Fabrication", "name": "MS Gate Fabrication", "qty": 40},
+        ],
+    },
+    {
+        "id": "tpl_fabrication_shed", "name": "Car Porch + PEB Shed", "area": "car porch + small shed",
+        "description": "Car porch MS and light PEB shed structure.",
+        "image": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800",
+        "vertical": "fabrication",
+        "items": [
+            {"category": "Fabrication", "name": "Car Porch MS Structure", "qty": 200},
+            {"category": "Fabrication", "name": "PEB Shed Fabrication", "qty": 400},
+            {"category": "Fabrication", "name": "GI Sheet 1mm", "qty": 400},
+        ],
+    },
+    {
+        "id": "tpl_fabrication_commercial_ss", "name": "Commercial SS Package", "area": "shop / kitchen",
+        "description": "SS counter, sink, railing for commercial fit-out.",
+        "image": "https://images.unsplash.com/photo-1556912173-46c336c7fd55?w=800",
+        "vertical": "fabrication",
+        "items": [
+            {"category": "Fabrication", "name": "SS Kitchen Counter", "qty": 60},
+            {"category": "Fabrication", "name": "SS Sink Unit with Stand", "qty": 2},
+            {"category": "Fabrication", "name": "SS Railing", "qty": 30},
+        ],
+    },
+    {
         "id": "tpl_vastu_site", "name": "Vastu Site Package", "area": "site visit + report",
         "description": "Vastu consultation, report, and remedy kit.",
         "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
@@ -601,6 +771,34 @@ async def list_boq_templates(vertical: Optional[str] = None):
     return [{"id": t["id"], "name": t["name"], "description": t["description"],
              "image": t["image"], "area": t["area"], "items": len(t["items"]),
              "vertical": t.get("vertical")} for t in tpls]
+
+
+@public_router.get("/mart/fabrication/works")
+async def fabrication_work_types():
+    """Fabrication work categories with linked material SKUs and rates."""
+    out = []
+    for wt in FABRICATION_WORK_TYPES:
+        row = {k: v for k, v in wt.items() if k != "materials"}
+        mats = []
+        for name in wt.get("materials", []):
+            cheapest = await _db.materials.find_one(
+                {"status": "active", "category": "Fabrication", "name": name},
+                {"_id": 0},
+                sort=[("rate", 1)],
+            )
+            if cheapest:
+                mats.append({
+                    "name": name,
+                    "unit": cheapest.get("unit"),
+                    "from_rate": float(cheapest.get("rate", 0)),
+                    "from_brand": cheapest.get("brand"),
+                    "image": resolve_material_image("Fabrication", name, cheapest.get("image")),
+                })
+            else:
+                mats.append({"name": name, "unit": None, "from_rate": None})
+        row["material_items"] = mats
+        out.append(row)
+    return {"work_types": out, "vertical": next((v for v in INTERIOR_VERTICALS if v["id"] == "fabrication"), None)}
 
 
 @public_router.get("/mart/interior-verticals")
@@ -967,7 +1165,11 @@ async def vertical_catalog(vid: str):
         })
     products.sort(key=lambda x: x["name"])
     all_brands = sorted({m["brand"] for m in mats})
-    return {"vertical": v, "products": products, "brands": all_brands}
+    payload = {"vertical": v, "products": products, "brands": all_brands}
+    if vid == "fabrication":
+        work_resp = await fabrication_work_types()
+        payload["work_types"] = work_resp.get("work_types", [])
+    return payload
 
 
 @public_router.get("/mart/interior-verticals/{vid}/materials")

@@ -27,6 +27,8 @@ CONSULTANT_ROLES = [
      "desc": "Structural design, RCC, steel, load calculations", "icon": "ruler"},
     {"id": "landscape", "name": "Landscape Consultant", "name_hi": "लैंडस्केप कंसल्टेंट",
      "desc": "Gardening, landscaping, outdoor design", "icon": "leaf"},
+    {"id": "real_estate", "name": "Real Estate Advisor", "name_hi": "रियल एस्टेट सलाहकार",
+     "desc": "Property purchase, land deals, RERA, lease & investment advisory", "icon": "building"},
 ]
 
 EXPERIENCE_LEVELS = [
@@ -44,6 +46,7 @@ LEVEL_IDS = {l["id"] for l in EXPERIENCE_LEVELS}
 CONSULTANT_USER_TYPES = {
     "freelancer", "architect", "engineer", "ca", "service_provider",
     "interior_consultant", "exterior_consultant", "vastu_consultant",
+    "real_estate_advisor",
 }
 
 
@@ -139,6 +142,7 @@ def _default_role_for_user_type(ut: str) -> str:
         "interior_consultant": "interior",
         "exterior_consultant": "exterior",
         "vastu_consultant": "vastu",
+        "real_estate_advisor": "real_estate",
     }.get(ut, "interior")
 
 
@@ -275,6 +279,7 @@ async def seed_consultants():
         ("vastu", "vastu", "Dr. Meena Joshi", 20, "Certified Vastu consultant — residential & commercial"),
         ("structural", "structural", "Vikram Singh", 14, "Structural engineer — RCC & steel"),
         ("landscape", "landscape", "Sneha Patel", 6, "Landscape & gardening consultant"),
+        ("real_estate", "real_estate_advisor", "Rajesh Malhotra", 18, "Real estate advisor — plots, RERA, commercial deals"),
     ]
     for role, ut_suffix, name, years, bio in demos:
         email = f"demo.{role}@2click.in"
@@ -284,7 +289,7 @@ async def seed_consultants():
             user = {
                 "id": uid, "name": name, "email": email,
                 "password_hash": "demo", "role": "customer",
-                "user_type": "architect" if role == "architect" else "freelancer",
+                "user_type": "architect" if role == "architect" else ("real_estate_advisor" if role == "real_estate" else "freelancer"),
                 "default_dashboard": "freelancer",
                 "rating": 4.5 + (years % 5) * 0.1,
                 "company_id": "company_default", "auth": "jwt",
