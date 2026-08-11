@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { HardHat, Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
+import { Menu, X, Sun, Moon, ChevronDown } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
@@ -11,6 +11,7 @@ import CartNavButton from "@/components/store/CartNavButton";
 import { NAV_COPY } from "@/lib/homeCopy";
 import { useDemoMode } from "@/context/DemoModeContext";
 
+/** Core nav — premium sites keep primary nav to 4–5 items max */
 const PRIMARY_LINKS = [
   { to: "/store", key: "nav.store", label: "Store", labelHi: "स्टोर" },
   { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
@@ -21,23 +22,23 @@ const PRIMARY_LINKS = [
   { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
   { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
+  { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
 ];
 
-const MORE_LINKS = [
-  { to: "/mart", label: "Brand Catalog", labelHi: "ब्रांड कैटलॉग" },
-  { to: "/enroll", label: "Enrollment", labelHi: "पंजीकरण" },
+const EXPLORE_LINKS = [
+  { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
+  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
   { to: "/solar", label: "Solar", labelHi: "सोलर" },
-  { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
-  { to: "/download-app", label: "Get App", labelHi: "ऐप डाउनलोड" },
-  { to: "/become-vendor", label: "Become Vendor", labelHi: "विक्रेता बनें" },
-  { to: "/consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
+  { to: "/marketplace", label: "Marketplace", labelHi: "मार्केटप्लेस" },
   { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
-  { to: "/ads", label: "Advertise", labelHi: "विज्ञापन" },
-  { to: "/services", label: "Services", labelHi: "सेवाएँ" },
+  { to: "/services", label: "All services", labelHi: "सभी सेवाएँ" },
+  { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
+  { to: "/enroll", label: "Enrollment", labelHi: "पंजीकरण" },
+  { to: "/become-vendor", label: "Become vendor", labelHi: "विक्रेता बनें" },
   { to: "/contact", label: "Contact", labelHi: "संपर्क" },
 ];
 
-const ALL_LINKS = [...PRIMARY_LINKS, ...MORE_LINKS];
+const MOBILE_LINKS = [...PRIMARY_LINKS, ...EXPLORE_LINKS];
 
 export default function Navbar() {
   const { user } = useAuth();
@@ -46,23 +47,31 @@ export default function Navbar() {
   const { lang, toggle: toggleLang, t, enabled } = useLang();
   const navCopy = NAV_COPY[lang] || NAV_COPY.en;
   const [open, setOpen] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
   const nav = useNavigate();
   const { openPanel } = useDemoMode();
   const lbl = (l) => t(l.key) || (lang === "hi" ? l.labelHi : l.label);
 
   return (
-    <header className={`z-50 border-b border-border/80 bg-background/95 backdrop-blur-xl shadow-sm ${navbar_style === "sticky" ? "sticky top-0" : ""}`}>
-      <div className="mx-auto max-w-[1400px] px-4 md:px-10 h-14 md:h-16 flex items-center justify-between">
-        <Link to="/" data-testid="nav-logo" className="flex items-center gap-2.5">
-          <BrandLogo className="h-8 w-8 md:h-9 md:w-9" iconClass="h-4 w-4 md:h-5 md:w-5" />
-          <span className="font-display font-extrabold text-base md:text-lg tracking-tight">{brand_name}</span>
+    <header
+      className={`z-50 border-b border-border/40 bg-background/80 backdrop-blur-2xl ${
+        navbar_style === "sticky" ? "sticky top-0" : ""
+      }`}
+    >
+      <div className="mx-auto max-w-6xl px-4 md:px-8 h-16 flex items-center justify-between gap-4">
+        <Link to="/" data-testid="nav-logo" className="flex items-center gap-2.5 shrink-0">
+          <BrandLogo className="h-8 w-8" iconClass="h-4 w-4" />
+          <span className="font-display font-extrabold text-base tracking-tight hidden sm:inline">{brand_name}</span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-6">
+        <nav className="hidden lg:flex items-center gap-8">
           {PRIMARY_LINKS.map((l) => (
-            <Link key={l.to} to={l.to} data-testid={`nav-${l.label.toLowerCase().replace(/\s+/g, "-")}`}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              key={l.to}
+              to={l.to}
+              data-testid={`nav-${l.label.toLowerCase().replace(/\s+/g, "-")}`}
+              className="nav-link"
+            >
               {lbl(l)}
             </Link>
           ))}
@@ -70,48 +79,60 @@ export default function Navbar() {
             <button
               type="button"
               data-testid="nav-more"
-              onClick={() => setMoreOpen((v) => !v)}
-              className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setExploreOpen((v) => !v)}
+              className="nav-link flex items-center gap-1"
             >
-              {navCopy.more} <ChevronDown className={`h-4 w-4 transition-transform ${moreOpen ? "rotate-180" : ""}`} />
+              {navCopy.explore}
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${exploreOpen ? "rotate-180" : ""}`} />
             </button>
-            {moreOpen && (
-              <div className="absolute top-full right-0 mt-2 w-44 rounded-lg border border-border bg-card shadow-lg py-1 z-50">
-                {MORE_LINKS.map((l) => (
-                  <Link
-                    key={l.to}
-                    to={l.to}
-                    onClick={() => setMoreOpen(false)}
-                    className="block px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                  >
-                    {lbl(l)}
-                  </Link>
-                ))}
-              </div>
+            {exploreOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setExploreOpen(false)} aria-hidden />
+                <div className="absolute top-full right-0 mt-2 w-52 rounded-xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-lg py-2 z-50">
+                  {EXPLORE_LINKS.map((l) => (
+                    <Link
+                      key={l.to}
+                      to={l.to}
+                      onClick={() => setExploreOpen(false)}
+                      className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+                    >
+                      {lbl(l)}
+                    </Link>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {enabled.length > 1 && (
-          <button
-            type="button"
-            data-testid="lang-toggle"
-            onClick={toggleLang}
-            className="h-9 px-2 flex items-center justify-center border border-border hover:bg-accent transition-colors rounded-lg text-xs font-mono uppercase"
-            title="Switch language"
-          >
-            {navCopy.langSwitch}
-          </button>
+            <button
+              type="button"
+              data-testid="lang-toggle"
+              onClick={toggleLang}
+              className="h-9 w-9 flex items-center justify-center rounded-lg text-xs font-mono uppercase text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors"
+              title="Switch language"
+            >
+              {navCopy.langSwitch}
+            </button>
           )}
           <CartNavButton />
-          <button data-testid="theme-toggle" onClick={toggle}
-            className="h-9 w-9 flex items-center justify-center border border-border hover:bg-accent transition-colors rounded-lg">
+          <button
+            data-testid="theme-toggle"
+            onClick={toggle}
+            className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors"
+          >
             {theme === "dark" ? <Sun className="h-4 w-4" strokeWidth={1.5} /> : <Moon className="h-4 w-4" strokeWidth={1.5} />}
           </button>
           {user ? (
-            <Button data-testid="nav-dashboard-btn" onClick={() => nav("/dashboard")}
-              className="btn-premium hidden sm:inline-flex h-9">{navCopy.dashboard}</Button>
+            <Button
+              data-testid="nav-dashboard-btn"
+              onClick={() => nav("/dashboard")}
+              className="btn-premium hidden sm:inline-flex h-9 rounded-xl px-4"
+            >
+              {navCopy.dashboard}
+            </Button>
           ) : (
             <>
               <Button variant="ghost" data-testid="nav-demo-btn" onClick={openPanel}
@@ -122,19 +143,34 @@ export default function Navbar() {
                 className="btn-premium hidden sm:inline-flex h-9 text-sm px-3">{navCopy.join}</Button>
             </>
           )}
-          <button className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg border border-border" onClick={() => setOpen(!open)} data-testid="nav-mobile-toggle">
+          <button
+            className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg hover:bg-accent/60"
+            onClick={() => setOpen(!open)}
+            data-testid="nav-mobile-toggle"
+          >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
+
       {open && (
-        <div className="lg:hidden border-t border-border bg-background px-4 py-3 flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground px-1">{navCopy.menu}</p>
-          {ALL_LINKS.map((l) => (
-            <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-medium py-2 px-1 active:text-primary">{lbl(l)}</Link>
+        <div className="lg:hidden border-t border-border/40 bg-background px-4 py-4 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
+          {MOBILE_LINKS.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              onClick={() => setOpen(false)}
+              className="text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-accent/50 active:text-primary"
+            >
+              {lbl(l)}
+            </Link>
           ))}
           {!user && (
-            <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-semibold py-2 px-1 text-primary">
+            <Link
+              to="/login"
+              onClick={() => setOpen(false)}
+              className="mt-2 text-center text-sm font-semibold py-2.5 rounded-xl bg-primary text-primary-foreground"
+            >
               {navCopy.authCta}
             </Link>
           )}

@@ -99,6 +99,7 @@ export const REGIONAL_UI = {
 export const NAV_COPY = {
   en: {
     more: "More",
+    explore: "Explore",
     menu: "Menu",
     login: "Log in",
     join: "Join",
@@ -109,10 +110,12 @@ export const NAV_COPY = {
   },
   hi: {
     more: "और",
+    explore: "और देखें",
     menu: "मेनू",
     login: "लॉग इन",
     join: "रजिस्टर",
     authCta: "लॉग इन / रजिस्टर",
+    authCtaShort: "खाता",
     dashboard: "डैशबोर्ड",
     langSwitch: "EN",
   },

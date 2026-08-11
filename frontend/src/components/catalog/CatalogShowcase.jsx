@@ -25,35 +25,27 @@ export default function CatalogShowcase({ variant = "compact", className = "" })
   if (!verticals.length && !featured.length) return null;
 
   const isFull = variant === "full";
-  const featuredSlice = isFull ? featured : featured.slice(0, 8);
+  const featuredSlice = isFull ? featured : featured.slice(0, 6);
   const verticalSlice = isFull ? verticals : verticals.slice(0, 4);
 
   return (
     <section
-      className={`${isFull ? "py-16 md:py-20" : "py-10 border-t border-border"} ${className}`}
+      className={`${isFull ? "section-premium" : "py-12 md:py-14"} ${className}`}
       data-testid="catalog-showcase"
     >
-      <div className="mx-auto max-w-[1400px] px-4 md:px-10">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
-          <div className="max-w-2xl">
-            <span className="text-xs font-mono uppercase tracking-widest text-primary">
+      <div className="mx-auto max-w-6xl px-4 md:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
+          <div className="max-w-xl">
+            <p className="text-xs font-medium uppercase tracking-[0.15em] text-muted-foreground">
               {hi ? "ब्रांड कैटलॉग" : "Brand catalog"}
-            </span>
-            <h2 className={`font-display font-extrabold tracking-tight mt-2 ${isFull ? "text-3xl md:text-4xl" : "text-xl md:text-2xl"}`}>
-              {hi ? "हर श्रेणी — फोटो, ब्रांड और अनुमानित दर" : "Every category — photos, brands & estimated rates"}
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {totalBrands}+ {hi ? "ब्रांड · सुपर मार्ट + इंटीरियर BOQ पर लाइव दरें" : "brands · live rates on Super Mart + Interior BOQ"}
             </p>
+            <h2 className={`font-display font-bold tracking-tight mt-2 text-balance ${isFull ? "text-3xl md:text-4xl" : "text-xl md:text-2xl"}`}>
+              {hi ? "फोटो, ब्रांड और लाइव दरें" : "Photos, brands & live rates"}
+            </h2>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link to="/mart" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-              {hi ? "सुपर मार्ट" : "Super Mart"}<ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link to="/interior-boq" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-              {hi ? "इंटीरियर BOQ" : "Interior BOQ"}<ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
+          <Link to="/mart" className="text-sm font-medium text-primary hover:underline flex items-center gap-1 shrink-0">
+            {hi ? "सुपर मार्ट" : "Super Mart"}<ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
 
         {/* Interior vertical categories */}
@@ -63,7 +55,7 @@ export default function CatalogShowcase({ variant = "compact", className = "" })
               key={v.id}
               to={`/interior-boq/${v.id}`}
               data-testid={`showcase-vertical-${v.id}`}
-              className="group border border-border rounded-xl overflow-hidden bg-card hover:border-primary/50 hover:shadow-sm transition-all"
+              className="group border border-border/70 rounded-xl overflow-hidden bg-card hover:border-primary/30 hover:shadow-sm transition-all duration-300"
             >
               <div className="relative h-24 bg-muted overflow-hidden">
                 {v.image ? (
