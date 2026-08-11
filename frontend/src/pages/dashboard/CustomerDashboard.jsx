@@ -9,6 +9,7 @@ import TenderManageSection from "@/components/tenders/TenderManageSection";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
+import InteriorBOQCalculator from "@/components/dashboard/InteriorBOQCalculator";
 import SolarEstimator from "@/components/solar/SolarEstimator";
 import WalletSection from "@/components/dashboard/WalletSection";
 
@@ -21,6 +22,7 @@ const NAV = [
   { id: "quotes", label: "Solar Quotes", icon: Sun },
   { id: "solar-epc", label: "Solar EPC", icon: Zap },
   { id: "materials", label: "Material Calc", icon: Store },
+  { id: "interior-boq", label: "Interior BOQ", icon: Home },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
@@ -182,6 +184,7 @@ export default function CustomerDashboard() {
           )}
 
           {active === "materials" && <MaterialCalculator />}
+          {active === "interior-boq" && <InteriorBOQCalculator />}
           {active === "solar-epc" && <SolarEstimator embedded />}
           {active === "wallet" && <WalletSection />}
           {active === "billing" && <BillingSection />}

@@ -22,7 +22,8 @@ LIFECYCLE_STAGES = [
 
 SEGMENTS = ["new_home", "villa", "interior", "renovation", "villa_upgrade"]
 
-TRADES = ["electrical", "electronic", "plumbing", "paint_putty", "tiles", "aggregate", "logistics"]
+TRADES = ["electrical", "electronic", "plumbing", "paint_putty", "tiles", "aggregate", "logistics",
+          "false_ceiling", "pvc_work", "fabrication", "gardening", "interior_decoration", "renovation", "vastu"]
 
 LAYOUT_STEPS = [
     {"id": "layout_basic", "name": "Basic Floor Plan (Naksha)", "name_hi": "बेसिक फ्लोर प्लान", "price": 0, "free": True},
@@ -82,6 +83,19 @@ SEED_TRADE_RATES = [
     {"trade": "aggregate", "name": "20mm Aggregate", "unit": "cft", "rate": 42},
     {"trade": "logistics", "name": "Material Transport (10T)", "unit": "trip", "rate": 3500},
     {"trade": "logistics", "name": "Crane Hire (per day)", "unit": "day", "rate": 12000},
+    {"trade": "false_ceiling", "name": "POP False Ceiling Labour", "unit": "sqft", "rate": 42},
+    {"trade": "false_ceiling", "name": "Gypsum Ceiling Labour", "unit": "sqft", "rate": 48},
+    {"trade": "pvc_work", "name": "UPVC Window Fitting", "unit": "sqft", "rate": 85},
+    {"trade": "pvc_work", "name": "PVC Door Fitting", "unit": "piece", "rate": 1200},
+    {"trade": "fabrication", "name": "MS Gate Fabrication Labour", "unit": "sqft", "rate": 180},
+    {"trade": "fabrication", "name": "SS Railing Labour", "unit": "rft", "rate": 220},
+    {"trade": "gardening", "name": "Landscape Labour", "unit": "sqft", "rate": 35},
+    {"trade": "gardening", "name": "Artificial Grass Laying", "unit": "sqft", "rate": 28},
+    {"trade": "interior_decoration", "name": "Modular Kitchen Install", "unit": "sqft", "rate": 350},
+    {"trade": "interior_decoration", "name": "Wardrobe Installation", "unit": "sqft", "rate": 280},
+    {"trade": "renovation", "name": "Bathroom Renovation Labour", "unit": "bathroom", "rate": 25000},
+    {"trade": "renovation", "name": "Wall Demolition Labour", "unit": "sqft", "rate": 28},
+    {"trade": "vastu", "name": "Vastu Consultation (on-site)", "unit": "visit", "rate": 5000},
 ]
 
 router = APIRouter(prefix="/api/home", tags=["home-build"])

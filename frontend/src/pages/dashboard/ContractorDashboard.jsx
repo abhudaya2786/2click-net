@@ -11,6 +11,7 @@ import TenderManageSection from "@/components/tenders/TenderManageSection";
 import { toast } from "sonner";
 import BillingSection from "@/components/dashboard/BillingSection";
 import MaterialCalculator from "@/components/dashboard/MaterialCalculator";
+import InteriorBOQCalculator from "@/components/dashboard/InteriorBOQCalculator";
 import WalletSection from "@/components/dashboard/WalletSection";
 
 const NAV = [
@@ -21,6 +22,7 @@ const NAV = [
   { id: "boq", label: "BOQ", icon: Calculator },
   { id: "dpr", label: "Daily Report", icon: ClipboardList },
   { id: "materials", label: "Material Calc", icon: Store },
+  { id: "interior-boq", label: "Interior BOQ", icon: Home },
   { id: "wallet", label: "Wallet", icon: Wallet },
   { id: "billing", label: "Billing", icon: CreditCard },
 ];
@@ -287,6 +289,7 @@ export default function ContractorDashboard() {
           )}
 
           {active === "materials" && <MaterialCalculator />}
+          {active === "interior-boq" && <InteriorBOQCalculator />}
           {active === "wallet" && <WalletSection />}
           {active === "billing" && <BillingSection />}
         </>
