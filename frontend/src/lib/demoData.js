@@ -37,6 +37,7 @@ export const DEMO_BOQ_SECTIONS = [
   { id: "tv_panel", name: "TV Panel & Feature Wall", name_hi: "TV पैनल", image: IMG.kitchen, item_count: 15 },
   { id: "tiles", name: "Tiles & Flooring", name_hi: "टाइल्स", image: IMG.tiles, item_count: 30 },
   { id: "civil", name: "Civil & Structure", name_hi: "सिविल", image: IMG.cement, item_count: 40 },
+  { id: "fabrication", name: "Fabrication / MS-SS", name_hi: "फैब्रिकेशन", image: IMG.cement, item_count: 38 },
 ];
 
 const DEMO_PRESETS = {
@@ -65,6 +66,12 @@ const DEMO_PRESETS = {
   civil: [
     { category: "Cement", name: "OPC 53 Grade", qty: 200, rate: 395, brand: "JK Lakshmi", unit: "bag" },
     { category: "Steel & TMT", name: "TMT Bar Fe500", qty: 2500, rate: 62, brand: "Kamdhenu", unit: "kg" },
+  ],
+  fabrication: [
+    { category: "Fabrication", name: "MS Gate Fabrication", qty: 80, rate: 650, brand: "Local MS", unit: "sqft" },
+    { category: "Fabrication", name: "SS Railing", qty: 50, rate: 720, brand: "Local SS", unit: "rft" },
+    { category: "Fabrication", name: "MS Grill Window", qty: 60, rate: 420, brand: "Local MS", unit: "sqft" },
+    { category: "Fabrication", name: "Welding Rod 12mm", qty: 25, rate: 125, brand: "Local", unit: "kg" },
   ],
 };
 
@@ -98,7 +105,7 @@ export const DEMO_INTERIOR_VERTICALS = [
   { id: "renovation", name: "Renovation", name_hi: "रेनोवेशन", image: IMG.kitchen, product_count: 8, brand_count: 3, from_rate: 95000, from_unit: "set", from_brand: "Local" },
   { id: "gardening", name: "Gardening", name_hi: "गार्डनिंग", image: IMG.kitchen, product_count: 9, brand_count: 4, from_rate: 75, from_unit: "sqft", from_brand: "Local" },
   { id: "vastu", name: "Vastu", name_hi: "वास्तु", image: IMG.kitchen, product_count: 6, brand_count: 3, from_rate: 2500, from_unit: "visit", from_brand: "Online Vastu" },
-  { id: "fabrication", name: "Fabrication", name_hi: "फैब्रिकेशन", image: IMG.cement, product_count: 7, brand_count: 3, from_rate: 420, from_unit: "sqft", from_brand: "Local MS" },
+  { id: "fabrication", name: "Fabrication", name_hi: "फैब्रिकेशन", image: IMG.cement, product_count: 38, brand_count: 12, from_rate: 420, from_unit: "sqft", from_brand: "Local MS" },
 ];
 
 export function demoBoqCatalog(sectionId) {
@@ -348,11 +355,117 @@ export function demoPropertyAdvisoryMatch(payload) {
     matched_projects: projects.slice(0, 4).map((p) => ({
       id: p.id, title: p.title, title_hi: p.title_hi, city: p.city, state: p.state, price_label: p.price_label,
     })),
-    recommended_tools: [
-      { path: "/boq-builder", en: "Full Home BOQ", hi: "पूरा घर BOQ" },
-      { path: "/upcoming-projects", en: "Upcoming projects", hi: "आगामी प्रोजेक्ट" },
-      { path: "/tenders", en: "Tender Hub", hi: "टेंडर" },
-    ],
     demo: true,
   };
 }
+
+const FAB_IMG = "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800";
+
+export const DEMO_FABRICATION_WORK_TYPES = [
+  {
+    id: "gate_entry", name: "Main gate & entry", name_hi: "मुख्य गेट और प्रवेश",
+    desc_en: "MS gate, sliding gate, designer gate, automation",
+    desc_hi: "एमएस गेट, स्लाइडिंग गेट, डिज़ाइनर गेट, ऑटोमेशन",
+    material_items: [
+      { name: "MS Gate Fabrication", unit: "sqft", from_rate: 650, from_brand: "Local MS", image: FAB_IMG },
+      { name: "MS Sliding Gate", unit: "sqft", from_rate: 780, from_brand: "Local MS", image: FAB_IMG },
+      { name: "Designer Fancy Gate", unit: "sqft", from_rate: 950, from_brand: "Local MS", image: FAB_IMG },
+      { name: "Gate Automation Motor Kit", unit: "set", from_rate: 12500, from_brand: "Local", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "railing_balcony", name: "Railing & balcony", name_hi: "रेलिंग और बालकनी",
+    desc_en: "SS/MS balcony railing, glass railing",
+    desc_hi: "एसएस/एमएस बालकनी रेलिंग, ग्लास रेलिंग",
+    material_items: [
+      { name: "SS Railing", unit: "rft", from_rate: 720, from_brand: "Local SS", image: FAB_IMG },
+      { name: "MS Balcony Railing", unit: "rft", from_rate: 420, from_brand: "Local MS", image: FAB_IMG },
+      { name: "Glass Railing with SS", unit: "rft", from_rate: 980, from_brand: "Local SS", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "window_grill", name: "Window grill & safety", name_hi: "विंडो ग्रिल और सुरक्षा",
+    desc_en: "Fixed grill, SS grill, safety door",
+    desc_hi: "फिक्स्ड ग्रिल, एसएस ग्रिल, सेफ्टी दरवाज़ा",
+    material_items: [
+      { name: "MS Grill Window", unit: "sqft", from_rate: 420, from_brand: "Local MS", image: FAB_IMG },
+      { name: "SS Window Grill", unit: "sqft", from_rate: 550, from_brand: "Jindal SS", image: FAB_IMG },
+      { name: "MS Safety Door", unit: "piece", from_rate: 6500, from_brand: "Local MS", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "staircase", name: "Staircase MS/SS", name_hi: "सीढ़ी एमएस/एसएस",
+    desc_en: "MS staircase, railing, handrail",
+    desc_hi: "एमएस सीढ़ी, रेलिंग, हैंडरेल",
+    material_items: [
+      { name: "MS Staircase Structure", unit: "sqft", from_rate: 520, from_brand: "Local MS", image: FAB_IMG },
+      { name: "MS Staircase Railing", unit: "rft", from_rate: 380, from_brand: "Local MS", image: FAB_IMG },
+      { name: "SS Staircase Handrail", unit: "rft", from_rate: 650, from_brand: "Local SS", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "boundary_fence", name: "Boundary & fencing", name_hi: "बाउंड्री और फेंसिंग",
+    desc_en: "Boundary railing, chain link",
+    desc_hi: "बाउंड्री रेलिंग, चेन लिंक",
+    material_items: [
+      { name: "Boundary Wall MS Railing", unit: "rft", from_rate: 350, from_brand: "Local MS", image: FAB_IMG },
+      { name: "Chain Link Fencing", unit: "rft", from_rate: 180, from_brand: "Local", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "structural_ms", name: "Structural MS", name_hi: "स्ट्रक्चरल एमएस",
+    desc_en: "Angle, channel, beam, truss",
+    desc_hi: "एंगल, चैनल, बीम, ट्रस",
+    material_items: [
+      { name: "MS Angle 50x50", unit: "kg", from_rate: 62, from_brand: "Local MS", image: FAB_IMG },
+      { name: "MS Roof Truss", unit: "sqft", from_rate: 280, from_brand: "Local MS", image: FAB_IMG },
+      { name: "GI Sheet 1mm", unit: "sqft", from_rate: 85, from_brand: "Local", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "roof_shed", name: "Roof & shed", name_hi: "छत और शेड",
+    desc_en: "PEB shed, polycarbonate roof",
+    desc_hi: "PEB शेड, पॉलीकार्बोनेट छत",
+    material_items: [
+      { name: "PEB Shed Fabrication", unit: "sqft", from_rate: 360, from_brand: "Local MS", image: FAB_IMG },
+      { name: "Car Porch MS Structure", unit: "sqft", from_rate: 450, from_brand: "Local MS", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "facade_cladding", name: "Facade support", name_hi: "फेसाड सपोर्ट",
+    desc_en: "ACP frame, aluminium louvers",
+    desc_hi: "ACP फ्रेम, एल्युमिनियम लूवर",
+    material_items: [
+      { name: "ACP Fixing MS Frame", unit: "sqft", from_rate: 180, from_brand: "Local MS", image: FAB_IMG },
+      { name: "Aluminium Louver Panel", unit: "sqft", from_rate: 260, from_brand: "Local", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "industrial", name: "Industrial", name_hi: "औद्योगिक",
+    desc_en: "Mezzanine, platform",
+    desc_hi: "मेज़ानिन, प्लेटफॉर्म",
+    material_items: [
+      { name: "MS Mezzanine Floor", unit: "sqft", from_rate: 340, from_brand: "Local MS", image: FAB_IMG },
+      { name: "MS Platform Fabrication", unit: "sqft", from_rate: 420, from_brand: "Local MS", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "stainless_commercial", name: "Stainless commercial", name_hi: "स्टेनलेस कॉमर्शियल",
+    desc_en: "SS counter, sink, railing",
+    desc_hi: "एसएस काउंटर, सिंक, रेलिंग",
+    material_items: [
+      { name: "SS Kitchen Counter", unit: "sqft", from_rate: 1850, from_brand: "Local SS", image: FAB_IMG },
+      { name: "SS Sink Unit with Stand", unit: "set", from_rate: 9800, from_brand: "Local SS", image: FAB_IMG },
+    ],
+  },
+  {
+    id: "consumables", name: "Welding & finishing", name_hi: "वेल्डिंग और फिनिशिंग",
+    desc_en: "Welding rod, primer, paint",
+    desc_hi: "वेल्डिंग रॉड, प्राइमर, पेंट",
+    material_items: [
+      { name: "Welding Rod 12mm", unit: "kg", from_rate: 125, from_brand: "Local", image: FAB_IMG },
+      { name: "MS Primer Red Oxide", unit: "litre", from_rate: 82, from_brand: "Nerolac", image: FAB_IMG },
+      { name: "MS Enamel Paint", unit: "litre", from_rate: 158, from_brand: "Nerolac", image: FAB_IMG },
+    ],
+  },
+];
