@@ -1516,6 +1516,9 @@ async def startup():
     _landing.init(db)
     await _landing.ensure_indexes()
     await _landing.seed_landing()
+    import project_planner
+    project_planner.init(db, get_current_user)
+    await project_planner.ensure_indexes()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1571,6 +1574,8 @@ _eqr.init(db, get_current_user)
 import landing as _landing
 _landing.init(db)
 import backup as _backup
+import project_planner as _planner
+_planner.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1599,6 +1604,7 @@ app.include_router(_eqr.router)
 app.include_router(_landing.public_router)
 app.include_router(_landing.admin_router)
 app.include_router(_backup.admin_router)
+app.include_router(_planner.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useBranding } from "@/context/BrandingContext";
+import { loadStoredPreset } from "@/lib/themePresets";
 
 const ThemeContext = createContext(null);
 export const useTheme = () => useContext(ThemeContext);
@@ -25,6 +26,10 @@ export function ThemeProvider({ children }) {
     document.documentElement.classList.toggle("dark", resolved === "dark");
     localStorage.setItem("bs_theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    loadStoredPreset();
+  }, []);
 
   const toggle = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
   return <ThemeContext.Provider value={{ theme, toggle, setTheme }}>{children}</ThemeContext.Provider>;
