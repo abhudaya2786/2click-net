@@ -120,6 +120,83 @@ AGREEMENTS = [
             "एक मालिक कई दुकानें अलग-अलग पंजीकरण से चला सकता है।"
         ),
     },
+    {
+        "code": "client_agreement",
+        "version": "1.0",
+        "title": "Client Agreement — Hiring & Services",
+        "title_hi": "क्लाइंट समझौता — सेवा और हायरिंग",
+        "applies_to": ["user", "customer", "contractor", "company", "employee", "other"],
+        "required": True,
+        "content": (
+            "As a client on 2click.in you may browse freelancers, send enquiries, place orders, and hire "
+            "professionals for construction, design, accounting, and related services.\n\n"
+            "1. Scope: You are the client (buyer) of services listed on the platform. 2click.in is a "
+            "marketplace facilitator, not the service provider unless explicitly stated.\n\n"
+            "2. Payments: Agreed fees are paid through platform flows where available. Platform commission "
+            "and taxes may apply. Do not pay outside the platform for bookings initiated on 2click.in "
+            "unless both parties accept documented off-platform terms.\n\n"
+            "3. Your responsibilities: Provide accurate project details, respond in good faith, and pay "
+            "agreed amounts on time. Do not request illegal work or misuse freelancer deliverables.\n\n"
+            "4. Deliverables & disputes: Quality and timelines are between you and the freelancer. "
+            "Raise disputes via support within 7 days of delivery. 2click.in may mediate but does not "
+            "guarantee outcomes.\n\n"
+            "5. Confidentiality: Respect freelancer IP and confidential information shared during projects.\n\n"
+            "6. Liability: 2click.in is not liable for freelancer performance, delays, or indirect losses. "
+            "Indian law and jurisdiction apply."
+        ),
+        "content_hi": (
+            "2click.in पर क्लाइंट के रूप में आप फ्रीलांसर ब्राउज़ कर सकते हैं, पूछताछ भेज सकते हैं, "
+            "ऑर्डर दे सकते हैं और निर्माण, डिज़ाइन, लेखा आदि सेवाओं के लिए पेशेवर हायर कर सकते हैं।\n\n"
+            "1. दायरा: आप सेवा का क्लाइंट (खरीदार) हैं। 2click.in मार्केटप्लेस सुविधा प्रदान करता है, "
+            "सेवा प्रदाता नहीं (जब तक स्पष्ट न कहा हो)।\n\n"
+            "2. भुगतान: सहमत शुल्क प्लेटफ़ॉर्म के माध्यम से। कमीशन और टैक्स लागू हो सकते हैं। "
+            "प्लेटफ़ॉर्म पर शुरू की बुकिंग के लिए बिना दस्तावेज़ के बाहर भुगतान न करें।\n\n"
+            "3. आपकी ज़िम्मेदारी: सही प्रोजेक्ट विवरण दें, समय पर भुगतान करें, अवैध कार्य न मांगें।\n\n"
+            "4. विवाद: गुणवत्ता और समयसीमा आप और फ्रीलांसर के बीच है। डिलीवरी के 7 दिनों में सपोर्ट पर "
+            "विवाद उठाएँ।\n\n"
+            "5. गोपनीयता: फ्रीलांसर की IP और गोपनीय जानकारी का सम्मान करें।\n\n"
+            "6. दायित्व: फ्रीलांसर प्रदर्शन के लिए 2click.in ज़िम्मेदार नहीं। भारतीय कानून लागू।"
+        ),
+    },
+    {
+        "code": "freelancer_agreement",
+        "version": "1.0",
+        "title": "Freelancer & Professional Services Agreement",
+        "title_hi": "फ्रीलांसर और पेशेवर सेवा समझौता",
+        "applies_to": ["freelancer", "architect", "engineer", "ca", "service_provider"],
+        "required": True,
+        "content": (
+            "As a freelancer or professional on 2click.in you offer services to clients through "
+            "the platform talent network, enquiries, and orders.\n\n"
+            "1. Profile & listings: Your name, skills, portfolio, pricing, and categories must be accurate. "
+            "You represent that you have the qualifications to perform listed services.\n\n"
+            "2. Client engagements: Respond professionally to enquiries. Honour agreed scope, timeline, and "
+            "fees. Deliver work to the standard described in your listing or proposal.\n\n"
+            "3. Commission & payouts: Platform commission is deducted per order as shown in admin commission "
+            "settings (category/product/order-wise). Net payout is credited per platform settlement rules. "
+            "GST and tax compliance is your responsibility where applicable.\n\n"
+            "4. Prohibited conduct: No plagiarism, fake credentials, off-platform payment solicitation for "
+            "2click.in-originated leads without disclosure, or sharing client data without consent.\n\n"
+            "5. IP & deliverables: Unless agreed otherwise, clients receive usage rights for paid deliverables. "
+            "You retain pre-existing IP. License terms may be specified per project.\n\n"
+            "6. Suspension: Misrepresentation, repeated disputes, or policy violations may lead to delisting "
+            "or account suspension.\n\n"
+            "7. Liability: You are independent, not an employee of 2click.in. Indian law applies."
+        ),
+        "content_hi": (
+            "2click.in पर फ्रीलांसर/पेशेवर के रूप में आप टैलेंट नेटवर्क, पूछताछ और ऑर्डर के माध्यम से "
+            "क्लाइंटों को सेवा देते हैं।\n\n"
+            "1. प्रोफ़ाइल: नाम, कौशल, पोर्टफोलियो, मूल्य और श्रेणियाँ सही होनी चाहिए। "
+            "आप सूचीबद्ध सेवाएँ करने के लिए योग्य हैं।\n\n"
+            "2. क्लाइंट कार्य: पेशेवरता से जवाब दें। सहमत कार्य, समय और शुल्क पूरे करें।\n\n"
+            "3. कमीशन: ऑर्डर पर प्लेटफ़ॉर्म कमीशन काटा जाता है (श्रेणी/उत्पाद/ऑर्डर के अनुसार)। "
+            "नेट भुगतान settlement नियमों पर। GST/टैक्स आपकी ज़िम्मेदारी।\n\n"
+            "4. निषिद्ध: नकली प्रमाणपत्र, बिना बताए बाहर भुगतान मांगना, क्लाइंट डेटा बिना अनुमति साझा करना।\n\n"
+            "5. IP: भुगतान के बाद क्लाइंट को उपयोग अधिकार (जब तक अन्य सहमति न हो)। आप पूर्व IP रखते हैं।\n\n"
+            "6. निलंबन: गलत जानकारी या उल्लंघन पर हटाया/निलंबित किया जा सकता है।\n\n"
+            "7. दायित्व: आप स्वतंत्र हैं, 2click.in के कर्मचारी नहीं। भारतीय कानून लागू।"
+        ),
+    },
 ]
 
 

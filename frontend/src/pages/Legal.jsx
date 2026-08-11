@@ -60,3 +60,11 @@ export function TermsPage() {
 export function PrivacyPage() {
   return <LegalPage code="privacy_policy" fallbackTitle="Privacy Policy" />;
 }
+
+export function ClientAgreementPage() {
+  return <LegalPage code="client_agreement" fallbackTitle="Client Agreement" />;
+}
+
+export function FreelancerAgreementPage() {
+  return <LegalPage code="freelancer_agreement" fallbackTitle="Freelancer Agreement" />;
+}
