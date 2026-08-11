@@ -152,7 +152,8 @@ export const EXPLORE_EXTENDED = [
   { to: "/professionals", key: "professionals", label: "Professionals Hub", labelHi: "पेशेवर हब" },
   { to: "/technology", label: "3D / LiDAR / VR", labelHi: "3D / LiDAR / VR" },
   { to: "/about", key: "about", label: "About", labelHi: "हमारे बारे में" },
-  { to: "/platform", label: "Platform Guide", labelHi: "प्लेटफ़ॉर्म गाइड" },
+  { to: "/platform", label: "Complete guide", labelHi: "पूर्ण गाइड" },
+  { to: "/how-it-works", label: "How it works", labelHi: "कैसे काम करता है" },
 ];
 
 export const ENROLLMENT_FLOW = {

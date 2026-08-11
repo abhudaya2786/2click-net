@@ -71,6 +71,7 @@ function AppRouter() {
       <Route path="/technology" element={M(<Technology />)} />
       <Route path="/about" element={M(<About />)} />
       <Route path="/platform" element={M(<PlatformGuide />)} />
+      <Route path="/how-it-works" element={M(<PlatformGuide />)} />
       <Route path="/professionals" element={M(<ProfessionalsHub />)} />
       <Route path="/services" element={M(<Services />)} />
       <Route path="/pricing" element={M(<Pricing />)} />

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import PageSEO from "@/components/marketing/PageSEO";
 import { useLang } from "@/context/LanguageContext";
 import {
@@ -15,26 +15,55 @@ import {
   ECOSYSTEM_ADVANCED_FEATURES,
 } from "@/lib/platformScreenArchitecture";
 import EndToEndWorkflowDiagram from "@/components/marketing/EndToEndWorkflowDiagram";
-import { ArrowRight, ExternalLink, Sparkles, Layers } from "lucide-react";
+import PlatformCompleteReference from "@/components/marketing/PlatformCompleteReference";
+import { ArrowRight, ExternalLink, Sparkles, Layers, BookOpen } from "lucide-react";
 
 export default function PlatformGuide() {
   const { lang } = useLang();
   const hi = lang === "hi";
+  const { pathname } = useLocation();
+  const isHowItWorks = pathname === "/how-it-works";
 
   return (
     <div className="mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-14">
       <PageSEO
-        title="Platform architecture — 2click.in"
-        description="Screen-by-screen functional map: Explore menu, enrollment, vendor onboarding, equipment rental, talent network."
-        path="/platform"
+        title={
+          isHowItWorks
+            ? "How 2click.in works — step-by-step construction platform"
+            : "Complete 2click.in guide — functions, options & work types"
+        }
+        description={
+          isHowItWorks
+            ? "See how 2click.in works: build a project in two clicks, estimate costs, BOQ, store, tenders, solar, and enrollment."
+            : "Full platform reference: every module, click workflow, user roles, BOQ, store, solar, tenders, enrollment."
+        }
+        path={isHowItWorks ? "/how-it-works" : "/platform"}
       />
-      <h1 className="font-display font-extrabold text-3xl tracking-tight">
-        {hi ? "प्लेटफ़ॉर्म आर्किटेक्चर" : "Platform architecture"}
-      </h1>
-      <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-        {hi
-          ? "स्क्रीन-दर-स्क्रीन और क्लिक-दर-क्लिक फ़ंक्शनल मैपिंग — सभी मुख्य मॉड्यूल।"
-          : "Screen-by-screen and click-by-click functional mapping for all major modules."}
+      <div className="flex items-start gap-3">
+        <BookOpen className="h-8 w-8 text-primary shrink-0 mt-1" />
+        <div>
+          <h1 className="font-display font-extrabold text-3xl tracking-tight">
+            {hi ? "2click.in — पूर्ण कार्य गाइड" : "2click.in — complete working guide"}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
+            {hi
+              ? "सभी फ़ंक्शन, विकल्प, प्रकार की कार्य और क्लिक-दर-क्लिक वर्कफ़्लो — एक स्थान पर।"
+              : "All functions, options, types of work, and click-by-click workflows — in one place."}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-10">
+        <PlatformCompleteReference />
+      </div>
+
+      <hr className="my-14 border-border/60" />
+
+      <h2 className="font-display font-bold text-xl mb-2">
+        {hi ? "तकनीकी आर्किटेक्चर (विस्तृत)" : "Technical architecture (detailed)"}
+      </h2>
+      <p className="text-sm text-muted-foreground mb-8">
+        {hi ? "डेवलपर और ऑपरेटर के लिए स्क्रीन-दर-स्क्रीन मैप।" : "Screen-by-screen map for developers and operators."}
       </p>
 
       {/* 1. Explore menu */}

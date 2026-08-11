@@ -27,6 +27,7 @@ const MODULE_COLORS = ["text-tender", "text-primary", "text-solar", "text-primar
 const MODULE_LINKS = ["/tenders", "/store", "/solar", "/login", "/services", "/pricing"];
 
 const QUICK_LINKS = [
+  { to: "/platform", key: "quickGuide" },
   { to: "/store", key: "quickStore" },
   { to: "/mart", key: "quickMart" },
   { to: "/boq-builder", key: "quickBoq" },
