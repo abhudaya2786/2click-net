@@ -193,6 +193,7 @@ export default function Login() {
 
         <div className="flex-1 flex items-center justify-center p-4 md:p-8">
           <div className="w-full max-w-md">
+            {stage === "login" && <AuthTabs active="login" registerTo={`/register?type=${profileId}`} />}
             {stage === "login" && (
               <>
                 <h1 data-testid="login-title" className="font-display font-extrabold text-2xl md:text-3xl tracking-tight">

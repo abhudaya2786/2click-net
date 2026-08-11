@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { api } from "@/lib/api";
+import { fetchCategoryTrees } from "@/lib/signupCategories";
 import { typeMeta, flattenTree } from "@/lib/categoryMeta";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -113,16 +113,9 @@ export default function CategoryPicker({
     setLoading(true);
     setError("");
     try {
-      const entries = await Promise.all(
-        categoryTypes.map((ct) =>
-          api.get("/categories/tree", { params: { category_type: ct } })
-            .then((r) => [ct, r.data])
-            .catch(() => [ct, []])
-        )
-      );
-      const map = Object.fromEntries(entries);
+      const map = await fetchCategoryTrees(categoryTypes);
       setTrees(map);
-      const total = entries.reduce((n, [, tree]) => n + flattenTree(tree).length, 0);
+      const total = Object.values(map).reduce((n, tree) => n + flattenTree(tree).length, 0);
       if (total === 0) setError(t("no_categories_found"));
     } catch {
       setError(t("categories_load_failed"));

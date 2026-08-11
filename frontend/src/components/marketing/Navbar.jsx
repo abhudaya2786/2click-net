@@ -133,6 +133,11 @@ export default function Navbar() {
           {ALL_LINKS.map((l) => (
             <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-medium py-2 px-1 active:text-primary">{lbl(l)}</Link>
           ))}
+          {!user && (
+            <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-semibold py-2 px-1 text-primary">
+              {navCopy.authCta}
+            </Link>
+          )}
         </div>
       )}
     </header>

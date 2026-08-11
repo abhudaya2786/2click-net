@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import PageSEO from "@/components/marketing/PageSEO";
+import CategoryPicker from "@/components/signup/CategoryPicker";
 
 const MODES = [
   { id: "user", icon: User, en: "Individual User", hi: "व्यक्तिगत उपयोगकर्ता", subEn: "Buy, tender, solar quotes", subHi: "खरीदें, टेंडर, सोलर" },
@@ -37,8 +38,8 @@ export default function Enrollment() {
   const [step, setStep] = useState(0);
   const [agreements, setAgreements] = useState([]);
   const [accepted, setAccepted] = useState({});
-  const [cats, setCats] = useState([]);
   const [selectedCats, setSelectedCats] = useState([]);
+  const [primaryCatId, setPrimaryCatId] = useState(null);
   const [userForm, setUserForm] = useState({ name: "", phone: "", company: "", business_type: "", state: "", city: "", pincode: "", service_area: "" });
   const [location, setLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
   const [shopForm, setShopForm] = useState({
@@ -60,20 +61,7 @@ export default function Enrollment() {
       .catch(() => setAgreements([]));
   }, [mode, userType]);
 
-  useEffect(() => {
-    if (mode !== "user") {
-      api.get("/categories/type/marketplace").then(({ data }) => setCats(data.slice(0, 40))).catch(() => setCats([]));
-    }
-  }, [mode]);
-
   const toggleAgreement = (code) => setAccepted((a) => ({ ...a, [code]: !a[code] }));
-  const toggleCat = (c) => {
-    setSelectedCats((s) => {
-      const exists = s.find((x) => x.id === c.id);
-      if (exists) return s.filter((x) => x.id !== c.id);
-      return [...s, { id: c.id, name: c.name }];
-    });
-  };
 
   const next = () => {
     setErr("");
@@ -109,12 +97,12 @@ export default function Enrollment() {
         pincode: userForm.pincode || shopForm.pincode,
         service_area: userForm.service_area || shopLocation.location || location.location,
         category_ids: selectedCats.map((c) => c.id),
-        primary_category_id: selectedCats[0]?.id || null,
+        primary_category_id: primaryCatId || selectedCats[0]?.id || null,
         accepted_agreements: acceptedList,
         shop: mode !== "user" ? {
           ...shopForm,
           category_ids: selectedCats.map((c) => c.id),
-          primary_category_id: selectedCats[0]?.id || null,
+          primary_category_id: primaryCatId || selectedCats[0]?.id || null,
         } : null,
       };
       const { data } = await api.post("/enrollment/complete", payload);
@@ -237,21 +225,18 @@ export default function Enrollment() {
                 showBusiness={mode !== "user"}
                 t={t}
               />
-              {mode !== "user" && cats.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium mb-2">{t("select_categories")}</h4>
-                  <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto border border-border p-3 rounded-lg">
-                    {cats.map((c) => {
-                      const on = selectedCats.find((x) => x.id === c.id);
-                      return (
-                        <button key={c.id} type="button" onClick={() => toggleCat(c)}
-                          className={`text-xs px-2.5 py-1 border rounded-md ${on ? "bg-primary text-white border-primary" : "border-border hover:border-primary"}`}>
-                          {c.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+              {mode !== "user" && (
+                <CategoryPicker
+                  categoryTypes={["marketplace"]}
+                  selected={selectedCats}
+                  primaryId={primaryCatId}
+                  onChange={(next, pid) => {
+                    setSelectedCats(next);
+                    setPrimaryCatId(pid);
+                  }}
+                  lang={lang}
+                  t={t}
+                />
               )}
             </div>
           )}
