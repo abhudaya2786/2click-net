@@ -113,13 +113,10 @@ export default function Register() {
     setCatQ("");
   };
 
-  const toggleCat = (c) => {
-    setSelected((s) => {
-      const exists = s.find((x) => x.id === c.id);
-      if (exists) { if (primaryId === c.id) setPrimaryId(null); return s.filter((x) => x.id !== c.id); }
-      if (!primaryId) setPrimaryId(c.id);
-      return [...s, { id: c.id, name: c.name }];
-    });
+  const selectUserType = (u) => {
+    setUt(u);
+    setSelected([]);
+    setPrimaryId(null);
   };
 
   const next = () => {
@@ -152,15 +149,12 @@ export default function Register() {
       };
       const { data } = await api.post("/auth/register", payload);
       setSession(data.token, data.user);
-      toast.success("Account created!");
+      toast.success(t("account_created"));
       nav("/dashboard");
     } catch (e2) {
       setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
     } finally { setBusy(false); }
   };
-
-  const filteredCats = cats.filter((c) => !catQ || c.name.toLowerCase().includes(catQ.toLowerCase()));
-  const grouped = filteredCats.reduce((acc, c) => { (acc[c.category_type] = acc[c.category_type] || []).push(c); return acc; }, {});
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -183,7 +177,7 @@ export default function Register() {
         <div className="mt-6 flex items-center gap-2">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-2 flex-1">
-              <div className={`h-8 w-8 flex items-center justify-center text-xs font-bold shrink-0 ${i < step ? "bg-primary text-white" : i === step ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
+              <div className={`h-8 w-8 flex items-center justify-center text-xs font-bold shrink-0 rounded-full ${i <= step ? "bg-primary text-white" : "bg-muted text-muted-foreground"}`}>
                 {i < step ? <Check className="h-4 w-4" /> : i + 1}
               </div>
               <span className={`text-xs font-medium hidden sm:inline ${i === step ? "text-foreground" : "text-muted-foreground"}`}>{t(s)}</span>
@@ -192,7 +186,7 @@ export default function Register() {
           ))}
         </div>
 
-        {err && <div data-testid="register-error" className="mt-5 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">{err}</div>}
+        {err && <div data-testid="register-error" className="mt-5 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2 rounded-lg">{err}</div>}
 
         <div className="mt-6">
           {step === 0 && (
@@ -281,21 +275,21 @@ export default function Register() {
           {step === 2 && (
             <div data-testid="step-business" className="space-y-4 max-w-lg">
               {hasField("company") && <div><label className="text-sm font-medium mb-1.5 block">{t("company_name")}</label>
-                <Input data-testid="biz-company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="rounded-none" /></div>}
+                <Input data-testid="biz-company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="rounded-lg" /></div>}
               {hasField("business_type") && <div><label className="text-sm font-medium mb-1.5 block">{t("business_type")}</label>
-                <Input data-testid="biz-type" value={form.business_type} onChange={(e) => setForm({ ...form, business_type: e.target.value })} className="rounded-none" /></div>}
+                <Input data-testid="biz-type" value={form.business_type} onChange={(e) => setForm({ ...form, business_type: e.target.value })} className="rounded-lg" /></div>}
               {hasField("skills") && <div><label className="text-sm font-medium mb-1.5 block">{t("skills")}</label>
-                <Input data-testid="biz-skills" value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} placeholder="AutoCAD, BOQ, Estimation" className="rounded-none" /></div>}
+                <Input data-testid="biz-skills" value={form.skills} onChange={(e) => setForm({ ...form, skills: e.target.value })} placeholder="AutoCAD, BOQ, Estimation" className="rounded-lg" /></div>}
               {hasField("service_area") && (
-                <div className="md:col-span-2">
+                <div>
                   <label className="text-sm font-medium mb-1.5 block">{t("service_area")}</label>
                   <LocationPicker value={location} onChange={setLocation} />
                 </div>
               )}
               {hasField("portfolio") && <div><label className="text-sm font-medium mb-1.5 block">{t("portfolio")}</label>
-                <Input data-testid="biz-portfolio" value={form.portfolio_url} onChange={(e) => setForm({ ...form, portfolio_url: e.target.value })} placeholder="https://…" className="rounded-none" /></div>}
+                <Input data-testid="biz-portfolio" value={form.portfolio_url} onChange={(e) => setForm({ ...form, portfolio_url: e.target.value })} placeholder="https://…" className="rounded-lg" /></div>}
               {hasField("pricing") && <div><label className="text-sm font-medium mb-1.5 block">{t("pricing")}</label>
-                <Input data-testid="biz-pricing" value={form.expected_pricing} onChange={(e) => setForm({ ...form, expected_pricing: e.target.value })} placeholder="₹ / hour or project" className="rounded-none" /></div>}
+                <Input data-testid="biz-pricing" value={form.expected_pricing} onChange={(e) => setForm({ ...form, expected_pricing: e.target.value })} placeholder="₹ / hour or project" className="rounded-lg" /></div>}
               {hasField("availability") && <div><label className="text-sm font-medium mb-1.5 block">{t("availability")}</label>
                 <Input data-testid="biz-availability" value={form.availability} onChange={(e) => setForm({ ...form, availability: e.target.value })} placeholder="Full-time / Part-time" className="rounded-none" /></div>}
               {(ut?.fields || []).length === 0 && <p className="text-sm text-muted-foreground py-6">{t("no_extra_details")}</p>}
@@ -304,14 +298,14 @@ export default function Register() {
 
           {step === 3 && (
             <form onSubmit={submit} data-testid="step-account" className="space-y-4 max-w-lg">
-              <Input data-testid="register-name" placeholder={t("full_name")} required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-none" />
-              <Input data-testid="register-email" type="email" placeholder={t("email")} required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-none" />
-              <Input data-testid="register-password" type="password" placeholder={t("password")} required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="rounded-none" />
+              <Input data-testid="register-name" placeholder={t("full_name")} required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-lg" />
+              <Input data-testid="register-email" type="email" placeholder={t("email")} required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-lg" />
+              <Input data-testid="register-password" type="password" placeholder={t("password")} required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="rounded-lg" />
               <label className="flex items-center gap-2 text-sm">
                 <input data-testid="register-terms" type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="h-4 w-4 accent-[hsl(var(--primary))]" />
                 {t("accept_terms")}
               </label>
-              <Button data-testid="register-submit" type="submit" disabled={busy} className="w-full rounded-none">
+              <Button data-testid="register-submit" type="submit" disabled={busy} className="w-full rounded-lg">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("create")}
               </Button>
             </form>
@@ -319,9 +313,9 @@ export default function Register() {
         </div>
 
         <div className="mt-8 flex items-center justify-between">
-          <Button variant="ghost" onClick={back} disabled={step === 0} data-testid="wizard-back" className="rounded-none"><ArrowLeft className="h-4 w-4 mr-1.5" />{t("back")}</Button>
+          <Button variant="ghost" onClick={back} disabled={step === 0} data-testid="wizard-back" className="rounded-lg"><ArrowLeft className="h-4 w-4 mr-1.5" />{t("back")}</Button>
           {step < STEPS.length - 1
-            ? <Button onClick={next} data-testid="wizard-next" className="rounded-none">{t("next")}<ArrowRight className="h-4 w-4 ml-1.5" /></Button>
+            ? <Button onClick={next} data-testid="wizard-next" className="rounded-lg">{t("next")}<ArrowRight className="h-4 w-4 ml-1.5" /></Button>
             : <span className="text-sm text-muted-foreground">{t("have_account")} <Link to="/login" className="text-primary font-medium">{t("login")}</Link></span>}
         </div>
       </div>
