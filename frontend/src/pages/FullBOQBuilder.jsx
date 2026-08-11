@@ -34,13 +34,22 @@ export default function FullBOQBuilder() {
   const [pickProduct, setPickProduct] = useState("");
   const [pickBrandId, setPickBrandId] = useState("");
   const [pickQty, setPickQty] = useState("");
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
+  const loadSections = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
     api.get("/mart/boq-builder/sections")
       .then(({ data }) => setSections(data || []))
-      .catch(() => toast.error(hi ? "स्टोर लोड नहीं हो सके" : "Could not load stores"))
+      .catch(() => {
+        setSections([]);
+        setLoadError(true);
+        toast.error(hi ? "स्टोर लोड नहीं हो सके — बैकएंड अपडेट ज़रूरी" : "Could not load stores — backend update required");
+      })
       .finally(() => setLoading(false));
   }, [hi]);
+
+  useEffect(() => { loadSections(); }, [loadSections]);
 
   const toggleSection = (id) => {
     setSelected((prev) => {
@@ -232,6 +241,21 @@ export default function FullBOQBuilder() {
 
         {step === "select" && (
           <div className="space-y-6">
+            {loadError && (
+              <div className="border border-destructive/40 bg-destructive/5 rounded-xl p-4 text-sm space-y-2">
+                <p className="font-medium text-destructive">
+                  {hi ? "स्टोर लोड नहीं हो सके" : "Could not load stores"}
+                </p>
+                <p className="text-muted-foreground">
+                  {hi
+                    ? "फ्रंटएंड नया है लेकिन बैकएंड सर्वर पर BOQ API अपडेट नहीं हुआ। Backend redeploy/restart करें (wallet-vendor-mvp.emergent.host)।"
+                    : "The website is updated but the API server does not have BOQ builder endpoints yet. Restart/redeploy the backend with the latest code from main."}
+                </p>
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={loadSections}>
+                  {hi ? "फिर से कोशिश करें" : "Retry"}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <Button variant="outline" size="sm" onClick={selectAll} className="rounded-lg text-xs">
                 <Sparkles className="h-3.5 w-3.5 mr-1" />
