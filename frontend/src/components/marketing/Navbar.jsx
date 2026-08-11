@@ -23,6 +23,7 @@ const MORE_LINKS = [
   { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
   { to: "/download-app", label: "Get App", labelHi: "ऐप डाउनलोड" },
   { to: "/become-vendor", label: "Become Vendor", labelHi: "विक्रेता बनें" },
+  { to: "/consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
   { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
   { to: "/ads", label: "Advertise", labelHi: "विज्ञापन" },
   { to: "/services", label: "Services", labelHi: "सेवाएँ" },
