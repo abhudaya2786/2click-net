@@ -1,14 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import PageSEO from "@/components/marketing/PageSEO";
-import { Gavel, Store, Sun, Building2, Bot, Truck, Boxes, Calculator, ArrowUpRight, Clock } from "lucide-react";
+import PlatformToolsGrid from "@/components/marketing/PlatformToolsGrid";
+import { Gavel, Store, Sun, Building2, Bot, Truck, Boxes, Calculator, ArrowUpRight, Clock, Users, Compass, ClipboardList, FileText } from "lucide-react";
 
 const SERVICES = [
   { icon: Gavel, t: "Tender Management", d: "End-to-end tendering with document management, EMD tracking, approval workflows and AI-powered tender summaries.", to: "/tenders", cta: "Explore tenders" },
-  { icon: Building2, t: "Construction ERP", d: "BOQ calculators, Daily Progress Reports, labour & equipment management, project scheduling and cost control.", to: "/dashboard", cta: "Open workspace" },
+  { icon: Building2, t: "Construction ERP + Mera Ghar", d: "BOQ calculators, home build lifecycle, agreements, milestone payments and project control.", to: "/dashboard", cta: "Open workspace" },
   { icon: Store, t: "B2B/B2C Marketplace", d: "Multi-vendor marketplace for building materials with inventory, cart, checkout and order tracking.", to: "/marketplace", cta: "Browse materials" },
   { icon: Sun, t: "Solar Energy", d: "Capacity sizing, ROI & subsidy estimation, quotation generation and solar project lifecycle management.", to: "/solar", cta: "Estimate savings" },
-  { icon: Calculator, t: "GST & Accounting", d: "GST-compliant invoicing, tax reports, e-way bills and financial dashboards for every transaction.", to: "/contact", soon: true },
+  { icon: Calculator, t: "Super Mart + Material BOQ", d: "Live brand-wise material rates, 1-click BOQ templates and contractor ERP integration.", to: "/mart", cta: "Open Super Mart" },
+  { icon: ClipboardList, t: "Interior & Finishing BOQ", d: "Category-wise calculators: tiles, false ceiling, PVC, renovation, gardening — brand-wise pricing.", to: "/interior-boq", cta: "Interior BOQ" },
+  { icon: Compass, t: "Consultant Panel", d: "Exterior, interior, architect, vastu consultants — filter by role and experience.", to: "/consultants", cta: "Find consultants" },
+  { icon: Users, t: "Freelancers & Professionals", d: "Architects, engineers, CAs — browse, enquire and book with platform commission.", to: "/freelancers", cta: "Hire freelancers" },
+  { icon: FileText, t: "Enrollment & Agreements", d: "User-wise and shop-wise registration with legal agreements, print and share receipts.", to: "/enroll", cta: "Start enrollment" },
   { icon: Truck, t: "Logistics & Fleet", d: "Fleet booking, freight calculators, driver management and delivery tracking for heavy materials.", to: "/contact", soon: true },
   { icon: Boxes, t: "Inventory Management", d: "SKU, warehouse, stock alerts, barcode/QR and supplier management across locations.", to: "/dashboard", cta: "Manage stock" },
   { icon: Bot, t: "AI Platform", d: "AI assistant, OCR, cost estimation, image analysis and a smart recommendation engine.", action: "ai", cta: "Ask 2click AI" },
@@ -45,13 +50,13 @@ export default function Services() {
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24">
       <PageSEO
         title="Services — Construction ERP, Marketplace, Solar & AI"
-        description="Tender management, B2B marketplace, construction ERP, solar EPC, AI assistant and SaaS billing — full capabilities on 2click.in"
+        description="Tender management, B2B marketplace, construction ERP, solar EPC, interior BOQ, consultants, enrollment and AI — full capabilities on 2click.in"
         path="/services"
       />
       <div className="max-w-2xl mb-14">
         <span className="text-xs font-mono uppercase tracking-widest text-primary">Capabilities</span>
         <h1 className="font-display font-extrabold text-4xl md:text-5xl tracking-tight mt-3">Everything the construction industry runs on.</h1>
-        <p className="mt-4 text-muted-foreground">A modular suite covering procurement, projects, finance, energy and intelligence. Tap any capability to jump straight in.</p>
+        <p className="mt-4 text-muted-foreground">A modular suite covering procurement, projects, finance, energy, consultants and intelligence. Tap any capability to jump straight in.</p>
       </div>
       <div className="grid gap-px bg-border border border-border md:grid-cols-2 lg:grid-cols-4">
         {SERVICES.map((s, i) =>
@@ -65,6 +70,12 @@ export default function Services() {
             </Link>
           )
         )}
+      </div>
+
+      <div className="mt-20 border-t border-border pt-16">
+        <h2 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight mb-2">Quick access — all tools</h2>
+        <p className="text-sm text-muted-foreground mb-8">Jump directly to any module on the platform.</p>
+        <PlatformToolsGrid compact />
       </div>
     </div>
   );

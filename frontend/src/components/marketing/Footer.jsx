@@ -10,17 +10,28 @@ const COLS = [
       { label: "Tender Hub", to: "/tenders" },
       { label: "Solar Portal", to: "/solar" },
       { label: "Super Mart", to: "/mart" },
+      { label: "Interior BOQ", to: "/interior-boq" },
       { label: "Become Vendor", to: "/become-vendor" },
     ],
   },
   {
-    h: "Company",
+    h: "People & Services",
     items: [
+      { label: "Consultants", to: "/consultants" },
+      { label: "Freelancers", to: "/freelancers" },
+      { label: "Enrollment", to: "/enroll" },
       { label: "Services", to: "/services" },
       { label: "Pricing", to: "/pricing" },
-      { label: "Freelancers", to: "/freelancers" },
       { label: "Contact", to: "/contact" },
-      { label: "Advertise", to: "/ads" },
+    ],
+  },
+  {
+    h: "Legal",
+    items: [
+      { label: "Terms of Service", to: "/terms" },
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Client Agreement", to: "/client-agreement" },
+      { label: "Freelancer Agreement", to: "/freelancer-agreement" },
     ],
   },
   {
@@ -29,6 +40,7 @@ const COLS = [
       { label: "Log in", to: "/login" },
       { label: "Register", to: "/register" },
       { label: "Dashboard", to: "/dashboard" },
+      { label: "Download App", to: "/download-app" },
     ],
   },
 ];
@@ -37,8 +49,8 @@ export default function Footer() {
   const { brand_name, tagline, footer_text } = useBranding();
   return (
     <footer className="border-t border-border bg-card">
-      <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 grid gap-10 md:grid-cols-5">
-        <div className="md:col-span-2">
+      <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+        <div className="lg:col-span-1">
           <div className="flex items-center gap-2.5 mb-4">
             <BrandLogo className="h-9 w-9" iconClass="h-5 w-5" />
             <span className="font-display font-extrabold text-lg tracking-tight">{brand_name}</span>

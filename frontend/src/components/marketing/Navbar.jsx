@@ -12,15 +12,17 @@ import { NAV_COPY } from "@/lib/homeCopy";
 const PRIMARY_LINKS = [
   { to: "/marketplace", key: "nav.marketplace", label: "Marketplace", labelHi: "मार्केट" },
   { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
-  { to: "/solar", key: "nav.solar", label: "Solar", labelHi: "सोलर" },
+  { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
+  { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
-  { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
 ];
 
 const MORE_LINKS = [
+  { to: "/enroll", label: "Enrollment", labelHi: "पंजीकरण" },
+  { to: "/solar", label: "Solar", labelHi: "सोलर" },
+  { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
   { to: "/download-app", label: "Get App", labelHi: "ऐप डाउनलोड" },
   { to: "/become-vendor", label: "Become Vendor", labelHi: "विक्रेता बनें" },
-  { to: "/consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
   { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },
   { to: "/ads", label: "Advertise", labelHi: "विज्ञापन" },
   { to: "/services", label: "Services", labelHi: "सेवाएँ" },
