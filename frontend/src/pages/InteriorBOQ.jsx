@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import MarketingLayout from "@/components/marketing/MarketingLayout";
 import PageSEO from "@/components/marketing/PageSEO";
 import InteriorBOQHub from "@/components/dashboard/InteriorBOQHub";
 import VerticalCategoryCalculator from "@/components/dashboard/VerticalCategoryCalculator";
@@ -13,7 +12,7 @@ export default function InteriorBOQ() {
   const isHub = !verticalId || verticalId === "all";
 
   return (
-    <MarketingLayout>
+    <>
       <PageSEO
         title={hi ? "इंटीरियर BOQ कैलकुलेटर" : "Interior BOQ Calculator"}
         description={hi ? "श्रेणी-वार ब्रांड कैलकुलेटर" : "Category-wise brand calculators"}
@@ -35,12 +34,12 @@ export default function InteriorBOQ() {
                   : "Each option has its own calculator — interior, vastu, fabrication, tiles, false ceiling, PVC, renovation, gardening. Compare brands and build BOQ."}
               </p>
             </div>
-            <InteriorBOQHub />
+            <InteriorBOQHub hideIntro />
           </>
         ) : (
           <VerticalCategoryCalculator verticalId={verticalId} />
         )}
       </div>
-    </MarketingLayout>
+    </>
   );
 }
