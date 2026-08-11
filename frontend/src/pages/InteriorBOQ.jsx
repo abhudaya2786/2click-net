@@ -30,8 +30,8 @@ export default function InteriorBOQ() {
               </h1>
               <p className="mt-3 text-muted-foreground text-sm">
                 {hi
-                  ? "फोटो कैटलॉग, ब्रांड-वार अनुमानित कीमत — इंटीरियर, वास्तु, टाइल्स, सीलिंग, PVC, रेनोवेशन, गार्डनिंग।"
-                  : "Photo catalogs with brand-wise estimated prices — interior, vastu, tiles, ceiling, PVC, renovation, gardening."}
+                  ? "फोटो कैटलॉग, ब्रांड-वार अनुमानित कीमत — इंटीरियर, वास्तु, फैब्रिकेशन (गेट, रेलिंग, ग्रिल, शेड…), टाइल्स, PVC, रेनोवेशन।"
+                  : "Photo catalogs with brand-wise prices — interior, vastu, fabrication (gates, railings, grills, sheds…), tiles, PVC, renovation."}
               </p>
             </div>
             <InteriorBOQHub hideIntro />

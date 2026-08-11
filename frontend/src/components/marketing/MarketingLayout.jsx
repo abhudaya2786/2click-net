@@ -6,9 +6,8 @@ import InstallAppBanner from "@/components/marketing/InstallAppBanner";
 import AIAssistant from "@/components/AIAssistant";
 import AdSlot from "@/components/ads/AdSlot";
 import CatalogBrandStrip from "@/components/catalog/CatalogBrandStrip";
-
-/** Pages where live brand strip adds value — not on every marketing page */
-const BRAND_STRIP_PREFIXES = ["/store", "/mart", "/interior-boq", "/marketplace", "/boq-builder"];
+import CatalogShowcase from "@/components/catalog/CatalogShowcase";
+import DemoPanel, { DemoFloatingButton, DemoModeBanner } from "@/components/demo/PlatformDemo";
 
 export default function MarketingLayout({ children }) {
   const { pathname } = useLocation();
@@ -18,6 +17,7 @@ export default function MarketingLayout({ children }) {
   return (
     <div className="App min-h-screen flex flex-col mobile-app-shell">
       <Navbar />
+      <DemoModeBanner />
       <AdSlot placement="header" />
       <main className="flex-1 mobile-main-content">{children}</main>
       {showBrandStrip && <CatalogBrandStrip className="border-t border-border/40" />}
@@ -29,6 +29,7 @@ export default function MarketingLayout({ children }) {
       <AIAssistant />
       <InstallAppBanner />
       <MobileBottomNav />
+      <DemoFloatingButton />
     </div>
   );
 }

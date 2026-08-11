@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useLang } from "@/context/LanguageContext";
+import { withDemoParam } from "@/lib/demoData";
 import {
   Gavel, Store, Sun, Building2, Calculator, Users, Briefcase,
   FileText, ClipboardList, ArrowRight, HardHat, Compass, ShoppingBag, Wand2,
@@ -7,6 +8,9 @@ import {
 
 const TOOLS = [
   { to: "/tenders", icon: Gavel, en: "Tender Hub", hi: "टेंडर", descEn: "Live tenders & reverse auction", descHi: "लाइव टेंडर और ऑक्शन" },
+  { to: "/upcoming-projects", icon: Building2, en: "Upcoming Projects", hi: "आगामी प्रोजेक्ट", descEn: "Land location & BHK filters", descHi: "लोकेशन और BHK फ़िल्टर" },
+  { to: "/property-advisory", icon: Compass, en: "Property Advisory", hi: "प्रॉपर्टी सलाह", descEn: "Real estate + build guidance", descHi: "रियल एस्टेट + निर्माण गाइड" },
+  { to: "/equipment-rental", icon: HardHat, en: "Equipment Rental", hi: "उपकरण रेंटल", descEn: "JCB, crane, tipper, logistics", descHi: "JCB, क्रेन, टिपर, लॉजिस्टिक्स" },
   { to: "/store", icon: ShoppingBag, en: "Store", hi: "स्टोर", descEn: "Myntra-style shop — all brands", descHi: "Myntra जैसा स्टोर — सभी ब्रांड" },
   { to: "/marketplace", icon: Store, en: "Marketplace", hi: "मार्केटप्लेस", descEn: "Materials & vendor catalog", descHi: "सामग्री और विक्रेता" },
   { to: "/mart", icon: Calculator, en: "Super Mart + BOQ", hi: "सुपर मार्ट + BOQ", descEn: "Brand-wise rates & BOQ", descHi: "ब्रांड-वार दर और BOQ" },
@@ -30,7 +34,7 @@ export default function PlatformToolsGrid({ compact = false }) {
       {TOOLS.map((t) => (
         <Link
           key={t.to}
-          to={t.to}
+          to={withDemoParam(t.to)}
           data-testid={`tool-${t.to.replace(/\//g, "")}`}
           className="group flex items-start gap-3 p-4 border border-border/70 rounded-xl bg-card hover:border-primary/30 hover:shadow-sm transition-all duration-300"
         >

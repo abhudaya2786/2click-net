@@ -9,11 +9,18 @@ import { useLang } from "@/context/LanguageContext";
 import BrandLogo from "@/components/marketing/BrandLogo";
 import CartNavButton from "@/components/store/CartNavButton";
 import { NAV_COPY } from "@/lib/homeCopy";
+import { useDemoMode } from "@/context/DemoModeContext";
 
 /** Core nav — premium sites keep primary nav to 4–5 items max */
 const PRIMARY_LINKS = [
   { to: "/store", key: "nav.store", label: "Store", labelHi: "स्टोर" },
   { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
+  { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
+  { to: "/upcoming-projects", key: "nav.upcoming", label: "Upcoming", labelHi: "आगामी प्रोजेक्ट" },
+  { to: "/property-advisory", key: "nav.advisory", label: "Property Advisory", labelHi: "प्रॉपर्टी सलाह" },
+  { to: "/equipment-rental", key: "nav.rental", label: "Equipment Rental", labelHi: "उपकरण रेंटल" },
+  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
+  { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
   { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
 ];
@@ -42,6 +49,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const nav = useNavigate();
+  const { openPanel } = useDemoMode();
   const lbl = (l) => t(l.key) || (lang === "hi" ? l.labelHi : l.label);
 
   return (
@@ -126,13 +134,14 @@ export default function Navbar() {
               {navCopy.dashboard}
             </Button>
           ) : (
-            <Button
-              data-testid="nav-auth-btn"
-              onClick={() => nav("/login")}
-              className="btn-premium hidden sm:inline-flex h-9 text-sm px-4 rounded-xl"
-            >
-              {navCopy.authCta}
-            </Button>
+            <>
+              <Button variant="ghost" data-testid="nav-demo-btn" onClick={openPanel}
+                className="rounded-lg hidden sm:inline-flex h-9 text-primary">{lang === "hi" ? "डेमो" : "Demo"}</Button>
+              <Button variant="ghost" data-testid="nav-login-btn" onClick={() => nav("/login")}
+                className="rounded-lg hidden sm:inline-flex h-9">{navCopy.login}</Button>
+              <Button data-testid="nav-signup-btn" onClick={() => nav("/register")}
+                className="btn-premium hidden sm:inline-flex h-9 text-sm px-3">{navCopy.join}</Button>
+            </>
           )}
           <button
             className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg hover:bg-accent/60"

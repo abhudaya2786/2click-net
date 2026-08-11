@@ -17,7 +17,7 @@ import { motion } from "framer-motion";
 
 const ROLE_ICONS = {
   exterior: Building2, interior: Sofa, architect: Compass, vastu: Compass,
-  structural: Ruler, landscape: Leaf,
+  structural: Ruler, landscape: Leaf, real_estate: Building2,
 };
 
 export default function Consultants() {

@@ -8,6 +8,8 @@ import { BrandingProvider } from "@/context/BrandingContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { CatalogProvider } from "@/context/CatalogContext";
 import { CartProvider } from "@/context/CartContext";
+import { DemoModeProvider } from "@/context/DemoModeContext";
+import DemoPanel from "@/components/demo/PlatformDemo";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MarketingLayout from "@/components/marketing/MarketingLayout";
@@ -40,6 +42,9 @@ import Store from "@/pages/Store";
 import StoreProduct from "@/pages/StoreProduct";
 import Cart from "@/pages/Cart";
 import FullBOQBuilder from "@/pages/FullBOQBuilder";
+import UpcomingProjects from "@/pages/UpcomingProjects";
+import PropertyAdvisory from "@/pages/PropertyAdvisory";
+import EquipmentRental from "@/pages/EquipmentRental";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -60,6 +65,9 @@ function AppRouter() {
       <Route path="/interior-boq" element={M(<InteriorBOQ />)} />
       <Route path="/interior-boq/:verticalId" element={M(<InteriorBOQ />)} />
       <Route path="/boq-builder" element={M(<FullBOQBuilder />)} />
+      <Route path="/upcoming-projects" element={M(<UpcomingProjects />)} />
+      <Route path="/property-advisory" element={M(<PropertyAdvisory />)} />
+      <Route path="/equipment-rental" element={M(<EquipmentRental />)} />
       <Route path="/solar" element={M(<Solar />)} />
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />
@@ -90,18 +98,21 @@ export default function App() {
       <LanguageProvider>
         <BrandingProvider>
           <ThemeProvider>
-            <AuthProvider>
-              <PermissionProvider>
-                <BrowserRouter>
-                  <CatalogProvider>
-                    <CartProvider>
-                      <AppRouter />
-                    </CartProvider>
-                  </CatalogProvider>
-                  <Toaster position="top-right" />
-                </BrowserRouter>
-              </PermissionProvider>
-            </AuthProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <PermissionProvider>
+                      <DemoModeProvider>
+                        <CatalogProvider>
+                          <CartProvider>
+                            <AppRouter />
+                            <DemoPanel />
+                          </CartProvider>
+                        </CatalogProvider>
+                      </DemoModeProvider>
+                </PermissionProvider>
+              </AuthProvider>
+              <Toaster position="top-right" />
+            </BrowserRouter>
           </ThemeProvider>
         </BrandingProvider>
       </LanguageProvider>
