@@ -42,12 +42,16 @@ USER_TYPES = [
     ("ca", "CA", "customer", "ca", ["professional_service"], ["skills", "service_area"], 9),
     ("transporter", "Transporter", "vendor", "transport", ["logistics"], ["company", "service_area"], 10),
     ("service_provider", "Service Provider", "customer", "service", ["professional_service", "freelancer", "construction"], ["skills", "service_area"], 11),
+    ("interior_consultant", "Interior Consultant", "customer", "freelancer", ["professional_service", "freelancer"], ["skills", "service_area", "portfolio", "pricing", "availability"], 15),
+    ("exterior_consultant", "Exterior Consultant", "customer", "freelancer", ["professional_service", "construction"], ["skills", "service_area", "portfolio", "pricing"], 16),
+    ("vastu_consultant", "Vastu Consultant", "customer", "freelancer", ["professional_service", "freelancer"], ["skills", "service_area", "pricing", "availability"], 17),
     ("employee", "Employee", "customer", "employee", [], ["company", "department"], 12),
     ("company", "Company", "customer", "company", ["construction", "marketplace"], ["company", "department", "business_type"], 13),
     ("other", "Other", "customer", "customer", [], [], 14),
 ]
 _UT_MAP = {u[0]: u for u in USER_TYPES}
-FREELANCER_TYPES = {"freelancer", "architect", "engineer", "ca", "service_provider"}
+FREELANCER_TYPES = {"freelancer", "architect", "engineer", "ca", "service_provider",
+                    "interior_consultant", "exterior_consultant", "vastu_consultant"}
 
 def role_for_user_type(ut):
     u = _UT_MAP.get(ut)

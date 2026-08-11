@@ -1531,6 +1531,8 @@ import ads as _ads
 _ads.init(db, get_current_user)
 import home_build as _home
 _home.init(db, get_current_user)
+import consultants as _consultants
+_consultants.init(db, get_current_user)
 import site_config as _site
 _site.init(db)
 import enrollment as _enrollment
@@ -1556,6 +1558,7 @@ app.include_router(_wallet.router)
 app.include_router(_ads.router)
 app.include_router(_home.router)
 app.include_router(_home.admin_router)
+app.include_router(_consultants.router)
 app.include_router(_site.public_router)
 app.include_router(_site.admin_router)
 app.include_router(_enrollment.router)

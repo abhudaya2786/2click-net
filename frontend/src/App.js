@@ -31,6 +31,7 @@ import BecomeVendor from "@/pages/BecomeVendor";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import DownloadApp from "@/pages/DownloadApp";
 import InteriorBOQ from "@/pages/InteriorBOQ";
+import Consultants from "@/pages/Consultants";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -51,6 +52,7 @@ function AppRouter() {
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />
       <Route path="/freelancers" element={M(<Freelancers />)} />
+      <Route path="/consultants" element={M(<Consultants />)} />
       <Route path="/download-app" element={M(<DownloadApp />)} />
       <Route path="/become-vendor" element={M(<BecomeVendor />)} />
       <Route path="/login" element={<Login />} />
