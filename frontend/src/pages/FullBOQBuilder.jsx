@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
+import { useDemoMode } from "@/context/DemoModeContext";
 import PageSEO from "@/components/marketing/PageSEO";
+import { DEMO_BOQ_SECTIONS, demoBoqCatalog, demoGenerateBOQ } from "@/lib/demoData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +21,7 @@ const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractio
 export default function FullBOQBuilder() {
   const { lang } = useLang();
   const hi = lang === "hi";
+  const { demoMode, markSampleData, enableDemo, usingSampleData } = useDemoMode();
 
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,13 +37,35 @@ export default function FullBOQBuilder() {
   const [pickProduct, setPickProduct] = useState("");
   const [pickBrandId, setPickBrandId] = useState("");
   const [pickQty, setPickQty] = useState("");
+  const [loadError, setLoadError] = useState(false);
+
+  const loadSections = useCallback(() => {
+    setLoading(true);
+    setLoadError(false);
+    api.get("/mart/boq-builder/sections")
+      .then(({ data }) => {
+        setSections(data || []);
+        markSampleData(false);
+      })
+      .catch(() => {
+        enableDemo();
+        setSections(DEMO_BOQ_SECTIONS);
+        setLoadError(false);
+        markSampleData(true);
+        toast.message(hi ? "डेमो BOQ स्टोर दिखाए जा रहे हैं" : "Showing demo BOQ stores");
+      })
+      .finally(() => setLoading(false));
+  }, [hi, markSampleData, enableDemo]);
 
   useEffect(() => {
-    api.get("/mart/boq-builder/sections")
-      .then(({ data }) => setSections(data || []))
-      .catch(() => toast.error(hi ? "स्टोर लोड नहीं हो सके" : "Could not load stores"))
-      .finally(() => setLoading(false));
-  }, [hi]);
+    if (demoMode) {
+      setSections(DEMO_BOQ_SECTIONS);
+      markSampleData(true);
+      setLoading(false);
+    } else {
+      loadSections();
+    }
+  }, [demoMode, loadSections, markSampleData]);
 
   const toggleSection = (id) => {
     setSelected((prev) => {
@@ -63,13 +88,14 @@ export default function FullBOQBuilder() {
           const { data } = await api.get(`/mart/boq-builder/sections/${sid}/catalog`);
           entries[sid] = data;
         } catch {
-          entries[sid] = { products: [] };
+          entries[sid] = demoBoqCatalog(sid);
+          markSampleData(true);
         }
       }),
     );
     setCatalogs((prev) => ({ ...prev, ...entries }));
     setCatalogLoading(false);
-  }, []);
+  }, [markSampleData]);
 
   const goToBuild = async () => {
     if (selected.size === 0) {
@@ -154,6 +180,13 @@ export default function FullBOQBuilder() {
         qty: l.qty,
         section_id: l.section_id,
       }));
+      if (demoMode || usingSampleData) {
+        const data = demoGenerateBOQ(sectionIds, manualLines);
+        setBoq(data);
+        setStep("result");
+        toast.success(hi ? "डेमो BOQ जनरेट हो गया" : "Demo BOQ generated");
+        return;
+      }
       const { data } = await api.post("/mart/boq-builder/generate", {
         lines,
         sections: sectionIds,
@@ -162,7 +195,12 @@ export default function FullBOQBuilder() {
       setStep("result");
       toast.success(hi ? "BOQ जनरेट हो गया" : "BOQ generated");
     } catch {
-      toast.error(hi ? "BOQ जनरेट नहीं हो सका" : "Could not generate BOQ");
+      const sectionIds = [...selected];
+      const data = demoGenerateBOQ(sectionIds, manualLines);
+      setBoq(data);
+      setStep("result");
+      markSampleData(true);
+      toast.success(hi ? "डेमो BOQ (सैंपल)" : "Demo BOQ (sample data)");
     } finally {
       setGenerating(false);
     }
@@ -232,6 +270,21 @@ export default function FullBOQBuilder() {
 
         {step === "select" && (
           <div className="space-y-6">
+            {loadError && (
+              <div className="border border-destructive/40 bg-destructive/5 rounded-xl p-4 text-sm space-y-2">
+                <p className="font-medium text-destructive">
+                  {hi ? "स्टोर लोड नहीं हो सके" : "Could not load stores"}
+                </p>
+                <p className="text-muted-foreground">
+                  {hi
+                    ? "फ्रंटएंड नया है लेकिन बैकएंड सर्वर पर BOQ API अपडेट नहीं हुआ। Backend redeploy/restart करें (wallet-vendor-mvp.emergent.host)।"
+                    : "The website is updated but the API server does not have BOQ builder endpoints yet. Restart/redeploy the backend with the latest code from main."}
+                </p>
+                <Button variant="outline" size="sm" className="rounded-lg" onClick={loadSections}>
+                  {hi ? "फिर से कोशिश करें" : "Retry"}
+                </Button>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-3">
               <Button variant="outline" size="sm" onClick={selectAll} className="rounded-lg text-xs">
                 <Sparkles className="h-3.5 w-3.5 mr-1" />

@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Search, Store, Loader2, ArrowRight, TrendingUp, TrendingDown, LineChart as LineIcon } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import InteriorBOQHub from "@/components/dashboard/InteriorBOQHub";
+import { DEMO_MART_MATERIALS } from "@/lib/demoData";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -29,7 +30,9 @@ export default function Mart() {
   const load = useCallback(() => {
     setLoading(true);
     api.get("/mart/materials", { params: { category: category !== "all" ? category : undefined, brand: brand !== "all" ? brand : undefined, q: q || undefined } })
-      .then(({ data }) => setMaterials(data)).finally(() => setLoading(false));
+      .then(({ data }) => setMaterials(data))
+      .catch(() => setMaterials(DEMO_MART_MATERIALS))
+      .finally(() => setLoading(false));
   }, [category, brand, q]);
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
 

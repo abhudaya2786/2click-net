@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import {
   Plus, Trash2, Loader2, LayoutTemplate, ArrowLeft, Check, Sparkles, Pencil, ImageIcon,
 } from "lucide-react";
+import FabricationWorksPanel from "@/components/dashboard/FabricationWorksPanel";
+import { DEMO_FABRICATION_WORK_TYPES } from "@/lib/demoData";
 import { toast } from "sonner";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
@@ -27,6 +29,7 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tplBusy, setTplBusy] = useState(false);
+  const [workTypes, setWorkTypes] = useState([]);
 
   const [productName, setProductName] = useState("");
   const [brandId, setBrandId] = useState("");
@@ -43,6 +46,7 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
       .then(([cat, tpl]) => {
         setVertical(cat.data.vertical);
         setProducts(cat.data.products || []);
+        setWorkTypes(cat.data.work_types || (verticalId === "fabrication" ? DEMO_FABRICATION_WORK_TYPES : []));
         setProductName(cat.data.products?.[0]?.name || "");
         const firstBrands = cat.data.products?.[0]?.brands || [];
         setBrandId(firstBrands[0]?.id || "");
@@ -51,6 +55,7 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
       .catch(() => {
         setVertical(null);
         setProducts([]);
+        if (verticalId === "fabrication") setWorkTypes(DEMO_FABRICATION_WORK_TYPES);
       })
       .finally(() => setLoading(false));
   }, [verticalId]);
@@ -190,6 +195,17 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
             </Button>
           ))}
         </div>
+      )}
+
+      {verticalId === "fabrication" && workTypes.length > 0 && (
+        <FabricationWorksPanel
+          workTypes={workTypes}
+          onPickMaterial={(name) => {
+            setProductName(name);
+            const prod = products.find((p) => p.name === name);
+            if (prod?.brands?.[0]) setBrandId(prod.brands[0].id);
+          }}
+        />
       )}
 
       {/* Product photo catalog */}
