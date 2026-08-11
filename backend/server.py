@@ -1410,6 +1410,14 @@ async def startup():
     _sc.init(db)
     await _sc.ensure_indexes()
     await _sc.seed_geo()
+    import enrollment as _enr
+    _enr.init(db, get_current_user, {
+        "audit": audit, "hash_password": hash_password, "verify_password": verify_password,
+        "create_access_token": create_access_token, "set_auth_cookie": set_auth_cookie,
+        "clean": clean, "new_id": new_id, "iso": iso, "now_utc": now_utc,
+    })
+    await _enr.ensure_indexes()
+    await _enr.seed_agreements()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1448,6 +1456,12 @@ import home_build as _home
 _home.init(db, get_current_user)
 import site_config as _site
 _site.init(db)
+import enrollment as _enrollment
+_enrollment.init(db, get_current_user, {
+    "audit": audit, "hash_password": hash_password, "verify_password": verify_password,
+    "create_access_token": create_access_token, "set_auth_cookie": set_auth_cookie,
+    "clean": clean, "new_id": new_id, "iso": iso, "now_utc": now_utc,
+})
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1467,6 +1481,8 @@ app.include_router(_home.router)
 app.include_router(_home.admin_router)
 app.include_router(_site.public_router)
 app.include_router(_site.admin_router)
+app.include_router(_enrollment.router)
+app.include_router(_enrollment.admin_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

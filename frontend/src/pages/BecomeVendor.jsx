@@ -42,9 +42,14 @@ export default function BecomeVendor() {
               हज़ारों buyers आप तक पहुँचेंगे।
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/register">
+              <Link to="/enroll?mode=shop">
                 <Button size="lg" className="btn-premium" data-testid="vendor-register-cta">
-                  मुफ़्त रजिस्टर <ArrowRight className="ml-2 h-4 w-4" />
+                  दुकान पंजीकरण <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+              <Link to="/enroll?mode=vendor">
+                <Button size="lg" variant="outline" data-testid="vendor-enroll-cta">
+                  Vendor पंजीकरण
                 </Button>
               </Link>
               <WhatsAppShare message={waMsg} label="WhatsApp पर बात करें" />
