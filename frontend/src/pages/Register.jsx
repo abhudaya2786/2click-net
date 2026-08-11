@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { HardHat, Loader2, Check, Star, Search, X, ArrowLeft, ArrowRight, Languages, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import LocationPicker from "@/components/location/LocationPicker";
+import AgreementPanel from "@/components/enrollment/AgreementPanel";
 
 const STEPS = ["step_type", "step_category", "step_business", "step_account"];
 
@@ -49,7 +50,8 @@ export default function Register() {
   const [primaryId, setPrimaryId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", company: "", business_type: "", skills: "", service_area: "", portfolio_url: "", expected_pricing: "", availability: "" });
   const [location, setLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
-  const [terms, setTerms] = useState(false);
+  const [agreements, setAgreements] = useState([]);
+  const [accepted, setAccepted] = useState({});
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -102,6 +104,17 @@ export default function Register() {
     if (ut) loadCategories(ut.category_types || []);
   }, [ut, loadCategories]);
 
+  useEffect(() => {
+    if (!ut?.code) {
+      setAgreements([]);
+      setAccepted({});
+      return;
+    }
+    api.get("/enrollment/agreements", { params: { mode: "user", user_type: ut.code } })
+      .then(({ data }) => setAgreements(data))
+      .catch(() => setAgreements([]));
+  }, [ut?.code]);
+
   const hasField = (f) => (ut?.fields || []).includes(f);
   const needsCategories = (ut?.category_types || []).length > 0;
   const displayTypes = userTypes.length ? userTypes : FALLBACK_USER_TYPES;
@@ -119,6 +132,8 @@ export default function Register() {
     setPrimaryId(null);
   };
 
+  const toggleAgreement = (code) => setAccepted((a) => ({ ...a, [code]: !a[code] }));
+
   const next = () => {
     setErr("");
     if (step === 0 && !ut) { setErr(t("select_user_type")); return; }
@@ -129,7 +144,9 @@ export default function Register() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!terms) { setErr(t("accept_required")); return; }
+    const required = agreements.filter((a) => a.required).map((a) => a.code);
+    const missing = required.filter((c) => !accepted[c]);
+    if (missing.length) { setErr(t("accept_all_agreements")); return; }
     setBusy(true); setErr("");
     try {
       const payload = {
