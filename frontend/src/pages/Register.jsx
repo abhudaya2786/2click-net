@@ -10,6 +10,7 @@ import { HardHat, Loader2, Check, Star, Search, X, ArrowLeft, ArrowRight, Langua
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import LocationPicker from "@/components/location/LocationPicker";
+import AgreementPanel from "@/components/enrollment/AgreementPanel";
 
 const STEPS = ["step_type", "step_category", "step_business", "step_account"];
 
@@ -30,7 +31,8 @@ export default function Register() {
   const [primaryId, setPrimaryId] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", password: "", company: "", business_type: "", skills: "", service_area: "", portfolio_url: "", expected_pricing: "", availability: "" });
   const [location, setLocation] = useState({ state: "", city: "", pincode: "", lat: null, lng: null, location: "" });
-  const [terms, setTerms] = useState(false);
+  const [agreements, setAgreements] = useState([]);
+  const [accepted, setAccepted] = useState({});
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -53,6 +55,17 @@ export default function Register() {
     }
   }, [step, ut]);
 
+  useEffect(() => {
+    if (!ut?.code) {
+      setAgreements([]);
+      setAccepted({});
+      return;
+    }
+    api.get("/enrollment/agreements", { params: { mode: "user", user_type: ut.code } })
+      .then(({ data }) => setAgreements(data))
+      .catch(() => setAgreements([]));
+  }, [ut?.code]);
+
   const hasField = (f) => (ut?.fields || []).includes(f);
   const needsCategories = (ut?.category_types || []).length > 0;
 
@@ -65,6 +78,8 @@ export default function Register() {
     });
   };
 
+  const toggleAgreement = (code) => setAccepted((a) => ({ ...a, [code]: !a[code] }));
+
   const next = () => {
     setErr("");
     if (step === 0 && !ut) { setErr(t("select_user_type")); return; }
@@ -75,7 +90,9 @@ export default function Register() {
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!terms) { setErr(t("accept_required")); return; }
+    const required = agreements.filter((a) => a.required).map((a) => a.code);
+    const missing = required.filter((c) => !accepted[c]);
+    if (missing.length) { setErr(t("accept_all_agreements")); return; }
     setBusy(true); setErr("");
     try {
       const payload = {
@@ -95,6 +112,12 @@ export default function Register() {
       };
       const { data } = await api.post("/auth/register", payload);
       setSession(data.token, data.user);
+      const acceptedList = Object.keys(accepted).filter((k) => accepted[k]);
+      await Promise.all(
+        acceptedList.map((code) =>
+          api.post("/enrollment/accept", { agreement_code: code, enrollment_mode: "user" }).catch(() => null)
+        )
+      );
       toast.success("Account created!");
       nav("/dashboard");
     } catch (e2) {
@@ -225,13 +248,16 @@ export default function Register() {
           {/* STEP 4 — account */}
           {step === 3 && (
             <form onSubmit={submit} data-testid="step-account" className="space-y-4 max-w-lg">
+              <AgreementPanel
+                agreements={agreements}
+                accepted={accepted}
+                onToggle={toggleAgreement}
+                lang={lang}
+                t={t}
+              />
               <Input data-testid="register-name" placeholder={t("full_name")} required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="rounded-none" />
               <Input data-testid="register-email" type="email" placeholder={t("email")} required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="rounded-none" />
               <Input data-testid="register-password" type="password" placeholder={t("password")} required value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="rounded-none" />
-              <label className="flex items-center gap-2 text-sm">
-                <input data-testid="register-terms" type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="h-4 w-4 accent-[hsl(var(--primary))]" />
-                {t("accept_terms")}
-              </label>
               <Button data-testid="register-submit" type="submit" disabled={busy} className="w-full rounded-none">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("create")}
               </Button>
