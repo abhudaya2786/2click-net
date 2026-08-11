@@ -1519,6 +1519,7 @@ async def startup():
     import project_planner
     project_planner.init(db, get_current_user)
     await project_planner.ensure_indexes()
+    import design_studio
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1576,6 +1577,7 @@ _landing.init(db)
 import backup as _backup
 import project_planner as _planner
 _planner.init(db, get_current_user)
+import design_studio as _design
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1605,6 +1607,7 @@ app.include_router(_landing.public_router)
 app.include_router(_landing.admin_router)
 app.include_router(_backup.admin_router)
 app.include_router(_planner.router)
+app.include_router(_design.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
