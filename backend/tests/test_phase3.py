@@ -3,28 +3,17 @@ import os
 import time
 import requests
 import pytest
-
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://wallet-vendor-mvp.preview.emergentagent.com").rstrip("/")
-API = f"{BASE_URL}/api"
-
-ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-CUSTOMER = ("customer@2click.in", "Demo@12345")
-
-
-def _login(email, pw):
-    r = requests.post(f"{API}/auth/login", json={"email": email, "password": pw}, timeout=30)
-    assert r.status_code == 200, r.text
-    return r.json()["token"]
+from auth_helpers import login, admin_login, ADMIN, CUSTOMER, API
 
 
 @pytest.fixture(scope="module")
 def admin_tok():
-    return _login(*ADMIN)
+    return admin_login()[0]
 
 
 @pytest.fixture(scope="module")
 def cust_tok():
-    return _login(*CUSTOMER)
+    return login(*CUSTOMER)[0]
 
 
 def h(t):

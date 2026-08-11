@@ -21,6 +21,7 @@ import TenderHub from "@/pages/TenderHub";
 import TenderDetail from "@/pages/TenderDetail";
 import Freelancers from "@/pages/Freelancers";
 import Login from "@/pages/Login";
+import AdminLogin from "@/pages/AdminLogin";
 import Register from "@/pages/Register";
 import AuthCallback from "@/pages/AuthCallback";
 import ResetPassword from "@/pages/ResetPassword";
@@ -50,6 +51,7 @@ function AppRouter() {
       <Route path="/download-app" element={M(<DownloadApp />)} />
       <Route path="/become-vendor" element={M(<BecomeVendor />)} />
       <Route path="/login" element={<Login />} />
+      <Route path="/sys/console" element={<AdminLogin />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/payment/success" element={<PaymentSuccess />} />
