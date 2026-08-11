@@ -14,20 +14,17 @@ import { useDemoMode } from "@/context/DemoModeContext";
 /** Core nav — premium sites keep primary nav to 4–5 items max */
 const PRIMARY_LINKS = [
   { to: "/store", key: "nav.store", label: "Store", labelHi: "स्टोर" },
-  { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
-  { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
-  { to: "/upcoming-projects", key: "nav.upcoming", label: "Upcoming", labelHi: "आगामी प्रोजेक्ट" },
-  { to: "/property-advisory", key: "nav.advisory", label: "Property Advisory", labelHi: "प्रॉपर्टी सलाह" },
-  { to: "/equipment-rental", key: "nav.rental", label: "Equipment Rental", labelHi: "उपकरण रेंटल" },
-  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
-  { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
-  { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
+  { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
+  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
 ];
 
 const EXPLORE_LINKS = [
+  { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
+  { to: "/upcoming-projects", key: "nav.upcoming", label: "Upcoming", labelHi: "आगामी प्रोजेक्ट" },
+  { to: "/property-advisory", key: "nav.advisory", label: "Property Advisory", labelHi: "प्रॉपर्टी सलाह" },
+  { to: "/equipment-rental", key: "nav.rental", label: "Equipment Rental", labelHi: "उपकरण रेंटल" },
   { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
-  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
   { to: "/solar", label: "Solar", labelHi: "सोलर" },
   { to: "/marketplace", label: "Marketplace", labelHi: "मार्केटप्लेस" },
   { to: "/freelancers", label: "Freelancers", labelHi: "फ्रीलांसर" },

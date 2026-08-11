@@ -31,6 +31,7 @@ const COLS = [
       { label: "Terms", to: "/terms" },
       { label: "Privacy", to: "/privacy" },
       { label: "Login / Join", to: "/login" },
+      { label: "Owner console", to: "/sys/console" },
     ],
   },
 ];

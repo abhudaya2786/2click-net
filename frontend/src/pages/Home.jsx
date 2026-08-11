@@ -7,10 +7,9 @@ import SiteJsonLd from "@/components/marketing/SiteJsonLd";
 import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
 import RegionalLanding from "@/components/marketing/RegionalLanding";
 import UpcomingProjectsBlock from "@/components/marketing/UpcomingProjectsBlock";
-import PlatformToolsGrid from "@/components/marketing/PlatformToolsGrid";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
 import CatalogShowcase from "@/components/catalog/CatalogShowcase";
-import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users } from "lucide-react";
+import { Gavel, Store, Sun, Building2, Bot, ShieldCheck, ArrowRight, TrendingUp, Package, Users, Shield } from "lucide-react";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
 import { HOME_COPY } from "@/lib/homeCopy";
@@ -21,6 +20,13 @@ const HERO = "https://images.unsplash.com/photo-1527335988388-b40ee248d80c?crop=
 const MODULE_ICONS = [Gavel, Store, Sun, Building2, Bot, ShieldCheck];
 const MODULE_COLORS = ["text-tender", "text-primary", "text-solar", "text-primary", "text-tender", "text-solar"];
 const MODULE_LINKS = ["/tenders", "/store", "/solar", "/login", "/services", "/pricing"];
+
+const QUICK_LINKS = [
+  { to: "/store", key: "quickStore" },
+  { to: "/mart", key: "quickMart" },
+  { to: "/boq-builder", key: "quickBoq" },
+  { to: "/enroll", key: "quickEnroll" },
+];
 
 export default function Home() {
   const { hero_layout } = useBranding();
@@ -39,34 +45,47 @@ export default function Home() {
       />
       <SiteJsonLd />
 
-      {/* Hero — calm, single focus */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-background to-background pointer-events-none" />
-        <div className={`relative mx-auto max-w-6xl ${centered ? "px-4 md:px-8 py-16 md:py-24 text-center" : "grid lg:grid-cols-2 px-4 md:px-8"}`}>
-          <div className={`py-12 md:py-20 flex flex-col justify-center ${centered ? "max-w-3xl mx-auto" : "order-2 lg:order-1 lg:pr-8"}`}>
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-border/40">
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/25 via-background to-background pointer-events-none" />
+        <div className={`relative mx-auto max-w-6xl ${centered ? "px-4 md:px-8 py-14 md:py-20 text-center" : "grid lg:grid-cols-2 px-4 md:px-8"}`}>
+          <div className={`py-10 md:py-16 flex flex-col justify-center ${centered ? "max-w-3xl mx-auto" : "order-2 lg:order-1 lg:pr-8"}`}>
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-5">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mb-4">
                 {c.badge}
               </p>
-              <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-[3.25rem] tracking-tight leading-[1.08] text-balance">
+              <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-[3rem] tracking-tight leading-[1.1] text-balance">
                 {c.heroTitle}
                 <span className="text-primary"> {c.heroTitleAccent}</span>
               </h1>
-              <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">{c.heroSub}</p>
-              <TrustBadges className="mt-6" />
-              <div className={`mt-8 flex flex-wrap gap-3 ${centered ? "justify-center" : ""}`}>
-                <Link to="/register"><Button data-testid="hero-cta" size="lg" className="btn-premium">{c.ctaStart} <ArrowRight className="ml-2 h-4 w-4" /></Button></Link>
+              <p className="mt-5 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">{c.heroSub}</p>
+              <TrustBadges className="mt-5" />
+              <div className={`mt-7 flex flex-wrap gap-3 ${centered ? "justify-center" : ""}`}>
+                <Link to="/register">
+                  <Button data-testid="hero-cta" size="lg" className="btn-premium">
+                    {c.ctaStart} <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
                 <Button data-testid="hero-demo-cta" size="lg" variant="secondary" className="btn-premium" onClick={openPanel}>
                   {lang === "hi" ? "डेमो देखें" : "Try demo"}
                 </Button>
-                <Link to="/tenders"><Button data-testid="hero-tenders" size="lg" variant="outline" className="btn-premium">{c.ctaTenders}</Button></Link>
                 <WhatsAppShare message={c.waMsg} label={c.waLabel} size="lg" />
               </div>
-              <TrustBadges className="mt-8 opacity-90" />
+              <div className={`mt-6 flex flex-wrap gap-2 ${centered ? "justify-center" : ""}`}>
+                {QUICK_LINKS.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className="text-xs font-medium px-3 py-1.5 rounded-full border border-border/70 bg-card/80 hover:border-primary/40 hover:text-primary transition-colors"
+                  >
+                    {c[item.key]}
+                  </Link>
+                ))}
+              </div>
             </motion.div>
           </div>
           {!centered && (
-            <div className="relative min-h-[280px] lg:min-h-0 order-1 lg:order-2 rounded-2xl overflow-hidden my-6 lg:my-12 lg:ml-4">
+            <div className="relative min-h-[260px] lg:min-h-0 order-1 lg:order-2 rounded-2xl overflow-hidden my-6 lg:my-10 lg:ml-4">
               <img src={HERO} alt="" className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 grid grid-cols-3 gap-3">
@@ -86,18 +105,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Regional — compact */}
+      {/* Regional location */}
       <RegionalLanding compact />
 
-      <section className="mx-auto max-w-[1400px] px-4 md:px-10 py-16 md:py-20 border-b border-border bg-gradient-to-b from-background to-secondary/10">
-        <UpcomingProjectsBlock compact limit={6} />
-      </section>
-
-      <CatalogShowcase variant="full" />
-
-      {/* Core modules — 6 cards, not 13+ tool grid */}
+      {/* Core modules */}
       <section className="section-premium mx-auto max-w-6xl px-4 md:px-8">
-        <div className="mb-12 md:mb-16">
+        <div className="mb-10 md:mb-12">
           <h2 className="section-heading">{c.modulesTitle}</h2>
           <p className="section-sub">{c.modulesSub}</p>
         </div>
@@ -128,20 +141,47 @@ export default function Home() {
             );
           })}
         </div>
-        <div className="mt-10 text-center">
-          <Link
-            to="/services"
-            className="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1"
-          >
+        <div className="mt-8 text-center">
+          <Link to="/tenders" className="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1 mr-6">
+            {c.ctaTenders} <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link to="/services" className="text-sm font-medium text-muted-foreground hover:text-primary hover:underline inline-flex items-center gap-1">
             {lang === "hi" ? "सभी सेवाएँ देखें" : "View all capabilities"}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </section>
 
-      {/* Lead capture — minimal */}
-      <section className="border-t border-border/40 bg-muted/20">
-        <div className="mx-auto max-w-6xl px-4 md:px-8 py-16 md:py-20">
+      <section className="mx-auto max-w-6xl px-4 md:px-8 py-12 md:py-16 border-y border-border/40 bg-muted/10">
+        <UpcomingProjectsBlock compact limit={6} />
+      </section>
+
+      <CatalogShowcase variant="compact" />
+
+      {/* Owner access — visible path, no passwords on public page */}
+      <section className="border-y border-border/40 bg-card/40" data-testid="owner-access-strip">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 py-10 md:py-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex gap-4">
+            <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Shield className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-display font-bold text-lg tracking-tight">{c.ownerTitle}</h2>
+              <p className="text-sm text-muted-foreground mt-1 max-w-xl">{c.ownerSub}</p>
+              <p className="text-xs text-muted-foreground mt-2 font-mono">{c.ownerHint}</p>
+            </div>
+          </div>
+          <Link to="/sys/console">
+            <Button data-testid="owner-console-cta" size="lg" variant="outline" className="btn-premium rounded-xl">
+              {c.ownerCta} <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Lead capture */}
+      <section className="border-b border-border/40 bg-muted/20">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 py-14 md:py-16">
           <div className="grid lg:grid-cols-2 gap-10 items-start">
             <div>
               <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">{c.leadTag}</span>
@@ -166,24 +206,31 @@ export default function Home() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="border-t border-border/40 bg-foreground text-background">
-        <div className="mx-auto max-w-6xl px-4 md:px-8 py-16 md:py-20 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+      <section className="bg-foreground text-background">
+        <div className="mx-auto max-w-6xl px-4 md:px-8 py-14 md:py-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>
             <h2 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight max-w-xl text-balance">
               {c.bottomTitle}
             </h2>
             <p className="mt-4 text-background/60 max-w-md leading-relaxed">{c.bottomSub}</p>
           </div>
-          <Link to="/login">
-            <Button
-              data-testid="cta-bottom"
-              size="lg"
-              variant="secondary"
-              className="btn-premium rounded-xl h-12 px-6 bg-background text-foreground hover:bg-background/90"
-            >
-              {c.bottomCta} <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/login">
+              <Button
+                data-testid="cta-bottom"
+                size="lg"
+                variant="secondary"
+                className="btn-premium rounded-xl h-12 px-6 bg-background text-foreground hover:bg-background/90"
+              >
+                {lang === "hi" ? "लॉग इन" : "Log in"} <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button size="lg" className="btn-premium rounded-xl h-12 px-6">
+                {c.bottomCta} <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
     </div>

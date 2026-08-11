@@ -89,11 +89,14 @@ export default function AdminLogin() {
           </div>
         </div>
 
-        <p className="text-sm text-slate-400 mb-6">
+        <p className="text-sm text-slate-400 mb-4">
           {t(
-            "Owner access only. Email OTP is required after password verification.",
-            "केवल मालिक की पहुँच। पासवर्ड के बाद ईमेल OTP ज़रूरी है।"
+            "Owner access only. Use the email and password set in server ADMIN_EMAIL / ADMIN_PASSWORD. Email OTP is required after password verification.",
+            "केवल मालिक की पहुँच। सर्वर पर ADMIN_EMAIL / ADMIN_PASSWORD से सेट ईमेल और पासवर्ड उपयोग करें। पासवर्ड के बाद ईमेल OTP ज़रूरी है।"
           )}
+        </p>
+        <p className="text-xs text-slate-500 mb-6 font-mono">
+          {t("Regular /login does not work for owner — use this page only.", "सामान्य /login मालिक के लिए नहीं — केवल यह पेज।")}
         </p>
 
         {err && (

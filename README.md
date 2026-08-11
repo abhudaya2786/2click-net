@@ -166,6 +166,24 @@ See `backend/.env.example` and `frontend/.env.example`.
 
 ---
 
+## Owner / Super Admin login
+
+**Do not use** the regular `/login` page for the site owner — super admin is blocked there.
+
+| Step | Detail |
+|------|--------|
+| **URL** | https://www.2click.in/sys/console (local: http://localhost:3000/sys/console) |
+| **Email** | Value of `ADMIN_EMAIL` in backend `.env` (production default: `abbhuadaya@gmail.com`) |
+| **Password** | Value of `ADMIN_PASSWORD` in backend `.env` |
+| **Access PIN** | Optional — `ADMIN_ACCESS_PIN` in backend `.env` if enabled |
+| **OTP** | After password, a 6-digit code is emailed to the admin email |
+
+After login you reach **Dashboard** with full Super Admin controls (users, RBAC, site customization, pincodes, backup, analytics).
+
+**Regular users** (customer, vendor, contractor): `/login` with demo emails above or registered accounts.
+
+---
+
 ## License
 
 Private project — 2click.in / repository owner.
