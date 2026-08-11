@@ -1,22 +1,27 @@
 import { useEffect, useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { useLang } from "@/context/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Plus, Trash2, Loader2, LayoutTemplate, ArrowLeft, Check, Sparkles,
+  Plus, Trash2, Loader2, LayoutTemplate, ArrowLeft, Check, Sparkles, Pencil, ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
 /**
- * Dedicated category-wise BOQ calculator with brand comparison cards.
+ * Category-wise BOQ calculator with photo catalog, brand comparison and estimated prices.
  */
 export default function VerticalCategoryCalculator({ verticalId, onBack, embedded = false }) {
+  const { user } = useAuth();
+  const nav = useNavigate();
   const { lang } = useLang();
   const hi = lang === "hi";
+  const isAdmin = user?.role === "super_admin";
+
   const [vertical, setVertical] = useState(null);
   const [products, setProducts] = useState([]);
   const [templates, setTemplates] = useState([]);
@@ -62,6 +67,9 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
   }, [productName, activeProduct, brandId]);
 
   const categoryTotal = useMemo(() => lines.reduce((s, l) => s + l.amount, 0), [lines]);
+  const estimate = selectedBrand && qty && Number(qty) > 0
+    ? Math.round(selectedBrand.rate * Number(qty) * 100) / 100
+    : null;
 
   const addLine = () => {
     if (!selectedBrand || !vertical) return;
@@ -82,6 +90,7 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
         qty: q,
         amount: Math.round(selectedBrand.rate * q * 100) / 100,
         material_id: selectedBrand.id,
+        image: selectedBrand.image,
       },
     ]);
     setQty("");
@@ -133,7 +142,7 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
 
   return (
     <div className="space-y-5" data-testid={`category-calculator-${verticalId}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           {embedded && onBack && (
             <button type="button" onClick={onBack} className="text-sm text-primary hover:underline flex items-center gap-1 mb-2">
@@ -147,13 +156,26 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
           )}
           <h2 className="font-display font-bold text-xl tracking-tight">{title}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            {hi ? "सामग्री चुनें → ब्रांड compare करें → BOQ बनाएँ" : "Pick item → compare brands → build BOQ"}
+            {hi ? "फोटो कैटलॉग → ब्रांड compare → अनुमानित कीमत → BOQ" : "Photo catalog → compare brands → estimated price → BOQ"}
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-[10px] font-mono uppercase text-muted-foreground">{hi ? "इस श्रेणी का कुल" : "Category total"}</div>
-          <div className="font-display font-extrabold text-2xl text-primary font-mono" data-testid="category-total">
-            {fmt(categoryTotal)}
+        <div className="flex flex-wrap items-center gap-3">
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-lg text-xs"
+              onClick={() => nav("/dashboard", { state: { adminTab: "interior-boq" } })}
+            >
+              <Pencil className="h-3.5 w-3.5 mr-1" />
+              {hi ? "कैटलॉग एडिट" : "Edit catalog"}
+            </Button>
+          )}
+          <div className="text-right">
+            <div className="text-[10px] font-mono uppercase text-muted-foreground">{hi ? "इस श्रेणी का कुल" : "Category total"}</div>
+            <div className="font-display font-extrabold text-2xl text-primary font-mono" data-testid="category-total">
+              {fmt(categoryTotal)}
+            </div>
           </div>
         </div>
       </div>
@@ -170,8 +192,44 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
         </div>
       )}
 
-      <div className="grid lg:grid-cols-[1fr_340px] gap-4">
-        {/* BOQ table for this category only */}
+      {/* Product photo catalog */}
+      <div>
+        <h3 className="font-display font-bold text-sm mb-3">{hi ? "1. सामग्री / सेवा चुनें" : "1. Pick material / service"}</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" data-testid="product-catalog">
+          {products.map((p) => {
+            const on = productName === p.name;
+            return (
+              <button
+                key={p.name}
+                type="button"
+                data-testid={`product-${p.name}`}
+                onClick={() => setProductName(p.name)}
+                className={`text-left border rounded-xl overflow-hidden bg-card transition-all ${on ? "border-primary ring-2 ring-primary/30 shadow-md" : "border-border hover:border-primary/40"}`}
+              >
+                <div className="relative h-24 bg-muted">
+                  {p.image ? (
+                    <img src={p.image} alt={p.name} loading="lazy" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full flex items-center justify-center"><ImageIcon className="h-6 w-6 text-muted-foreground" /></div>
+                  )}
+                  {on && <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary text-white flex items-center justify-center"><Check className="h-3.5 w-3.5" /></div>}
+                </div>
+                <div className="p-3">
+                  <div className="font-medium text-xs leading-snug line-clamp-2">{p.name}</div>
+                  {p.from_rate != null && (
+                    <div className="text-[10px] mt-1.5 font-mono text-primary font-bold">
+                      {fmt(p.from_rate)}<span className="text-muted-foreground font-normal">/{p.unit}</span>
+                    </div>
+                  )}
+                  <div className="text-[10px] text-muted-foreground mt-0.5">{p.brands?.length || 0} {hi ? "ब्रांड" : "brands"}</div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-[1fr_360px] gap-4">
         <div className="border border-border rounded-xl bg-card overflow-hidden">
           <div className="px-4 py-3 border-b border-border bg-muted/30 text-xs font-mono uppercase tracking-wider text-muted-foreground">
             {hi ? "BOQ — इस श्रेणी" : "BOQ — this category"}
@@ -191,7 +249,12 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
               <tbody>
                 {lines.map((l) => (
                   <tr key={l.key} className="border-b border-border/60 hover:bg-muted/40">
-                    <td className="p-3">{l.name}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        {l.image && <img src={l.image} alt="" className="h-8 w-8 rounded object-cover border border-border shrink-0" />}
+                        <span>{l.name}</span>
+                      </div>
+                    </td>
                     <td className="p-3"><span className="text-xs font-mono px-2 py-0.5 bg-primary/10 text-primary rounded">{l.brand}</span></td>
                     <td className="p-3 font-mono">{l.qty} {l.unit}</td>
                     <td className="p-3 font-mono">{fmt(l.rate)}</td>
@@ -206,7 +269,7 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
                 {lines.length === 0 && (
                   <tr>
                     <td colSpan="6" className="p-10 text-center text-muted-foreground text-sm">
-                      {hi ? "दाएँ से सामग्री और ब्रांड चुनें" : "Select material and brand on the right"}
+                      {hi ? "नीचे ब्रांड चुनें और BOQ में जोड़ें" : "Choose a brand below and add to BOQ"}
                     </td>
                   </tr>
                 )}
@@ -224,22 +287,15 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
           </div>
         </div>
 
-        {/* Brand-wise picker */}
         <div className="border border-border rounded-xl bg-card p-4 space-y-4">
-          <h3 className="font-display font-bold text-sm">{hi ? "1. सामग्री / सेवा" : "1. Material / service"}</h3>
-          <select
-            data-testid="product-select"
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-            className="w-full bg-background border border-input px-3 h-10 text-sm rounded-lg"
-          >
-            {products.map((p) => (
-              <option key={p.name} value={p.name}>{p.name} ({p.unit})</option>
-            ))}
-          </select>
+          {activeProduct?.image && (
+            <div className="h-36 rounded-lg overflow-hidden border border-border bg-muted">
+              <img src={activeProduct.image} alt={activeProduct.name} className="h-full w-full object-cover" />
+            </div>
+          )}
 
           <div>
-            <h3 className="font-display font-bold text-sm mb-2">{hi ? "2. ब्रांड चुनें" : "2. Choose brand"}</h3>
+            <h3 className="font-display font-bold text-sm mb-2">{hi ? "2. ब्रांड compare करें" : "2. Compare brands"}</h3>
             <div className="grid gap-2" data-testid="brand-cards">
               {brandOptions.map((b) => {
                 const on = brandId === b.id;
@@ -250,15 +306,23 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
                     type="button"
                     data-testid={`brand-${b.brand}`}
                     onClick={() => setBrandId(b.id)}
-                    className={`flex items-center justify-between gap-2 p-3 border rounded-lg text-left transition-all ${on ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
+                    className={`flex items-center gap-3 p-3 border rounded-lg text-left transition-all ${on ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/40"}`}
                   >
-                    <div className="min-w-0">
+                    <div className="h-12 w-12 shrink-0 rounded-md overflow-hidden bg-muted border border-border">
+                      {b.image ? (
+                        <img src={b.image} alt={b.brand} className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-5 w-5 m-3.5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
                       <div className="font-medium text-sm truncate">{b.brand}</div>
                       {isCheapest && (
                         <span className="text-[10px] font-mono text-solar flex items-center gap-0.5 mt-0.5">
                           <Sparkles className="h-3 w-3" />{hi ? "सबसे सस्ता" : "Best price"}
                         </span>
                       )}
+                      <div className="text-[10px] text-muted-foreground mt-0.5">{hi ? "अनुमानित दर" : "Est. rate"}: {fmt(b.rate)}/{b.unit}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-mono font-bold text-primary">{fmt(b.rate)}</div>
@@ -281,10 +345,14 @@ export default function VerticalCategoryCalculator({ verticalId, onBack, embedde
               onChange={(e) => setQty(e.target.value)}
               className="rounded-lg"
             />
-            {selectedBrand && qty && Number(qty) > 0 && (
-              <p className="text-xs text-muted-foreground mt-2">
-                {hi ? "अनुमान" : "Estimate"}: <span className="font-mono font-bold text-primary">{fmt(selectedBrand.rate * Number(qty))}</span>
-              </p>
+            {estimate != null && (
+              <div className="mt-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <div className="text-[10px] font-mono uppercase text-muted-foreground">{hi ? "अनुमानित कीमत" : "Estimated price"}</div>
+                <div className="font-display font-extrabold text-xl text-primary font-mono mt-1">{fmt(estimate)}</div>
+                <div className="text-[10px] text-muted-foreground mt-1">
+                  {selectedBrand.brand} · {qty} {selectedBrand.unit} × {fmt(selectedBrand.rate)}
+                </div>
+              </div>
             )}
           </div>
 

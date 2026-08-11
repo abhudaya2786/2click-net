@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { api } from "@/lib/api";
 import DashboardLayout, { StatCard } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,8 @@ const COLORS = ["#FF5A1F", "#10B981", "#3B82F6"];
 const ROLES = ["super_admin", "vendor", "customer", "contractor"];
 
 export default function AdminDashboard() {
-  const [active, setActive] = useState("overview");
+  const location = useLocation();
+  const [active, setActive] = useState(location.state?.adminTab ? "admin" : "overview");
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -116,7 +118,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {active === "admin" && <AdminRBAC />}
+          {active === "admin" && <AdminRBAC initialTab={location.state?.adminTab} />}
         </>
       )}
     </DashboardLayout>

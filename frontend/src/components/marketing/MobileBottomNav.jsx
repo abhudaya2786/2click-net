@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const TABS = [
   { to: "/", label: "Home", icon: Home, match: (p) => p === "/" },
-  { to: "/marketplace", label: "Shop", icon: Store, match: (p) => p.startsWith("/marketplace") || p.startsWith("/mart") },
+  { to: "/store", label: "Store", icon: Store, match: (p) => p.startsWith("/store") || p.startsWith("/marketplace") || p.startsWith("/mart") },
   { to: "/tenders", label: "Tenders", icon: Gavel, match: (p) => p.startsWith("/tenders") },
   { to: "/solar", label: "Solar", icon: Sun, match: (p) => p.startsWith("/solar") },
 ];

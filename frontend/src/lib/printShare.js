@@ -162,3 +162,54 @@ export function buildAgreementsBundleHtml(agreements, lang = "en") {
     <p class="muted">${new Date().toLocaleString()}</p>
   `;
 }
+
+export function buildBOQPrintHtml(boq, lang = "en") {
+  const hi = lang === "hi";
+  const L = (en, h) => hi ? h : en;
+  const groups = boq.groups || [];
+  const total = boq.total || 0;
+
+  const groupBlocks = groups.map((g) => {
+    const rows = (g.lines || []).map((l) => `
+      <tr>
+        <td>${escapeHtml(l.name)}</td>
+        <td>${escapeHtml(l.brand)}</td>
+        <td>${escapeHtml(l.unit)}</td>
+        <td style="text-align:right">${Number(l.qty).toLocaleString("en-IN")}</td>
+        <td style="text-align:right">₹${Number(l.rate).toLocaleString("en-IN")}</td>
+        <td style="text-align:right">₹${Number(l.amount).toLocaleString("en-IN")}</td>
+      </tr>
+    `).join("");
+    return `
+      <h2>${escapeHtml(g.section_name || "General")} · ₹${Number(g.total || 0).toLocaleString("en-IN")}</h2>
+      <table>
+        <thead><tr>
+          <th>${L("Item", "आइटम")}</th><th>${L("Brand", "ब्रांड")}</th><th>${L("Unit", "यूनिट")}</th>
+          <th>${L("Qty", "मात्रा")}</th><th>${L("Rate", "दर")}</th><th>${L("Amount", "राशि")}</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+  }).join("");
+
+  return `
+    <p class="muted"><span class="brand">2click.in</span> · ${L("Full Home BOQ", "पूरा घर BOQ")}</p>
+    <h1>${L("Bill of Quantities — Multi-store estimate", "बिल ऑफ क्वांटिटी — मल्टी-स्टोर अनुमान")}</h1>
+    <p class="muted">${L("Generated", "जनरेट")}: ${new Date().toLocaleString()} · ${boq.line_count || 0} ${L("lines", "लाइन")}</p>
+    ${groupBlocks}
+    <h2>${L("Grand total", "कुल योग")}: ₹${Number(total).toLocaleString("en-IN")}</h2>
+    <p class="muted">${L("Rates are indicative brand-wise estimates. Final BOQ may vary with site conditions.", "दरें अनुमानित हैं। साइट पर बदलाव हो सकता है।")}</p>
+  `;
+}
+
+export function buildBOQShareText(boq, lang = "en") {
+  const hi = lang === "hi";
+  const lines = hi
+    ? ["2click.in — पूरा घर BOQ", `कुल: ₹${Number(boq.total || 0).toLocaleString("en-IN")}`, ""]
+    : ["2click.in — Full Home BOQ", `Total: ₹${Number(boq.total || 0).toLocaleString("en-IN")}`, ""];
+  (boq.groups || []).forEach((g) => {
+    lines.push(`${g.section_name}: ₹${Number(g.total || 0).toLocaleString("en-IN")}`);
+  });
+  lines.push("www.2click.in/boq-builder");
+  return lines.join("\n");
+}

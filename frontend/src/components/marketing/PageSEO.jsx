@@ -6,7 +6,7 @@ const SITE = "https://www.2click.in";
  * Updates document title + meta tags for SEO and social sharing.
  * Works without react-helmet — safe for CRA builds.
  */
-export default function PageSEO({ title, description, path = "" }) {
+export default function PageSEO({ title, description, path = "", keywords = "" }) {
   useEffect(() => {
     const fullTitle = title.includes("2click") ? title : `${title} | 2click.in`;
     const url = `${SITE}${path.startsWith("/") ? path : `/${path}`}`;
@@ -24,6 +24,8 @@ export default function PageSEO({ title, description, path = "" }) {
     };
 
     setMeta("description", description);
+    setMeta("robots", "index, follow");
+    if (keywords) setMeta("keywords", keywords);
     setMeta("og:title", fullTitle, "property");
     setMeta("og:description", description, "property");
     setMeta("og:url", url, "property");
@@ -40,7 +42,7 @@ export default function PageSEO({ title, description, path = "" }) {
       document.head.appendChild(canonical);
     }
     canonical.setAttribute("href", url);
-  }, [title, description, path]);
+  }, [title, description, path, keywords]);
 
   return null;
 }

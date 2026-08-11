@@ -7,17 +7,20 @@ import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
 import { useLang } from "@/context/LanguageContext";
 import BrandLogo from "@/components/marketing/BrandLogo";
+import CartNavButton from "@/components/store/CartNavButton";
 import { NAV_COPY } from "@/lib/homeCopy";
 
 const PRIMARY_LINKS = [
-  { to: "/marketplace", key: "nav.marketplace", label: "Marketplace", labelHi: "मार्केट" },
+  { to: "/store", key: "nav.store", label: "Store", labelHi: "स्टोर" },
   { to: "/tenders", key: "nav.tenders", label: "Tenders", labelHi: "टेंडर" },
   { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
+  { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
   { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
 ];
 
 const MORE_LINKS = [
+  { to: "/mart", label: "Brand Catalog", labelHi: "ब्रांड कैटलॉग" },
   { to: "/enroll", label: "Enrollment", labelHi: "पंजीकरण" },
   { to: "/solar", label: "Solar", labelHi: "सोलर" },
   { to: "/pricing", key: "nav.pricing", label: "Pricing", labelHi: "प्लान" },
@@ -96,6 +99,7 @@ export default function Navbar() {
             {navCopy.langSwitch}
           </button>
           )}
+          <CartNavButton />
           <button data-testid="theme-toggle" onClick={toggle}
             className="h-9 w-9 flex items-center justify-center border border-border hover:bg-accent transition-colors rounded-lg">
             {theme === "dark" ? <Sun className="h-4 w-4" strokeWidth={1.5} /> : <Moon className="h-4 w-4" strokeWidth={1.5} />}

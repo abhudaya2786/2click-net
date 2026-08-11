@@ -2,14 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useLang } from "@/context/LanguageContext";
-import {
-  Sofa, Compass, Wrench, Grid3x3, Layers, Pipette, Hammer, Leaf, Calculator, ArrowRight, Loader2,
-} from "lucide-react";
+import { Calculator, ArrowRight, Loader2 } from "lucide-react";
 
-const ICONS = {
-  sofa: Sofa, compass: Compass, wrench: Wrench, grid: Grid3x3,
-  layers: Layers, pipe: Pipette, hammer: Hammer, leaf: Leaf,
-};
+const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
 
 export default function InteriorBOQHub({ onSelect, hideIntro = false }) {
   const { lang } = useLang();
@@ -42,20 +37,38 @@ export default function InteriorBOQHub({ onSelect, hideIntro = false }) {
       )}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {verticals.map((v) => {
-          const Icon = ICONS[v.icon] || Calculator;
           const inner = (
-            <div
-              className="group p-5 border border-border rounded-xl bg-card hover:border-primary hover:shadow-md transition-all h-full flex flex-col"
-            >
-              <Icon className="h-6 w-6 text-primary mb-3 group-hover:scale-110 transition-transform" />
-              <div className="font-display font-bold text-sm leading-snug">
-                {hi ? v.name_hi || v.name : v.name}
+            <div className="group border border-border rounded-xl bg-card hover:border-primary hover:shadow-md transition-all h-full overflow-hidden">
+              <div className="relative h-28 overflow-hidden bg-muted">
+                {v.image ? (
+                  <img src={v.image} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <Calculator className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-2 left-3 right-3">
+                  <div className="font-display font-bold text-sm text-white leading-snug">
+                    {hi ? v.name_hi || v.name : v.name}
+                  </div>
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground mt-2 flex-1">
-                {hi ? "ब्रांड-वार कैलकुलेटर" : "Brand-wise calculator"}
-              </div>
-              <div className="mt-3 text-xs font-medium text-primary flex items-center gap-1">
-                {hi ? "खोलें" : "Open"}<ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <div className="p-4 flex flex-col gap-2">
+                <div className="text-xs text-muted-foreground">
+                  {v.product_count || 0} {hi ? "उत्पाद" : "products"} · {v.brand_count || 0} {hi ? "ब्रांड" : "brands"}
+                </div>
+                {v.from_rate != null && (
+                  <div className="text-xs">
+                    {hi ? "शुरू" : "From"} <span className="font-mono font-bold text-primary">{fmt(v.from_rate)}</span>
+                    <span className="text-muted-foreground">/{v.from_unit}</span>
+                    {v.from_brand && <span className="text-muted-foreground"> · {v.from_brand}</span>}
+                  </div>
+                )}
+                <div className="text-xs font-medium text-primary flex items-center gap-1 mt-1">
+                  {hi ? "कैटलॉग खोलें" : "Open catalog"}
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                </div>
               </div>
             </div>
           );

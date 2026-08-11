@@ -30,8 +30,8 @@ export default function InteriorBOQ() {
               </h1>
               <p className="mt-3 text-muted-foreground text-sm">
                 {hi
-                  ? "हर विकल्प का अपना कैलकुलेटर — इंटीरियर, वास्तु, फैब्रिकेशन, टाइल्स, फॉल्स सीलिंग, PVC, रेनोवेशन, गार्डनिंग। ब्रांड compare करके BOQ बनाएँ।"
-                  : "Each option has its own calculator — interior, vastu, fabrication, tiles, false ceiling, PVC, renovation, gardening. Compare brands and build BOQ."}
+                  ? "फोटो कैटलॉग, ब्रांड-वार अनुमानित कीमत — इंटीरियर, वास्तु, टाइल्स, सीलिंग, PVC, रेनोवेशन, गार्डनिंग।"
+                  : "Photo catalogs with brand-wise estimated prices — interior, vastu, tiles, ceiling, PVC, renovation, gardening."}
               </p>
             </div>
             <InteriorBOQHub hideIntro />
