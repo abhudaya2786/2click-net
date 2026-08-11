@@ -44,6 +44,7 @@ import Cart from "@/pages/Cart";
 import FullBOQBuilder from "@/pages/FullBOQBuilder";
 import UpcomingProjects from "@/pages/UpcomingProjects";
 import PropertyAdvisory from "@/pages/PropertyAdvisory";
+import EquipmentRental from "@/pages/EquipmentRental";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -66,6 +67,7 @@ function AppRouter() {
       <Route path="/boq-builder" element={M(<FullBOQBuilder />)} />
       <Route path="/upcoming-projects" element={M(<UpcomingProjects />)} />
       <Route path="/property-advisory" element={M(<PropertyAdvisory />)} />
+      <Route path="/equipment-rental" element={M(<EquipmentRental />)} />
       <Route path="/solar" element={M(<Solar />)} />
       <Route path="/tenders" element={M(<TenderHub />)} />
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />

@@ -131,6 +131,7 @@ npm run build
 | `/interior-boq/fabrication` | Fabrication work types + materials |
 | `/upcoming-projects` | Projects by location & BHK |
 | `/property-advisory` | Expert guidance + consultant match |
+| `/equipment-rental` | JCB, crane, tipper, logistics rental |
 | `/tenders` | Tender hub + reverse auction |
 | `/consultants` | Architects, vastu, real estate |
 | `/solar` | Solar EPC calculator |

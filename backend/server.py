@@ -1507,6 +1507,10 @@ async def startup():
     import property_advisory as _padv
     _padv.init(db, get_current_user)
     await _padv.ensure_indexes()
+    import equipment_rental as _eqr
+    _eqr.init(db, get_current_user)
+    await _eqr.ensure_indexes()
+    await _eqr.seed_equipment_rentals()
     await db.login_attempts.create_index("identifier")
     await db.otp_codes.create_index("email")
     await db.password_reset_tokens.create_index("token")
@@ -1557,6 +1561,8 @@ import upcoming_projects as _upcoming
 _upcoming.init(db)
 import property_advisory as _padv
 _padv.init(db, get_current_user)
+import equipment_rental as _eqr
+_eqr.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1581,6 +1587,7 @@ app.include_router(_enrollment.router)
 app.include_router(_enrollment.admin_router)
 app.include_router(_upcoming.router)
 app.include_router(_padv.router)
+app.include_router(_eqr.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

@@ -17,6 +17,7 @@ const PRIMARY_LINKS = [
   { to: "/consultants", key: "nav.consultants", label: "Consultants", labelHi: "कंसल्टेंट" },
   { to: "/upcoming-projects", key: "nav.upcoming", label: "Upcoming", labelHi: "आगामी प्रोजेक्ट" },
   { to: "/property-advisory", key: "nav.advisory", label: "Property Advisory", labelHi: "प्रॉपर्टी सलाह" },
+  { to: "/equipment-rental", key: "nav.rental", label: "Equipment Rental", labelHi: "उपकरण रेंटल" },
   { to: "/boq-builder", key: "nav.boq_builder", label: "Full BOQ", labelHi: "पूरा BOQ" },
   { to: "/interior-boq", key: "nav.interior_boq", label: "Interior BOQ", labelHi: "इंटीरियर BOQ" },
   { to: "/mart", key: "nav.mart", label: "Super Mart", labelHi: "सुपर मार्ट" },
