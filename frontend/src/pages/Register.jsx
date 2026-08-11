@@ -126,12 +126,6 @@ export default function Register() {
     setCatQ("");
   };
 
-  const selectUserType = (u) => {
-    setUt(u);
-    setSelected([]);
-    setPrimaryId(null);
-  };
-
   const toggleAgreement = (code) => setAccepted((a) => ({ ...a, [code]: !a[code] }));
 
   const next = () => {
