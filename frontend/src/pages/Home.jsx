@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import TrustBadges from "@/components/marketing/TrustBadges";
 import PageSEO from "@/components/marketing/PageSEO";
+import SiteJsonLd from "@/components/marketing/SiteJsonLd";
 import LeadCaptureForm from "@/components/marketing/LeadCaptureForm";
 import RegionalLanding from "@/components/marketing/RegionalLanding";
 import PlatformToolsGrid from "@/components/marketing/PlatformToolsGrid";
@@ -27,7 +28,13 @@ export default function Home() {
 
   return (
     <div>
-      <PageSEO title={c.seoTitle} description={c.seoDesc} path="/" />
+      <PageSEO
+        title={c.seoTitle}
+        description={c.seoDesc}
+        path="/"
+        keywords="construction materials, BOQ calculator, tender, solar, interior BOQ, enrollment, brand store, India"
+      />
+      <SiteJsonLd />
       <section className="relative border-b border-border overflow-hidden bg-gradient-to-b from-background to-secondary/30">
         <div className={`mx-auto max-w-[1400px] ${centered ? "px-4 md:px-10 py-10 md:py-20 text-center" : "grid lg:grid-cols-2"}`}>
           <div className={`px-4 md:px-10 py-10 md:py-28 flex flex-col justify-center ${centered ? "max-w-3xl mx-auto" : "order-2 lg:order-1"}`}>

@@ -2,8 +2,8 @@
 
 export const HOME_COPY = {
   en: {
-    seoTitle: "2click.in — SaaS, ERP, Marketplace, Solar & Tender Bidding",
-    seoDesc: "India's construction super-app — tender bidding, B2B marketplace, solar EPC calculator, construction ERP and SaaS billing on one login.",
+    seoTitle: "2click.in — Construction Store, BOQ Calculator, Tenders, Solar & ERP",
+    seoDesc: "India's construction super-app — brand-wise material store, full home BOQ builder, interior calculators, enrollment, tender bidding, solar EPC and Mera Ghar ERP on one login.",
     badge: "Enterprise Construction OS",
     heroTitle: "Build. Bid. Procure.",
     heroTitleAccent: "All in one platform.",
@@ -37,8 +37,8 @@ export const HOME_COPY = {
     bottomCta: "Create your account",
   },
   hi: {
-    seoTitle: "2click.in — सॉफ्टवेयर, ईआरपी, मार्केटप्लेस, सोलर और टेंडर",
-    seoDesc: "भारत का निर्माण सुपर ऐप — टेंडर बिडिंग, बीटूबी मार्केटप्लेस, सोलर अनुमान, निर्माण ईआरपी और बिलिंग एक ही लॉगिन पर।",
+    seoTitle: "2click.in — कंस्ट्रक्शन स्टोर, BOQ, टेंडर, सोलर और ERP",
+    seoDesc: "भारत का निर्माण सुपर ऐप — ब्रांड-वार स्टोर, पूरा घर BOQ, इंटीरियर कैलकुलेटर, पंजीकरण, टेंडर, सोलर और मेरा घर ERP एक लॉगिन पर।",
     badge: "एंटरप्राइज निर्माण प्लेटफ़ॉर्म",
     heroTitle: "बनाएँ। बोली लगाएँ। खरीदें।",
     heroTitleAccent: "सब एक ही प्लेटफ़ॉर्म पर।",

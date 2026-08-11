@@ -12,6 +12,7 @@ import {
   Building2, Sofa, Compass, Ruler, Leaf, Filter,
 } from "lucide-react";
 import { toast } from "sonner";
+import PageSEO from "@/components/marketing/PageSEO";
 import { motion } from "framer-motion";
 
 const ROLE_ICONS = {
@@ -79,6 +80,14 @@ export default function Consultants() {
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-10">
+      <PageSEO
+        title={hi ? "कंसल्टेंट पैनल" : "Consultant panel"}
+        description={hi
+          ? "आर्किटेक्ट, इंटीरियर, वास्तु, स्ट्रक्चरल कंसल्टेंट — अनुभव स्तर के साथ खोजें।"
+          : "Find architects, interior, vastu and structural consultants by experience level on 2click.in."}
+        path="/consultants"
+        keywords="architect consultant, interior designer, vastu consultant, construction consultant India"
+      />
       <div className="mb-8">
         <span className="text-xs font-mono uppercase tracking-widest text-primary">
           {hi ? "कंसल्टेंट पैनल" : "Consultant Panel"}

@@ -13,6 +13,7 @@ import {
   HardHat, Loader2, Check, ArrowLeft, ArrowRight, User, Store, ShoppingBag, Languages,
 } from "lucide-react";
 import { toast } from "sonner";
+import PageSEO from "@/components/marketing/PageSEO";
 
 const MODES = [
   { id: "user", icon: User, en: "Individual User", hi: "व्यक्तिगत उपयोगकर्ता", subEn: "Buy, tender, solar quotes", subHi: "खरीदें, टेंडर, सोलर" },
@@ -166,6 +167,14 @@ export default function Enrollment() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <PageSEO
+        title={hi ? "पंजीकरण और नामांकन" : "Enrollment & registration"}
+        description={hi
+          ? "2click.in पर यूज़र, विक्रेता और दुकान पंजीकरण — समझौते, प्रिंट और रसीद।"
+          : "User, vendor and shop enrollment on 2click.in — agreements, print and share receipts."}
+        path="/enroll"
+        keywords="enrollment, shop registration, vendor registration, construction marketplace India"
+      />
       <div className="border-b border-border">
         <div className="mx-auto max-w-3xl px-5 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
