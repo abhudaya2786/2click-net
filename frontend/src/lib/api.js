@@ -8,7 +8,13 @@ const PRODUCTION_API = PRODUCTION_APIS[0];
 
 function resolveBackendUrl() {
   let url = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/$/, "");
-  if (!url) return process.env.NODE_ENV === "production" ? PRODUCTION_API : "";
+  if (!url) {
+    // Same-origin /api proxy on Vercel (see vercel.json) or local dev proxy
+    if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+      return "";
+    }
+    return process.env.NODE_ENV === "production" ? PRODUCTION_API : "";
+  }
   // Fix misconfigured Vercel env (e.g. doubled URLs)
   if (url.includes("2click.in") || url.includes("vercel.app")) {
     console.warn("REACT_APP_BACKEND_URL points to frontend host; using production API fallback.");
