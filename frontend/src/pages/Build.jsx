@@ -56,7 +56,7 @@ export default function Build() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 md:px-8 py-10 md:py-14">
-      <PageSEO title="Start your project — 2click.in" description="2-click project setup" path="/build" />
+      <PageSEO title="Start your project — buildecogroup.com" description="2-click project setup" path="/build" />
       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{c.twoClickTitle}</p>
       <h1 className="font-display font-extrabold text-3xl tracking-tight">
         {step === 0

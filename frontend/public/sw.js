@@ -1,4 +1,4 @@
-const CACHE = "2click-v2";
+const CACHE = "buildecogroup-v2";
 const SHELL = ["/", "/index.html", "/manifest.json", "/icon-512.png", "/offline.html"];
 
 self.addEventListener("install", (event) => {

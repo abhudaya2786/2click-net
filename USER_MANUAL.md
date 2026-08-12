@@ -1,4 +1,4 @@
-# 2click.in — Complete User & Admin Manual
+# buildecogroup.com — Complete User & Admin Manual
 _Enterprise Construction SaaS · React + FastAPI + MongoDB_
 
 Live app: https://wallet-vendor-mvp.emergent.host · All API calls are prefixed with `/api`.

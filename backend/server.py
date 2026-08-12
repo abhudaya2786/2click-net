@@ -39,7 +39,7 @@ RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
 ROLES = ["super_admin", "vendor", "customer", "contractor", "architect"]
 
-app = FastAPI(title="2click.in Enterprise API")
+app = FastAPI(title="BuildEco Group Enterprise API")
 api = APIRouter(prefix="/api")
 
 logging.basicConfig(level=logging.INFO)
@@ -478,7 +478,7 @@ async def _send_login_otp(user: dict, purpose: str = "login"):
     if os.environ.get("ENABLE_TEST_OTP") == "1":
         doc["dev_code"] = code
     await db.otp_codes.insert_one(doc)
-    await mailer.send_email(user["email"], "Your 2click.in login code",
+    await mailer.send_email(user["email"], "Your buildecogroup.com login code",
                             mailer.otp_email_html(user.get("name"), code))
 
 
@@ -673,7 +673,7 @@ async def forgot_password(body: ForgotIn):
         })
         origin = (body.origin or "").rstrip("/")
         link = f"{origin}/reset-password?token={token}"
-        await mailer.send_email(email, "Reset your 2click.in password",
+        await mailer.send_email(email, "Reset your buildecogroup.com password",
                                 mailer.reset_email_html(user.get("name"), link))
     return {"ok": True}
 
@@ -723,7 +723,7 @@ async def contact_submit(body: ContactIn):
     import mailer
     doc = {"id": new_id("msg"), **body.model_dump(), "status": "new", "created_at": iso(now_utc())}
     await db.contact_messages.insert_one(dict(doc))
-    notify = os.environ.get("CONTACT_NOTIFY_EMAIL", "sales@2click.in")
+    notify = os.environ.get("CONTACT_NOTIFY_EMAIL", "sales@buildecogroup.com")
     html = mailer._wrap(
         "New contact message",
         f"<p><strong>{body.name}</strong> &lt;{body.email}&gt;</p>"
@@ -731,13 +731,13 @@ async def contact_submit(body: ContactIn):
         f"<p>Source: {body.source or 'contact'} · Interest: {body.interest or '—'}</p>"
         f"<p style='white-space:pre-wrap'>{body.message}</p>",
     )
-    await mailer.send_email(notify, f"2click.in contact — {body.name}", html, reply_to=body.email)
+    await mailer.send_email(notify, f"buildecogroup.com contact — {body.name}", html, reply_to=body.email)
     return {"ok": True}
 
 
 @api.get("/health")
 async def health():
-    return {"ok": True, "service": "2click.in", "time": iso(now_utc())}
+    return {"ok": True, "service": "buildecogroup.com", "time": iso(now_utc())}
 
 
 # ---------------------------------------------------------------------------
@@ -1203,7 +1203,7 @@ def _render_boq_pdf(proj, items, total):
     orange = colors.HexColor("#FF5A1F")
     x = 18 * mm
     c.setFillColor(orange); c.rect(0, h - 12 * mm, w, 12 * mm, fill=1, stroke=0)
-    c.setFillColor(orange); c.setFont("Helvetica-Bold", 20); c.drawString(x, h - 26 * mm, "2click.in")
+    c.setFillColor(orange); c.setFont("Helvetica-Bold", 20); c.drawString(x, h - 26 * mm, "BuildEco Group")
     c.setFillColor(colors.black); c.setFont("Helvetica-Bold", 14)
     c.drawRightString(w - x, h - 24 * mm, "BILL OF QUANTITIES")
     c.setFont("Helvetica", 10)
@@ -1237,7 +1237,7 @@ def _render_boq_pdf(proj, items, total):
     c.drawRightString(w - x - 20 * mm, y, "TOTAL")
     c.drawRightString(w - x - 2 * mm, y, f"Rs {float(total):,.2f}")
     c.setFillColor(colors.HexColor("#9CA3AF")); c.setFont("Helvetica", 8)
-    c.drawCentredString(w / 2, 14 * mm, "Rates sourced from 2click.in Super Mart · system-generated BOQ")
+    c.drawCentredString(w / 2, 14 * mm, "Rates sourced from buildecogroup.com Super Mart · system-generated BOQ")
     c.showPage(); c.save()
     return buf.getvalue()
 
@@ -1282,7 +1282,7 @@ def get_chat(session_id, system):
 async def ai_chat(body: AIChatIn, user=Depends(get_current_user)):
     from emergentintegrations.llm.chat import UserMessage, TextDelta, StreamDone
     session_id = body.session_id or new_id("chat")
-    system = ("You are 2click.in AI, an expert assistant for a construction, tender, "
+    system = ("You are BuildEco AI (buildecogroup.com), an expert assistant for a construction, tender, "
               "solar and B2B marketplace platform in India. Be concise, practical, and helpful "
               "with BOQ, tenders, solar sizing, GST, and procurement questions.")
     chat = get_chat(session_id, system)
@@ -1347,7 +1347,7 @@ async def seed():
         await db.users.insert_one({
             "id": new_id("user"), "name": "Platform Owner", "email": admin_email,
             "password_hash": hash_password(admin_pw), "role": "super_admin",
-            "company": "2click.in", "picture": None, "auth": "jwt",
+            "company": "BuildEco Group", "picture": None, "auth": "jwt",
             "kyc_status": "verified", "wallet": 0.0, "two_factor_enabled": True,
             "created_at": iso(now_utc()),
         })
@@ -1358,10 +1358,10 @@ async def seed():
 
     # demo users
     demo = [
-        ("Anil Steel Traders", "vendor@2click.in", "vendor", "Anil Steel Traders"),
-        ("Priya Sharma", "customer@2click.in", "customer", None),
-        ("Rajesh Constructions", "contractor@2click.in", "contractor", "Rajesh Constructions Pvt Ltd"),
-        ("Aarav Mehta", "architect@2click.in", "architect", "Demo Architect Studio"),
+        ("Anil Steel Traders", "vendor@buildecogroup.com", "vendor", "Anil Steel Traders"),
+        ("Priya Sharma", "customer@buildecogroup.com", "customer", None),
+        ("Rajesh Constructions", "contractor@buildecogroup.com", "contractor", "Rajesh Constructions Pvt Ltd"),
+        ("Aarav Mehta", "architect@buildecogroup.com", "architect", "Demo Architect Studio"),
     ]
     vendor_id = None
     for name, email, role, company in demo:
@@ -1373,7 +1373,7 @@ async def seed():
                 "default_dashboard": "freelancer",
                 "skills": ["Architecture", "CAD", "BOQ"],
                 "service_area": "Pune, Mumbai",
-                "portfolio_url": "https://2click.in",
+                "portfolio_url": "https://buildecogroup.com",
                 "expected_pricing": "₹500/sqft design",
                 "availability": "Available",
                 "rating": 4.8,
@@ -1424,7 +1424,7 @@ async def seed():
             })
 
     if await db.tenders.count_documents({}) == 0:
-        cust = await db.users.find_one({"email": "customer@2click.in"})
+        cust = await db.users.find_one({"email": "customer@buildecogroup.com"})
         tenders = [
             ("Supply of 200MT TMT Steel Bars", "Steel & TMT", 12500000, 125000,
              "Requirement of Fe500D TMT bars for a G+12 residential tower in Pune. Delivery in 3 phases over 45 days.",
@@ -1548,7 +1548,7 @@ async def shutdown():
 
 @api.get("/")
 async def root():
-    return {"message": "2click.in Enterprise API", "status": "ok"}
+    return {"message": "BuildEco Group Enterprise API", "status": "ok"}
 
 
 import rbac as _rbac

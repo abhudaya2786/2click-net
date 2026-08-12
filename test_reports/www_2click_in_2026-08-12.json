@@ -1,5 +1,5 @@
 {
-  "site": "https://www.2click.in",
+  "site": "https://www.buildecogroup.com",
   "tested_at": "2026-08-12T02:30:00Z",
   "environment": "production",
   "summary": {
@@ -29,7 +29,7 @@
     { "route": "/technology", "status": 200, "result": "PASS" }
   ],
   "api": [
-    { "endpoint": "POST /api/auth/login (customer)", "result": "PASS", "notes": "200 + JWT via www.2click.in proxy" },
+    { "endpoint": "POST /api/auth/login (customer)", "result": "PASS", "notes": "200 + JWT via www.buildecogroup.com proxy" },
     { "endpoint": "POST /api/auth/login (vendor)", "result": "PASS", "notes": "200" },
     { "endpoint": "POST /api/auth/login (contractor)", "result": "PASS", "notes": "200" },
     { "endpoint": "POST /api/auth/login (architect)", "result": "FAIL", "notes": "401 Invalid email or password — demo account missing on backend" },
@@ -51,7 +51,7 @@
       "severity": "critical",
       "area": "login_browser",
       "title": "Browser may call wrong API host",
-      "detail": "Build-time REACT_APP_BACKEND_URL can bypass Vercel /api proxy. Some sessions reported wallet1.unodev.app DNS failures. Fix: force same-origin /api on 2click.in domains."
+      "detail": "Build-time REACT_APP_BACKEND_URL can bypass Vercel /api proxy. Some sessions reported wallet1.unodev.app DNS failures. Fix: force same-origin /api on buildecogroup.com domains."
     },
     {
       "severity": "critical",
@@ -63,7 +63,7 @@
       "severity": "medium",
       "area": "auth",
       "title": "Architect demo login missing",
-      "detail": "architect@2click.in / Demo@12345 returns 401. Seed demo architect user on backend."
+      "detail": "architect@buildecogroup.com / Demo@12345 returns 401. Seed demo architect user on backend."
     },
     {
       "severity": "low",
@@ -73,10 +73,10 @@
     }
   ],
   "demo_credentials": {
-    "customer": { "email": "customer@2click.in", "password": "Demo@12345", "works": true },
-    "vendor": { "email": "vendor@2click.in", "password": "Demo@12345", "works": true },
-    "contractor": { "email": "contractor@2click.in", "password": "Demo@12345", "works": true },
-    "architect": { "email": "architect@2click.in", "password": "Demo@12345", "works": false },
+    "customer": { "email": "customer@buildecogroup.com", "password": "Demo@12345", "works": true },
+    "vendor": { "email": "vendor@buildecogroup.com", "password": "Demo@12345", "works": true },
+    "contractor": { "email": "contractor@buildecogroup.com", "password": "Demo@12345", "works": true },
+    "architect": { "email": "architect@buildecogroup.com", "password": "Demo@12345", "works": false },
     "owner_admin": { "route": "/sys/console", "note": "Not /login" }
   }
 }

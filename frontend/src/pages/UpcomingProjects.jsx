@@ -12,8 +12,8 @@ export default function UpcomingProjects() {
       <PageSEO
         title={hi ? "आगामी प्रोजेक्ट" : "Upcoming projects"}
         description={hi
-          ? "2click.in पर राज्य, शहर, BHK, बजट और ज़रूरतों के हिसाब से आगामी प्लॉट, विला और अपार्टमेंट प्रोजेक्ट।"
-          : "Browse upcoming plots, villas and apartments on 2click.in by state, city, BHK, budget and requirements."}
+          ? "buildecogroup.com पर राज्य, शहर, BHK, बजट और ज़रूरतों के हिसाब से आगामी प्लॉट, विला और अपार्टमेंट प्रोजेक्ट।"
+          : "Browse upcoming plots, villas and apartments on buildecogroup.com by state, city, BHK, budget and requirements."}
         path="/upcoming-projects"
         keywords="upcoming housing projects India, plots by city, new apartment launch, township pre-launch"
       />

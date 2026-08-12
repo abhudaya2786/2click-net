@@ -1,5 +1,5 @@
 """
-2Click.in — Real payments via Stripe (emergentintegrations, Flow B / shared sandbox).
+buildecogroup.com — Real payments via Stripe (emergentintegrations, Flow B / shared sandbox).
 Collects payment for a specific invoice; amount is computed SERVER-SIDE from the
 invoice record. Demo pay flow (phase3c.pay_invoice) remains as a fallback.
 """

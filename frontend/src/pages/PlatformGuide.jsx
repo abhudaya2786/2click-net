@@ -29,12 +29,12 @@ export default function PlatformGuide() {
       <PageSEO
         title={
           isHowItWorks
-            ? "How 2click.in works — step-by-step construction platform"
-            : "Complete 2click.in guide — functions, options & work types"
+            ? "How buildecogroup.com works — step-by-step construction platform"
+            : "Complete buildecogroup.com guide — functions, options & work types"
         }
         description={
           isHowItWorks
-            ? "See how 2click.in works: build a project in two clicks, estimate costs, BOQ, store, tenders, solar, and enrollment."
+            ? "See how buildecogroup.com works: build a project in two clicks, estimate costs, BOQ, store, tenders, solar, and enrollment."
             : "Full platform reference: every module, click workflow, user roles, BOQ, store, solar, tenders, enrollment."
         }
         path={isHowItWorks ? "/how-it-works" : "/platform"}
@@ -43,7 +43,7 @@ export default function PlatformGuide() {
         <BookOpen className="h-8 w-8 text-primary shrink-0 mt-1" />
         <div>
           <h1 className="font-display font-extrabold text-3xl tracking-tight">
-            {hi ? "2click.in — पूर्ण कार्य गाइड" : "2click.in — complete working guide"}
+            {hi ? "buildecogroup.com — पूर्ण कार्य गाइड" : "buildecogroup.com — complete working guide"}
           </h1>
           <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
             {hi

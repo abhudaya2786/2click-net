@@ -159,8 +159,8 @@ export default function Enrollment() {
       <PageSEO
         title={hi ? "पंजीकरण और नामांकन" : "Enrollment & registration"}
         description={hi
-          ? "2click.in पर यूज़र, विक्रेता और दुकान पंजीकरण — समझौते, प्रिंट और रसीद।"
-          : "User, vendor and shop enrollment on 2click.in — agreements, print and share receipts."}
+          ? "buildecogroup.com पर यूज़र, विक्रेता और दुकान पंजीकरण — समझौते, प्रिंट और रसीद।"
+          : "User, vendor and shop enrollment on buildecogroup.com — agreements, print and share receipts."}
         path="/enroll"
         keywords="enrollment, shop registration, vendor registration, construction marketplace India"
       />
@@ -168,7 +168,7 @@ export default function Enrollment() {
         <div className="mx-auto max-w-3xl px-5 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="h-8 w-8 bg-primary flex items-center justify-center rounded-lg"><HardHat className="h-4 w-4 text-white" /></div>
-            <span className="font-display font-extrabold tracking-tight">2click.in</span>
+            <span className="font-display font-extrabold tracking-tight">buildecogroup.com</span>
           </Link>
           <button onClick={toggle} className="flex items-center gap-1.5 text-sm border border-border px-3 h-9 rounded-lg hover:bg-accent">
             <Languages className="h-4 w-4" />{t("lang_toggle_label")}

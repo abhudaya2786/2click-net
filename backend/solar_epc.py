@@ -1,5 +1,5 @@
 """
-2Click.in — Solar EPC Engine: system sizing, 25-yr generation/degradation model,
+buildecogroup.com — Solar EPC Engine: system sizing, 25-yr generation/degradation model,
 tiered Bill of Quantities (Premium / Standard / Budget) with component specs,
 PM Surya Ghar subsidy + Jan Samarth/C&I loan (EMI) engine, C&I 40% Accelerated
 Depreciation + GST ITC, KYC document checklist + upload (object storage), and
@@ -203,7 +203,7 @@ def _build_boq(cap_kwp, tier, system_type, daily_kwh, autonomy_days, ov=None):
     add("netmeter", "Net-Meter / Bi-Directional Kit", "DISCOM-approved bi-directional meter",
         "Genus / Secure", 1, "set", t["netmeter_rate"])
     add("install", "Installation, Civil & Freight", "Erection · commissioning · civil · transport",
-        "2click EPC", cap_kwp, "kWp", t["install_rate_per_kw"])
+        "BuildEco EPC", cap_kwp, "kWp", t["install_rate_per_kw"])
 
     battery_kwh = 0
     if system_type in ("hybrid", "offgrid"):
@@ -419,7 +419,7 @@ DEFAULT_BRANDS = [
     ("earthing", "Ashlok Chemical Earthing", None, "AC/DC/LA pits + compound", 6000, None),
     ("la", "JMV ESE Lightning Arrester", None, "ESE Lightning Arrester", 12000, None),
     ("netmeter", "Genus Net-Meter Kit", None, "DISCOM bi-directional meter", 8000, None),
-    ("install", "2click EPC Installation", None, "Erection · commissioning · civil", 6000, None),
+    ("install", "BuildEco EPC Installation", None, "Erection · commissioning · civil", 6000, None),
 ]
 
 
@@ -876,7 +876,7 @@ def _pdf(proposal: dict, kind: str) -> bytes:
                             leftMargin=16 * mm, rightMargin=16 * mm)
     el = []
     title = "Bank-Ready Detailed Project Report (DPR)" if kind == "dpr" else "Solar EPC Proposal"
-    el.append(Paragraph("2click.in Solar", h1))
+    el.append(Paragraph("buildecogroup.com Solar", h1))
     el.append(Paragraph(f"{title} · {proposal.get('proposal_no','')}", body))
     el.append(Paragraph(f"Generated {now_utc().strftime('%d %b %Y')} · System-generated engineering estimate", small))
     el.append(Spacer(1, 6))
@@ -982,7 +982,7 @@ def _pdf(proposal: dict, kind: str) -> bytes:
 
     el.append(Spacer(1, 8))
     el.append(Paragraph(
-        "This is a system-generated engineering estimate by 2click.in Solar. Figures are indicative and subject to "
+        "This is a system-generated engineering estimate by buildecogroup.com Solar. Figures are indicative and subject to "
         "site survey, PVSyst simulation and DISCOM/lender approval.", small))
     doc.build(el)
     return buf.getvalue()
@@ -1011,7 +1011,7 @@ async def proposal_dpr(pid: str, request: Request):
 # --------------------------------------------------------------------------- #
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
 STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
-APP_NAME = "2click-solar"
+APP_NAME = "buildecogroup-solar"
 _storage_key = None
 
 MIME = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp",

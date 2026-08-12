@@ -1,5 +1,5 @@
 """
-2Click.in — Enterprise RBAC + Audit module (ADDITIVE, non-destructive).
+buildecogroup.com — Enterprise RBAC + Audit module (ADDITIVE, non-destructive).
 Registers on the existing /api router set. Reuses the app's db + get_current_user.
 Nothing here removes or rewrites existing features.
 """
@@ -481,7 +481,7 @@ async def seed_rbac():
     # Default company
     if not await _db.companies.find_one({"id": DEFAULT_COMPANY_ID}):
         await _db.companies.insert_one({
-            "id": DEFAULT_COMPANY_ID, "name": "2Click.in", "code": "2CLICK",
+            "id": DEFAULT_COMPANY_ID, "name": "BuildEco Group", "code": "BUILDECO",
             "status": "active", "branding": {"primary": "#FF5A1F"},
             "created_at": iso(now_utc()), "updated_at": iso(now_utc()),
         })

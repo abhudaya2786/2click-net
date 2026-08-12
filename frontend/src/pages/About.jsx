@@ -13,13 +13,13 @@ export default function About() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 md:px-8 py-10 md:py-14">
-      <PageSEO title="About — 2click.in" path="/about" />
-      <h1 className="font-display font-extrabold text-3xl tracking-tight">2click.in</h1>
+      <PageSEO title="About — buildecogroup.com" path="/about" />
+      <h1 className="font-display font-extrabold text-3xl tracking-tight">buildecogroup.com</h1>
       <p className="text-lg text-primary font-medium mt-2">{c.tagline}</p>
       <p className="text-muted-foreground mt-4 leading-relaxed">
         {lang === "hi"
-          ? "2click.in भारत का प्रीमियम AI-संचालित निर्माण, इंटीरियर, सोलर, डिज़ाइन और प्रोजेक्ट प्रबंधन सुपर ऐप है। प्लॉट से हैंडओवर तक — एक प्लेटफ़ॉर्म, पूर्ण पारदर्शिता।"
-          : "2click.in is India's premium AI-powered construction, interior, solar, design and project management super app. From plot to handover — one platform, full transparency."}
+          ? "buildecogroup.com भारत का प्रीमियम AI-संचालित निर्माण, इंटीरियर, सोलर, डिज़ाइन और प्रोजेक्ट प्रबंधन सुपर ऐप है। प्लॉट से हैंडओवर तक — एक प्लेटफ़ॉर्म, पूर्ण पारदर्शिता।"
+          : "buildecogroup.com is India's premium AI-powered construction, interior, solar, design and project management super app. From plot to handover — one platform, full transparency."}
       </p>
 
       <section className="mt-12">

@@ -18,7 +18,7 @@ export default function PlatformCompleteReference() {
       {/* Types of work */}
       <section>
         <h2 className="font-display font-bold text-xl mb-2">
-          {hi ? "प्रकार की कार्य (Types of work)" : "Types of work on 2click.in"}
+          {hi ? "प्रकार की कार्य (Types of work)" : "Types of work on buildecogroup.com"}
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
           {hi

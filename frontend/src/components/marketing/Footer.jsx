@@ -54,7 +54,7 @@ export default function Footer() {
           </p>
           <div className="mt-5 space-y-1 text-sm text-muted-foreground">
             <a href="tel:+917007254932" data-testid="footer-phone" className="block hover:text-foreground transition-colors">+91 70072 54932</a>
-            <a href="mailto:sales@2click.in" data-testid="footer-email" className="block hover:text-foreground transition-colors">sales@2click.in</a>
+            <a href="mailto:sales@buildecogroup.com" data-testid="footer-email" className="block hover:text-foreground transition-colors">sales@buildecogroup.com</a>
           </div>
         </div>
         {COLS.map((col) => (

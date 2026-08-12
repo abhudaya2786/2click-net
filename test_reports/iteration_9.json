@@ -17,8 +17,8 @@
   ],
   "updated_files": [],
   "success_rate": { "backend": "n/a (frontend-only)", "frontend": "100% (5/5 flows)" },
-  "test_credentials": "customer@2click.in / Demo@12345 (worked as expected)",
-  "seed_data_creation": "Proposal SOL-2026-0002 created for customer@2click.in; one KYC PAN file uploaded (tmp .txt).",
+  "test_credentials": "customer@buildecogroup.com / Demo@12345 (worked as expected)",
+  "seed_data_creation": "Proposal SOL-2026-0002 created for customer@buildecogroup.com; one KYC PAN file uploaded (tmp .txt).",
   "retest_needed": false,
   "main_agent_can_self_test": true,
   "context_for_next_testing_agent": "Solar EPC frontend is fully working end-to-end. If regressing, verify the 4 key data-testids: solar-estimator, epc-estimate, epc-results (must contain epc-gen-chart + epc-boq), epc-save/pdf/dpr, kyc-panel + kyc-upload-{key}. Both /solar (public) and customer dashboard nav-solar-epc paths embed the same SolarEstimator component."

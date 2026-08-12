@@ -30,7 +30,7 @@ export default function LeadCaptureForm({
     try {
       await api.post("/contact", {
         name: form.name,
-        email: form.email || `${form.phone.replace(/\D/g, "")}@lead.2click.in`,
+        email: form.email || `${form.phone.replace(/\D/g, "")}@lead.buildecogroup.com`,
         phone: form.phone,
         message: form.message || `Interest: ${interest || source}`,
         source,

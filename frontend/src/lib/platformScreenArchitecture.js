@@ -1,5 +1,5 @@
 /**
- * Complete screen-by-screen functional architecture for the 2Click.in core journey.
+ * Complete screen-by-screen functional architecture for the buildecogroup.com core journey.
  * Used by /platform and per-page workflow banners.
  */
 

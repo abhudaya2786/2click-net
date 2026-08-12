@@ -58,7 +58,7 @@ export function buildAgreementPrintHtml(agreement, lang = "en") {
   const title = hi ? agreement.title_hi || agreement.title : agreement.title;
   const content = hi ? agreement.content_hi || agreement.content : agreement.content;
   return `
-    <p class="muted"><span class="brand">2click.in</span> · Agreement · v${escapeHtml(agreement.version)}</p>
+    <p class="muted"><span class="brand">buildecogroup.com</span> · Agreement · v${escapeHtml(agreement.version)}</p>
     <h1>${escapeHtml(title)}</h1>
     <p>${escapeHtml(content)}</p>
     <p class="muted">Printed ${new Date().toLocaleString()}</p>
@@ -97,7 +97,7 @@ export function buildEnrollmentReceiptHtml(data, lang = "en") {
   `).join("");
 
   return `
-    <p class="muted"><span class="brand">2click.in</span> · ${L("Enrollment receipt", "पंजीकरण रसीद")}</p>
+    <p class="muted"><span class="brand">buildecogroup.com</span> · ${L("Enrollment receipt", "पंजीकरण रसीद")}</p>
     <h1>${L("Registration & enrollment summary", "पंजीकरण और नामांकन सारांश")}</h1>
     <p class="muted">${L("Generated", "जनरेट")}: ${new Date().toLocaleString()}</p>
 
@@ -120,7 +120,7 @@ export function buildEnrollmentReceiptHtml(data, lang = "en") {
       <tbody>${agrRows || `<tr><td colspan="3">${L("None recorded", "कोई रिकॉर्ड नहीं")}</td></tr>`}</tbody>
     </table>
 
-    <p class="muted">${L("This is a system-generated receipt. For support: www.2click.in/contact", "यह सिस्टम जनरेट रसीद है। सहायता: www.2click.in/contact")}</p>
+    <p class="muted">${L("This is a system-generated receipt. For support: www.buildecogroup.com/contact", "यह सिस्टम जनरेट रसीद है। सहायता: www.buildecogroup.com/contact")}</p>
   `;
 }
 
@@ -130,20 +130,20 @@ export function buildEnrollmentShareText(data, lang = "en") {
   const shop = data.shop;
   const lines = hi
     ? [
-        "2click.in पंजीकरण",
+        "buildecogroup.com पंजीकरण",
         `नाम: ${user.name || data.name || ""}`,
         shop ? `दुकान: ${shop.name}` : "",
         `ईमेल: ${user.email || data.email || ""}`,
         `स्थिति: ${user.enrollment_status || data.enrollment_status || ""}`,
-        "www.2click.in",
+        "www.buildecogroup.com",
       ]
     : [
-        "2click.in Enrollment",
+        "buildecogroup.com Enrollment",
         `Name: ${user.name || data.name || ""}`,
         shop ? `Shop: ${shop.name}` : "",
         `Email: ${user.email || data.email || ""}`,
         `Status: ${user.enrollment_status || data.enrollment_status || ""}`,
-        "www.2click.in",
+        "www.buildecogroup.com",
       ];
   return lines.filter(Boolean).join("\n");
 }
@@ -156,7 +156,7 @@ export function buildAgreementsBundleHtml(agreements, lang = "en") {
     return `<h2>${escapeHtml(title)} <span class="badge">v${escapeHtml(a.version)}</span></h2><p>${escapeHtml(content)}</p>`;
   }).join("");
   return `
-    <p class="muted"><span class="brand">2click.in</span> · ${hi ? "सभी समझौते" : "All agreements"}</p>
+    <p class="muted"><span class="brand">buildecogroup.com</span> · ${hi ? "सभी समझौते" : "All agreements"}</p>
     <h1>${hi ? "पंजीकरण समझौते" : "Enrollment agreements"}</h1>
     ${parts}
     <p class="muted">${new Date().toLocaleString()}</p>
@@ -193,7 +193,7 @@ export function buildBOQPrintHtml(boq, lang = "en") {
   }).join("");
 
   return `
-    <p class="muted"><span class="brand">2click.in</span> · ${L("Full Home BOQ", "पूरा घर BOQ")}</p>
+    <p class="muted"><span class="brand">buildecogroup.com</span> · ${L("Full Home BOQ", "पूरा घर BOQ")}</p>
     <h1>${L("Bill of Quantities — Multi-store estimate", "बिल ऑफ क्वांटिटी — मल्टी-स्टोर अनुमान")}</h1>
     <p class="muted">${L("Generated", "जनरेट")}: ${new Date().toLocaleString()} · ${boq.line_count || 0} ${L("lines", "लाइन")}</p>
     ${groupBlocks}
@@ -205,11 +205,11 @@ export function buildBOQPrintHtml(boq, lang = "en") {
 export function buildBOQShareText(boq, lang = "en") {
   const hi = lang === "hi";
   const lines = hi
-    ? ["2click.in — पूरा घर BOQ", `कुल: ₹${Number(boq.total || 0).toLocaleString("en-IN")}`, ""]
-    : ["2click.in — Full Home BOQ", `Total: ₹${Number(boq.total || 0).toLocaleString("en-IN")}`, ""];
+    ? ["buildecogroup.com — पूरा घर BOQ", `कुल: ₹${Number(boq.total || 0).toLocaleString("en-IN")}`, ""]
+    : ["buildecogroup.com — Full Home BOQ", `Total: ₹${Number(boq.total || 0).toLocaleString("en-IN")}`, ""];
   (boq.groups || []).forEach((g) => {
     lines.push(`${g.section_name}: ₹${Number(g.total || 0).toLocaleString("en-IN")}`);
   });
-  lines.push("www.2click.in/boq-builder");
+  lines.push("www.buildecogroup.com/boq-builder");
   return lines.join("\n");
 }

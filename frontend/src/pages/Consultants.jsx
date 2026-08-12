@@ -84,7 +84,7 @@ export default function Consultants() {
         title={hi ? "कंसल्टेंट पैनल" : "Consultant panel"}
         description={hi
           ? "आर्किटेक्ट, इंटीरियर, वास्तु, स्ट्रक्चरल कंसल्टेंट — अनुभव स्तर के साथ खोजें।"
-          : "Find architects, interior, vastu and structural consultants by experience level on 2click.in."}
+          : "Find architects, interior, vastu and structural consultants by experience level on buildecogroup.com."}
         path="/consultants"
         keywords="architect consultant, interior designer, vastu consultant, construction consultant India"
       />

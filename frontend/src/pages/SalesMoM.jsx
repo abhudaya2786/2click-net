@@ -142,7 +142,7 @@ export default function SalesMoM() {
       />
       <div className="mx-auto max-w-6xl px-4 md:px-8 py-10 md:py-14">
         <PageSEO
-          title="Sales MoM Intelligence — 2click.in"
+          title="Sales MoM Intelligence — buildecogroup.com"
           description="Turn sales call transcripts into Minutes of Meeting, objections, lead score, and WhatsApp follow-ups."
           path="/sales-mom"
         />

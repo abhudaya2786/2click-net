@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 
 const FALLBACK = {
   en: {
-    create_account: "Create your 2Click.in Account",
+    create_account: "Create your buildecogroup.com Account",
     onboarding_sub: "A few quick steps to set up your workspace",
     step_type: "Account Type",
     step_category: "Categories",
@@ -75,7 +75,7 @@ const FALLBACK = {
     "nav.boq_builder": "Full BOQ",
   },
   hi: {
-    create_account: "अपना 2Click.in खाता बनाएँ",
+    create_account: "अपना buildecogroup.com खाता बनाएँ",
     onboarding_sub: "अपना कार्यक्षेत्र सेट करने के लिए कुछ आसान चरण",
     step_type: "खाता प्रकार",
     step_category: "श्रेणियाँ",

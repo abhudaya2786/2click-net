@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE = "https://www.2click.in";
+const SITE = "https://www.buildecogroup.com";
 
 /**
  * Updates document title + meta tags for SEO and social sharing.
@@ -8,7 +8,7 @@ const SITE = "https://www.2click.in";
  */
 export default function PageSEO({ title, description, path = "", keywords = "" }) {
   useEffect(() => {
-    const fullTitle = title.includes("2click") ? title : `${title} | 2click.in`;
+    const fullTitle = title.includes("buildecogroup") || title.includes("BuildEco") ? title : `${title} | buildecogroup.com`;
     const url = `${SITE}${path.startsWith("/") ? path : `/${path}`}`;
 
     document.title = fullTitle;
@@ -30,7 +30,7 @@ export default function PageSEO({ title, description, path = "", keywords = "" }
     setMeta("og:description", description, "property");
     setMeta("og:url", url, "property");
     setMeta("og:type", "website", "property");
-    setMeta("og:site_name", "2click.in", "property");
+    setMeta("og:site_name", "buildecogroup.com", "property");
     setMeta("twitter:card", "summary_large_image");
     setMeta("twitter:title", fullTitle);
     setMeta("twitter:description", description);

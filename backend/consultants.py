@@ -1,5 +1,5 @@
 """
-2click.in — Consultant panel: exterior, interior, architect, vastu & more.
+buildecogroup.com — Consultant panel: exterior, interior, architect, vastu & more.
 Roles + experience levels; public browse + consultant self-service profile.
 """
 import uuid
@@ -282,7 +282,7 @@ async def seed_consultants():
         ("real_estate", "real_estate_advisor", "Rajesh Malhotra", 18, "Real estate advisor — plots, RERA, commercial deals"),
     ]
     for role, ut_suffix, name, years, bio in demos:
-        email = f"demo.{role}@2click.in"
+        email = f"demo.{role}@buildecogroup.com"
         user = await _db.users.find_one({"email": email})
         if not user:
             uid = new_id("user")

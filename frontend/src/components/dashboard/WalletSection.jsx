@@ -20,7 +20,7 @@ export default function WalletSection() {
       <div className="bg-primary text-white p-6 border border-primary max-w-sm">
         <div className="flex items-center gap-2 text-sm opacity-90"><Wallet className="h-4 w-4" />Wallet Balance</div>
         <div data-testid="wallet-balance" className="font-display font-extrabold text-4xl tracking-tight mt-3">₹{Number(data.balance).toLocaleString("en-IN", { maximumFractionDigits: 2 })}</div>
-        <p className="text-xs opacity-80 mt-2">Credited &amp; managed by 2click.in Super Admin</p>
+        <p className="text-xs opacity-80 mt-2">Credited &amp; managed by buildecogroup.com Super Admin</p>
       </div>
       <div className="bg-card border border-border overflow-x-auto">
         <div className="px-5 py-3 border-b border-border font-display font-bold text-sm">Transaction Ledger</div>

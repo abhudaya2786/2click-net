@@ -20,7 +20,7 @@ export const LOGIN_PROFILES = [
       { icon: Sun, en: "Solar EPC quotes", hi: "सोलर EPC अनुमान" },
       { icon: Gavel, en: "Post & track tenders", hi: "टेंडर पोस्ट करें" },
     ],
-    demo: { email: "customer@2click.in", password: "Demo@12345", name: "Priya Sharma" },
+    demo: { email: "customer@buildecogroup.com", password: "Demo@12345", name: "Priya Sharma" },
     dashboard: "Customer Dashboard",
   },
   {
@@ -39,7 +39,7 @@ export const LOGIN_PROFILES = [
       { icon: Gavel, en: "Live tender bidding", hi: "लाइव टेंडर बिडिंग" },
       { icon: Sun, en: "Solar brand catalog", hi: "सोलर ब्रांड कैटलॉग" },
     ],
-    demo: { email: "vendor@2click.in", password: "Demo@12345", name: "Anil Steel Traders" },
+    demo: { email: "vendor@buildecogroup.com", password: "Demo@12345", name: "Anil Steel Traders" },
     dashboard: "Vendor Portal",
   },
   {
@@ -58,7 +58,7 @@ export const LOGIN_PROFILES = [
       { icon: Gavel, en: "Tender bidding", hi: "टेंडर बिडिंग" },
       { icon: HardHat, en: "Daily progress reports", hi: "दैनिक प्रगति रिपोर्ट" },
     ],
-    demo: { email: "contractor@2click.in", password: "Demo@12345", name: "Rajesh Constructions" },
+    demo: { email: "contractor@buildecogroup.com", password: "Demo@12345", name: "Rajesh Constructions" },
     dashboard: "Contractor Workspace",
   },
   {
@@ -78,7 +78,7 @@ export const LOGIN_PROFILES = [
       { icon: Inbox, en: "Client enquiries", hi: "ग्राहक पूछताछ" },
       { icon: Gavel, en: "Consultancy tenders", hi: "परामर्श टेंडर" },
     ],
-    demo: { email: "architect@2click.in", password: "Demo@12345", name: "Demo Architect" },
+    demo: { email: "architect@buildecogroup.com", password: "Demo@12345", name: "Demo Architect" },
     dashboard: "Freelancer Workspace",
   },
   {

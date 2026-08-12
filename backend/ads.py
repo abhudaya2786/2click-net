@@ -1,5 +1,5 @@
 """
-2Click.in — Paid Advertisement Portal.
+buildecogroup.com — Paid Advertisement Portal.
 Advertisers create ad campaigns (placement + duration → server-computed fee),
 pay via Wallet or Stripe, and (after Super-Admin approval) go live. Performance
 metrics (impressions/clicks) are deterministically simulated per campaign/day
@@ -120,7 +120,7 @@ def _stripe(request: Request) -> StripeCheckout:
 # --------------------------------------------------------------------------- #
 STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
 STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
-APP_NAME = "2click-ads"
+APP_NAME = "buildecogroup-ads"
 _storage_key = None
 MIME = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp",
         "gif": "image/gif", "mp4": "video/mp4", "webm": "video/webm"}

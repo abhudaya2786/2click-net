@@ -1,5 +1,5 @@
 """
-2click.in — Property advisory: match consultants & real-estate experts by property need,
+buildecogroup.com — Property advisory: match consultants & real-estate experts by property need,
 with step-by-step expert guidance (e.g. new building from land to handover).
 """
 import uuid
@@ -457,7 +457,7 @@ async def submit_advisory_request(body: AdvisoryRequestIn, request: Request):
     await _db.contact_messages.insert_one({
         "id": new_id("contact"),
         "name": body.name,
-        "email": body.email or f"{(body.phone or '').replace(' ', '')}@lead.2click.in",
+        "email": body.email or f"{(body.phone or '').replace(' ', '')}@lead.buildecogroup.com",
         "phone": body.phone,
         "message": body.message or f"Property advisory: {body.property_need} — {body.state or ''} {body.city or ''}",
         "source": "property_advisory",

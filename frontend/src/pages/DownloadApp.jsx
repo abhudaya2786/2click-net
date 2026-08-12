@@ -7,7 +7,7 @@ import { isAndroidBrowser, isStandalonePwa, isNativeCapacitor } from "@/lib/pwa"
 
 const COPY = {
   en: {
-    title: "Get the 2click App",
+    title: "Get the BuildEco Group App",
     sub: "Install on your phone — tenders, marketplace, solar and dashboard in one tap.",
     pwa_title: "Install from browser (recommended)",
     pwa_1: "Open this site in Chrome on Android",
@@ -24,7 +24,7 @@ const COPY = {
     back_home: "Back to home",
   },
   hi: {
-    title: "2click ऐप डाउनलोड करें",
+    title: "BuildEco Group ऐप डाउनलोड करें",
     sub: "फोन पर इंस्टॉल करें — टेंडर, मार्केटप्लेस, सोलर और डैशबोर्ड एक टैप में।",
     pwa_title: "ब्राउज़र से इंस्टॉल करें (सुझावित)",
     pwa_1: "Android पर Chrome में यह साइट खोलें",
@@ -42,7 +42,7 @@ const COPY = {
   },
 };
 
-const APK_URL = process.env.REACT_APP_APK_URL || "/2click.apk";
+const APK_URL = process.env.REACT_APP_APK_URL || "/buildecogroup.apk";
 
 export default function DownloadApp() {
   const { lang } = useLang();
@@ -113,7 +113,7 @@ export default function DownloadApp() {
               </h2>
               <p className="text-sm text-muted-foreground mt-2">{t.apk_sub}</p>
               <Button className="mt-4" asChild>
-                <a href={APK_URL} download="2click.apk" data-testid="apk-download">
+                <a href={APK_URL} download="buildecogroup.apk" data-testid="apk-download">
                   <Download className="h-4 w-4 mr-2" />
                   {t.apk_btn}
                 </a>
@@ -135,7 +135,7 @@ export default function DownloadApp() {
       <p className="text-center mt-8">
         <Link to="/" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
           <ExternalLink className="h-3.5 w-3.5" />
-          www.2click.in
+          www.buildecogroup.com
         </Link>
       </p>
     </div>

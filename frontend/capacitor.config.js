@@ -2,8 +2,8 @@
 const liveUrl = process.env.CAPACITOR_SERVER_URL;
 
 const config = {
-  appId: "in.twoclick.app",
-  appName: "2click",
+  appId: "com.buildecogroup.app",
+  appName: "BuildEco Group",
   webDir: "build",
   bundledWebRuntime: false,
   ...(liveUrl

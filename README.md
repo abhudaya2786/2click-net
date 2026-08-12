@@ -1,8 +1,11 @@
-# 2click.in — Complete Website Source Code
+# BuildEco Group (buildecogroup.com) — Complete Website Source Code
 
 Construction super-app: Store, Super Mart, Full BOQ, Interior BOQ, Tenders, Solar, Consultants, Upcoming Projects, Property Advisory, Enrollment, Mera Ghar ERP, and more.
 
-**Live site:** https://www.2click.in
+**Live site:** https://www.buildecogroup.com  
+**Brand:** BuildEco Group (formerly 2click.in)
+
+> GitHub repository folder may still be named `2click-net`; product branding is **buildecogroup.com**.
 
 ---
 
@@ -160,9 +163,9 @@ See `backend/.env.example` and `frontend/.env.example`.
 
 | Role | Email | Password |
 |------|-------|----------|
-| Customer | customer@2click.in | Demo@12345 |
-| Vendor | vendor@2click.in | Demo@12345 |
-| Contractor | contractor@2click.in | Demo@12345 |
+| Customer | customer@buildecogroup.com | Demo@12345 |
+| Vendor | vendor@buildecogroup.com | Demo@12345 |
+| Contractor | contractor@buildecogroup.com | Demo@12345 |
 
 ---
 
@@ -172,7 +175,7 @@ See `backend/.env.example` and `frontend/.env.example`.
 
 | Step | Detail |
 |------|--------|
-| **URL** | https://www.2click.in/sys/console (local: http://localhost:3000/sys/console) |
+| **URL** | https://www.buildecogroup.com/sys/console (local: http://localhost:3000/sys/console) |
 | **Email** | Value of `ADMIN_EMAIL` in backend `.env` (production default: `abbhuadaya@gmail.com`) |
 | **Password** | Value of `ADMIN_PASSWORD` in backend `.env` |
 | **Access PIN** | Optional — `ADMIN_ACCESS_PIN` in backend `.env` if enabled |
@@ -186,4 +189,4 @@ After login you reach **Dashboard** with full Super Admin controls (users, RBAC,
 
 ## License
 
-Private project — 2click.in / repository owner.
+Private project — buildecogroup.com / repository owner.

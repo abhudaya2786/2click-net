@@ -1,5 +1,5 @@
 """
-2click.in — Home Build Lifecycle: naksha → griha pravesh
+buildecogroup.com — Home Build Lifecycle: naksha → griha pravesh
 Extends construction ERP with lifecycle stages, layout unlocks,
 agreements, payment schedules, anonymous geo-RFQ, and trade rates.
 """
@@ -421,7 +421,7 @@ async def create_agreement(project_id: str, body: AgreementIn, request: Request)
         "advance_pct": body.advance_pct,
         "advance_amount": advance,
         "delivery_days": body.delivery_days,
-        "terms": body.terms or "Standard 2click.in construction agreement. Rates approved by company architect & engineer.",
+        "terms": body.terms or "Standard buildecogroup.com construction agreement. Rates approved by company architect & engineer.",
         "status": "draft",
         "created_by": user["id"],
         "created_at": iso(now_utc()),

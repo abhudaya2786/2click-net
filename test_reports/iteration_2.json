@@ -19,10 +19,10 @@
     "vendor_orders() now fetches full orders list + separate product-ids list (fixed the async bug); consider pushing filter into a Mongo $in query on items.product_id for O(1) DB round-trip instead of Python-side loop."
   ],
   "updated_files": [
-    "/app/backend/tests/backend_test.py (updated demo emails to @2click.in, added TestVendorEndpoints regression class)"
+    "/app/backend/tests/backend_test.py (updated demo emails to @buildecogroup.com, added TestVendorEndpoints regression class)"
   ],
   "success_rate": {"backend": "100% (25/25)", "frontend": "100%"},
-  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin via secret triple-click on login-title); vendor@2click.in / customer@2click.in / contractor@2click.in — Demo@12345",
+  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin via secret triple-click on login-title); vendor@buildecogroup.com / customer@buildecogroup.com / contractor@buildecogroup.com — Demo@12345",
   "seed_data_creation": "No new seed. Backend auto-seeds admin + 3 demo users + 6 products + 3 tenders on startup. Tests create TEST_-prefixed artifacts, namespaced.",
   "retest_needed": false,
   "main_agent_can_self_test": true,

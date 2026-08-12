@@ -1,5 +1,5 @@
 """
-2click.in — Construction equipment rental, machinery hire & logistics services.
+buildecogroup.com — Construction equipment rental, machinery hire & logistics services.
 """
 import uuid
 from datetime import datetime, timezone
@@ -489,7 +489,7 @@ async def submit_rental_request(body: RentalRequestIn, request: Request):
     await _db.contact_messages.insert_one({
         "id": new_id("contact"),
         "name": body.name,
-        "email": body.email or f"{(body.phone or '').replace(' ', '')}@lead.2click.in",
+        "email": body.email or f"{(body.phone or '').replace(' ', '')}@lead.buildecogroup.com",
         "phone": body.phone,
         "message": body.message or f"Equipment rental: {listing.get('title') if listing else body.category_id or 'general'}",
         "source": "equipment_rental",

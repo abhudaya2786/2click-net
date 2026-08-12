@@ -10,7 +10,7 @@ export default function EnrollmentReceipt({ data, lang = "en", t = (k) => k, sho
 
   const printHtmlBody = buildEnrollmentReceiptHtml(data, lang);
   const shareText = buildEnrollmentShareText(data, lang);
-  const shareUrl = typeof window !== "undefined" ? window.location.origin + "/enroll" : "https://www.2click.in/enroll";
+  const shareUrl = typeof window !== "undefined" ? window.location.origin + "/enroll" : "https://www.buildecogroup.com/enroll";
 
   return (
     <div className="border border-border rounded-xl bg-card overflow-hidden" data-testid="enrollment-receipt">
@@ -21,11 +21,11 @@ export default function EnrollmentReceipt({ data, lang = "en", t = (k) => k, sho
         </div>
         {showActions && (
           <PrintShareBar
-            printTitle={hi ? "2click.in पंजीकरण" : "2click.in Enrollment"}
+            printTitle={hi ? "buildecogroup.com पंजीकरण" : "buildecogroup.com Enrollment"}
             printHtmlBody={printHtmlBody}
             shareText={shareText}
             shareUrl={shareUrl}
-            emailSubject={hi ? "2click.in पंजीकरण रसीद" : "2click.in enrollment receipt"}
+            emailSubject={hi ? "buildecogroup.com पंजीकरण रसीद" : "buildecogroup.com enrollment receipt"}
             t={t}
           />
         )}

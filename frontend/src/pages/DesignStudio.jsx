@@ -15,7 +15,7 @@ export default function DesignStudio() {
   return (
     <div className="mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-14">
       <PageSEO
-        title={hi ? "AI 3D Home Studio — 2click.in" : "AI 3D Home Studio — 2click.in"}
+        title={hi ? "AI 3D Home Studio — buildecogroup.com" : "AI 3D Home Studio — buildecogroup.com"}
         description={hi
           ? "4-चरण 3D जनरेशन पाइपलाइन, स्पेशियल लेआउट और AI डिज़ाइन टूल्स"
           : "4-step 3D generation pipeline, spatial layout and AI design tools"}

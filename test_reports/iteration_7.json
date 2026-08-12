@@ -34,7 +34,7 @@
     "/app/backend/tests/test_mart.py (NEW - 11 tests, all pass)"
   ],
   "success_rate": {"backend": "100% (11/11)", "frontend": "100% (public /mart, customer calc, contractor BOQ + PDF, admin materials CRUD all verified end-to-end)"},
-  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin via triple-click [data-testid=login-title]); contractor@2click.in/Demo@12345; customer@2click.in/Demo@12345",
+  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin via triple-click [data-testid=login-title]); contractor@buildecogroup.com/Demo@12345; customer@buildecogroup.com/Demo@12345",
   "seed_data_creation": "Test material TEST_UI_MAT/TESTBRAND/TESTCAT was created + deleted during admin UI test (cleaned up). Contractor BOQ lines were added on existing project 'Mart Test Villa' (2 lines from Super Mart + 1 empty manual line — main agent may wish to clean these).",
   "retest_needed": false,
   "should_main_agent_self_test": false,

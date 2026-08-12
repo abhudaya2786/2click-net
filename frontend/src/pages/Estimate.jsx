@@ -72,10 +72,10 @@ export default function Estimate() {
     const text = Object.entries(result.breakdown || {})
       .map(([k, v]) => `${k}: ₹${v.toLocaleString("en-IN")}`)
       .join("\n");
-    const blob = new Blob([`2click.in Estimate\n\nTotal: ₹${result.total_estimated_cost}\n\n${text}`], { type: "text/plain" });
+    const blob = new Blob([`buildecogroup.com Estimate\n\nTotal: ₹${result.total_estimated_cost}\n\n${text}`], { type: "text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "2click-estimate.txt";
+    a.download = "buildecogroup-estimate.txt";
     a.click();
     toast.success(lang === "hi" ? "कोटेशन डाउनलोड" : "Quotation downloaded");
   };
@@ -84,7 +84,7 @@ export default function Estimate() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 md:px-8 py-10 md:py-14">
-      <PageSEO title="Cost calculator — 2click.in" description="Construction cost estimate" path="/estimate" />
+      <PageSEO title="Cost calculator — buildecogroup.com" description="Construction cost estimate" path="/estimate" />
       <h1 className="font-display font-extrabold text-3xl tracking-tight">{c.estimateTitle}</h1>
       <p className="text-sm text-muted-foreground mt-2">
         {lang === "hi" ? "स्थान, क्षेत्रफल और गुणवत्ता — तुरंत विस्तृत अनुमान।" : "Location, area and quality — instant detailed estimate."}

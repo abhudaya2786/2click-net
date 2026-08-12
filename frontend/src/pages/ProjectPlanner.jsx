@@ -45,7 +45,7 @@ export default function ProjectPlanner() {
   if (!input) {
     return (
       <div className="mx-auto max-w-3xl px-4 md:px-8 py-14">
-        <PageSEO title="AI Project Dashboard — 2click.in" path="/projects" />
+        <PageSEO title="AI Project Dashboard — buildecogroup.com" path="/projects" />
         <EmptyState
           title={hi ? "कोई प्रोजेक्ट नहीं" : "No project yet"}
           description={hi ? "2-क्लिक फ्लो से शुरू करें।" : "Start with the 2-click flow."}
@@ -61,7 +61,7 @@ export default function ProjectPlanner() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 md:px-8 py-10 md:py-14">
-      <PageSEO title="AI Project Dashboard — 2click.in" path="/projects" />
+      <PageSEO title="AI Project Dashboard — buildecogroup.com" path="/projects" />
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2 flex items-center gap-2">

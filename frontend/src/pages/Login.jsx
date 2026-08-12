@@ -150,7 +150,7 @@ export default function Login() {
             <div className="h-9 w-9 bg-primary flex items-center justify-center rounded-lg">
               <HardHat className="h-5 w-5" strokeWidth={1.75} />
             </div>
-            <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
+            <span className="font-display font-extrabold text-lg tracking-tight">buildecogroup.com</span>
           </Link>
 
           <div className="flex-1 flex flex-col justify-center py-10">
@@ -188,7 +188,7 @@ export default function Login() {
             <div className="h-8 w-8 bg-primary flex items-center justify-center rounded-lg">
               <HardHat className="h-4 w-4 text-white" />
             </div>
-            <span className="font-display font-bold text-sm">2click.in</span>
+            <span className="font-display font-bold text-sm">buildecogroup.com</span>
           </Link>
           <button
             type="button"

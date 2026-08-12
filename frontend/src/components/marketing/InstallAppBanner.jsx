@@ -7,13 +7,13 @@ import { isNativeCapacitor, isStandalonePwa } from "@/lib/pwa";
 
 const COPY = {
   en: {
-    title: "Install 2click App",
+    title: "Install BuildEco Group App",
     sub: "Add to home screen — works like a native app",
     install: "Install",
     apk: "Get APK",
   },
   hi: {
-    title: "2click ऐप इंस्टॉल करें",
+    title: "BuildEco Group ऐप इंस्टॉल करें",
     sub: "होम स्क्रीन पर जोड़ें — ऐप जैसा चलेगा",
     install: "इंस्टॉल",
     apk: "APK लें",

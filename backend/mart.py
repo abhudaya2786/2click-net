@@ -1,5 +1,5 @@
 """
-2Click.in — Super Mart: construction material catalog, category-wise + brand-wise
+buildecogroup.com — Super Mart: construction material catalog, category-wise + brand-wise
 with per-brand editable rates. Public read; Super-Admin managed CRUD. Feeds the
 Material Calculator + Contractor BOQ ("add from Super Mart" at the brand rate).
 Adds: category images, per-material rate history (price-trend), and 1-click BOQ
@@ -1010,7 +1010,7 @@ async def store_product(item_id: str):
         "image": resolve_material_image(m["category"], m["name"], m.get("image")),
         "rating": 4.4,
         "source": "material",
-        "description": f"{m['brand']} {m['name']} — brand-wise live rate from 2click Super Mart catalog.",
+        "description": f"{m['brand']} {m['name']} — brand-wise live rate from BuildEco Super Mart catalog.",
     }
 
 

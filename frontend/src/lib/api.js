@@ -6,13 +6,13 @@ const PRODUCTION_APIS = [
 ];
 const PRODUCTION_API = PRODUCTION_APIS[0];
 
-const FRONTEND_HOSTS = new Set(["2click.in", "www.2click.in", "localhost"]);
+const FRONTEND_HOSTS = new Set(["buildecogroup.com", "www.buildecogroup.com", "2click.in", "www.2click.in", "localhost"]);
 const BLOCKED_BACKEND_HOSTS = ["wallet1.unodev.app", "unodev.app"];
 
 function isFrontendHost(hostname) {
   if (!hostname) return false;
   if (FRONTEND_HOSTS.has(hostname)) return true;
-  return hostname.endsWith(".vercel.app") || hostname.endsWith(".2click.in");
+  return hostname.endsWith(".vercel.app") || hostname.endsWith(".buildecogroup.com") || hostname.endsWith(".2click.in");
 }
 
 function isBlockedBackend(url) {
@@ -34,7 +34,7 @@ function resolveBackendUrl() {
   if (!url) {
     return process.env.NODE_ENV === "production" ? PRODUCTION_API : "";
   }
-  if (url.includes("2click.in") || url.includes("vercel.app") || isBlockedBackend(url)) {
+  if (url.includes("buildecogroup.com") || url.includes("vercel.app") || isBlockedBackend(url)) {
     console.warn("REACT_APP_BACKEND_URL is misconfigured; using production API fallback.");
     return PRODUCTION_API;
   }

@@ -20,13 +20,13 @@ const BENEFITS = [
 ];
 
 export default function BecomeVendor() {
-  const waMsg = "नमस्ते 2click.in — मैं vendor के रूप में अपनी दुकान online लगाना चाहता/चाहती हूँ।";
+  const waMsg = "नमस्ते buildecogroup.com — मैं vendor के रूप में अपनी दुकान online लगाना चाहता/चाहती हूँ।";
 
   return (
     <div>
       <PageSEO
         title="Vendor बनें — B2B Marketplace पर बेचें"
-        description="2click.in पर vendor बनें। Construction materials, solar, steel online बेचें। Tender bidding, commission model, free onboarding."
+        description="buildecogroup.com पर vendor बनें। Construction materials, solar, steel online बेचें। Tender bidding, commission model, free onboarding."
         path="/become-vendor"
       />
 
@@ -35,7 +35,7 @@ export default function BecomeVendor() {
           <div>
             <span className="text-xs font-mono uppercase tracking-widest text-primary">Vendor Onboarding</span>
             <h1 className="font-display font-extrabold text-3xl md:text-5xl tracking-tight mt-3 leading-tight">
-              अपनी दुकान <span className="text-primary">2click.in</span> पर लगाएँ
+              अपनी दुकान <span className="text-primary">buildecogroup.com</span> पर लगाएँ
             </h1>
             <p className="mt-4 text-muted-foreground max-w-lg">
               India का construction super-app — Marketplace, Tenders, Solar और ERP एक ही platform पर।

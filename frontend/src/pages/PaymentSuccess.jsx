@@ -41,7 +41,7 @@ export default function PaymentSuccess() {
       <div className="w-full max-w-sm bg-card border border-border p-8 text-center">
         <Link to="/" className="flex items-center justify-center gap-2.5 mb-6">
           <div className="h-9 w-9 bg-primary flex items-center justify-center"><HardHat className="h-5 w-5 text-white" strokeWidth={1.75} /></div>
-          <span className="font-display font-extrabold text-lg tracking-tight">2click.in</span>
+          <span className="font-display font-extrabold text-lg tracking-tight">buildecogroup.com</span>
         </Link>
         {view.icon}
         <h1 data-testid="payment-status" className="font-display font-bold text-xl mt-4">{view.title}</h1>

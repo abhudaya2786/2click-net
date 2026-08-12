@@ -23,7 +23,7 @@ export const SUPER_COPY = {
     qualityPremium: "Premium",
     qualityLuxury: "Luxury",
     comingSoon: "Coming soon",
-    loginForAi: "Log in to chat with 2Click AI",
+    loginForAi: "Log in to chat with BuildEco AI",
     nav: {
       home: "Home",
       build: "Build",
@@ -95,7 +95,7 @@ export const SUPER_COPY = {
     qualityPremium: "प्रीमियम",
     qualityLuxury: "लक्ज़री",
     comingSoon: "जल्द आ रहा है",
-    loginForAi: "2Click AI के लिए लॉग इन करें",
+    loginForAi: "BuildEco AI के लिए लॉग इन करें",
     nav: {
       home: "होम",
       build: "बिल्ड",

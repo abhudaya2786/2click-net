@@ -1,5 +1,5 @@
 /**
- * Complete 2click.in functional reference — work types, options, and module catalog.
+ * Complete buildecogroup.com functional reference — work types, options, and module catalog.
  * Used by /platform for the master "how it works" guide.
  */
 

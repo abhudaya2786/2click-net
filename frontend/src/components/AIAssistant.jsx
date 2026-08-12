@@ -29,8 +29,8 @@ export default function AIAssistant() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: "ai", text: lang === "hi"
-      ? "नमस्ते! मैं 2Click AI हूँ। निर्माण लागत, सोलर, सामग्री और प्रोजेक्ट योजना में मदद करता हूँ।"
-      : "Hi! I'm Ask 2Click AI. I help with construction cost, solar, materials and project planning." },
+      ? "नमस्ते! मैं BuildEco AI हूँ। निर्माण लागत, सोलर, सामग्री और प्रोजेक्ट योजना में मदद करता हूँ।"
+      : "Hi! I'm BuildEco AI. I help with construction cost, solar, materials and project planning." },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -98,7 +98,7 @@ export default function AIAssistant() {
         data-testid="ai-assistant-toggle"
         onClick={() => setOpen(!open)}
         className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 h-14 w-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg hover:-translate-y-1 transition-transform"
-        aria-label="Ask 2Click AI"
+        aria-label="Ask BuildEco AI"
       >
         {open ? <X className="h-6 w-6" strokeWidth={1.75} /> : <Sparkles className="h-6 w-6" strokeWidth={1.75} />}
       </button>
@@ -109,7 +109,7 @@ export default function AIAssistant() {
         >
           <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-primary/5">
             <Sparkles className="h-4 w-4 text-primary" strokeWidth={1.75} />
-            <span className="font-display font-bold text-sm">Ask 2Click AI</span>
+            <span className="font-display font-bold text-sm">Ask BuildEco AI</span>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.map((m, i) => (

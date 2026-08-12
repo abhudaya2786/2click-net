@@ -1,4 +1,4 @@
-/** 2click.in sales / support WhatsApp (India, no + prefix in wa.me path). */
+/** buildecogroup.com sales / support WhatsApp (India, no + prefix in wa.me path). */
 export const WHATSAPP_NUMBER = "917007254932";
 
 export function buildWhatsAppUrl(message) {

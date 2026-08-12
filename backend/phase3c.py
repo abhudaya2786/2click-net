@@ -1,5 +1,5 @@
 """
-2Click.in — Phase 3C (ADDITIVE): Subscriptions, Invoicing, Commission Payouts.
+buildecogroup.com — Phase 3C (ADDITIVE): Subscriptions, Invoicing, Commission Payouts.
 Demo/mock payment mode (mirrors existing Razorpay demo). Reuses rbac + phase3 commission engine.
 Non-destructive: nothing existing is removed.
 """
@@ -203,7 +203,7 @@ def _render_invoice_pdf(inv):
 
     c.setFillColor(orange)
     c.setFont("Helvetica-Bold", 22)
-    c.drawString(x, y, "2click.in")
+    c.drawString(x, y, "buildecogroup.com")
     c.setFillColor(colors.black)
     c.setFont("Helvetica", 9)
     c.drawString(x, y - 6 * mm, "Enterprise Construction SaaS")
@@ -283,7 +283,7 @@ def _render_invoice_pdf(inv):
 
     c.setFont("Helvetica", 8)
     c.setFillColor(colors.HexColor("#9CA3AF"))
-    c.drawCentredString(w / 2, 15 * mm, "This is a system-generated invoice from 2click.in · Demo billing mode")
+    c.drawCentredString(w / 2, 15 * mm, "This is a system-generated invoice from buildecogroup.com · Demo billing mode")
 
     c.showPage()
     c.save()

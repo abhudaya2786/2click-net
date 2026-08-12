@@ -11,7 +11,7 @@ EMAIL_BASE_URL = "https://integrations.emergentagent.com"
 
 async def send_email(to: str, subject: str, html: str, reply_to: str | None = None) -> bool:
     key = os.environ.get("EMERGENT_EMAIL_KEY")
-    from_name = os.environ.get("EMAIL_FROM_NAME", "2click.in")
+    from_name = os.environ.get("EMAIL_FROM_NAME", "buildecogroup.com")
     if not key:
         logger.warning("EMERGENT_EMAIL_KEY missing; email to %s skipped", to)
         return False
@@ -37,7 +37,7 @@ def _wrap(title: str, body_html: str) -> str:
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:32px 0;font-family:Arial,Helvetica,sans-serif;">
       <tr><td align="center">
         <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid #e5e7eb;">
-          <tr><td style="background:#FF5A1F;padding:18px 24px;color:#fff;font-size:20px;font-weight:bold;">2click.in</td></tr>
+          <tr><td style="background:#FF5A1F;padding:18px 24px;color:#fff;font-size:20px;font-weight:bold;">buildecogroup.com</td></tr>
           <tr><td style="padding:28px 24px;color:#111827;">
             <h2 style="margin:0 0 12px;font-size:18px;">{title}</h2>
             {body_html}

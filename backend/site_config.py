@@ -1,5 +1,5 @@
 """
-2Click.in — Site customization (super_admin), geo lookup (pincode/state/city/GPS).
+buildecogroup.com — Site customization (super_admin), geo lookup (pincode/state/city/GPS).
 Public read for applied theme/languages; write endpoints are super_admin only.
 """
 import csv
@@ -264,7 +264,7 @@ async def _branding_doc(company_id: str = DEFAULT_COMPANY_ID):
     theme = {**DEFAULT_THEME, **(b.get("theme") or {})}
     return {
         "company_id": c.get("id", company_id),
-        "brand_name": b.get("brand_name") or c.get("name") or "2Click.in",
+        "brand_name": b.get("brand_name") or c.get("name") or "BuildEco Group",
         "logo": b.get("logo") or "",
         "favicon": b.get("favicon") or "",
         "primary_color": b.get("primary_color") or "#FF5A1F",

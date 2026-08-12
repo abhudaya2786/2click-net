@@ -1,5 +1,5 @@
 """
-2click.in — Public upcoming land & housing projects, filterable by location and requirements.
+buildecogroup.com — Public upcoming land & housing projects, filterable by location and requirements.
 """
 import uuid
 from datetime import datetime, timezone

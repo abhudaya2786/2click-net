@@ -15,7 +15,7 @@
   ],
   "updated_files": ["/app/backend/tests/test_iter16_kyc.py"],
   "success_rate": {"backend": "100% (9/9 pytest)", "frontend": "not tested (backend-only request)"},
-  "test_credentials": "abbhuadaya@gmail.com/Admin@12345, vendor@2click.in/Demo@12345, customer@2click.in/Demo@12345, architect@2click.in/Demo@12345 (id user_101810beb884). Verified against /app/memory/test_credentials.md.",
+  "test_credentials": "abbhuadaya@gmail.com/Admin@12345, vendor@buildecogroup.com/Demo@12345, customer@buildecogroup.com/Demo@12345, architect@buildecogroup.com/Demo@12345 (id user_101810beb884). Verified against /app/memory/test_credentials.md.",
   "seed_data_creation": "Test creates one proposal + one KYC PNG per run (no delete endpoint for proposals, small residual). TEST_ITER16_Inv brand is created and cleaned up via admin DELETE. One TEST_ITER16 enquiry left in architect's inbox (marked read).",
   "retest_needed": false,
   "should_main_agent_self_test": false,

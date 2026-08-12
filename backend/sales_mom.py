@@ -1,5 +1,5 @@
 """
-2click.in — AI Sales Intelligence & Minutes of Meeting (MoM) Generator.
+buildecogroup.com — AI Sales Intelligence & Minutes of Meeting (MoM) Generator.
 
 Analyzes Sales Rep ↔ Client transcripts into structured MoM, sales intelligence,
 action plans, and a ready-to-send WhatsApp follow-up. Uses a deterministic
@@ -99,7 +99,7 @@ FEATURE_CHECKLIST = [
 
 SAMPLE_TRANSCRIPT = """Sales Rep: Good morning Mr. Sharma, thanks for joining. How was your weekend?
 Client: Weekend was fine, kids were home. Shall we talk about the BOQ platform?
-Sales Rep: Absolutely. 2click.in Super Mart gives brand-wise rates for cement, steel, tiles — UltraTech, TATA, Kajaria — and one-click BOQ templates for a 3BHK villa.
+Sales Rep: Absolutely. buildecogroup.com Super Mart gives brand-wise rates for cement, steel, tiles — UltraTech, TATA, Kajaria — and one-click BOQ templates for a 3BHK villa.
 Client: We already use IndiaMART for vendors. Your rates look higher than UltraTech dealer quotes we get offline.
 Sales Rep: Offline dealers miss GST-compliant invoices and project-wise BOQ tracking. Contractors on our platform cut procurement time by about 30%.
 Client: Interesting, but the subscription feels costly for three sites. Can you reduce the price or give a discount for annual billing?
@@ -167,7 +167,7 @@ EXAMPLE_RESULT_HI = {
     ],
     "whatsapp_template_message": (
         "नमस्ते राहुल जी, आज सॉफ्टवेयर डेमो के लिए धन्यवाद! आपकी सहमति के अनुसार हमने आपका "
-        "3-दिन का ट्रायल एक्टिवेट कर दिया है। 14 अगस्त तक रिवाइज्ड कोटेशन भी भेज दिया जाएगा। - 2click.in"
+        "3-दिन का ट्रायल एक्टिवेट कर दिया है। 14 अगस्त तक रिवाइज्ड कोटेशन भी भेज दिया जाएगा। - buildecogroup.com"
     ),
 }
 
@@ -281,7 +281,7 @@ def _hi_demo_result(meeting_date: Optional[str] = None) -> Dict[str, Any]:
         date_hi = f"{dt2.day} {months_hi[dt2.month]}"
         out["whatsapp_template_message"] = (
             "नमस्ते राहुल जी, आज सॉफ्टवेयर डेमो के लिए धन्यवाद! आपकी सहमति के अनुसार हमने आपका "
-            f"3-दिन का ट्रायल एक्टिवेट कर दिया है। {date_hi} तक रिवाइज्ड कोटेशन भी भेज दिया जाएगा। - 2click.in"
+            f"3-दिन का ट्रायल एक्टिवेट कर दिया है। {date_hi} तक रिवाइज्ड कोटेशन भी भेज दिया जाएगा। - buildecogroup.com"
         )
     except Exception:
         pass
