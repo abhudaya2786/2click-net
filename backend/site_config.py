@@ -149,6 +149,42 @@ def parse_csv_geo(text: str) -> List[dict]:
     return rows
 
 
+# In-memory static geo cache (PINCODE_SEED + CSV files) — fallback when DB row missing
+_STATIC_PINCODE_LOOKUP: dict = {}
+
+
+def _load_static_pincode_cache():
+    global _STATIC_PINCODE_LOOKUP
+    if _STATIC_PINCODE_LOOKUP:
+        return
+    for row in PINCODE_SEED:
+        code = row.get("pincode")
+        if code:
+            _STATIC_PINCODE_LOOKUP[code] = dict(row)
+    for geo_dir in _geo_csv_directories():
+        for path in sorted(geo_dir.glob("*.csv")):
+            name = path.name.lower()
+            if name.startswith("pincodes_template") or name.endswith(".template.csv"):
+                continue
+            try:
+                for row in parse_csv_geo(path.read_text(encoding="utf-8-sig")):
+                    doc = normalize_geo_row(row)
+                    if doc:
+                        _STATIC_PINCODE_LOOKUP[doc["pincode"]] = doc
+            except OSError:
+                continue
+
+
+def _static_pincode_row(code: str):
+    _load_static_pincode_cache()
+    return _STATIC_PINCODE_LOOKUP.get(code)
+
+
+def _static_pincode_rows():
+    _load_static_pincode_cache()
+    return list(_STATIC_PINCODE_LOOKUP.values())
+
+
 def _geo_csv_directories() -> List[Path]:
     """Resolve folders containing pincode CSV seed files (repo data/geo + optional env)."""
     here = Path(__file__).resolve().parent
@@ -254,10 +290,12 @@ async def _locale_config():
 async def geo_meta():
     total = await _db.geo_master.count_documents({})
     state_count = len([s for s in await _db.geo_master.distinct("state") if s])
+    static_rows = _static_pincode_rows()
     meta = await _db.app_settings.find_one({"key": "geo_seed_meta"}, {"_id": 0})
     return {
-        "total_pincodes": total,
-        "states_with_data": state_count,
+        "total_pincodes": max(total, len(static_rows)),
+        "states_with_data": state_count or len({r.get("state") for r in static_rows if r.get("state")}),
+        "static_fallback_pincodes": len(static_rows),
         "last_csv_seed": (meta or {}).get("value"),
     }
 
@@ -291,6 +329,9 @@ async def list_districts(state: str):
     if not state:
         raise HTTPException(400, "state required")
     uniq = await distinct_geo_values("district", {"state": state})
+    if not uniq:
+        static = sorted({r.get("district") or r.get("city") for r in _static_pincode_rows() if r.get("state") == state and (r.get("district") or r.get("city"))})
+        uniq = static
     return {"state": state, "districts": uniq}
 
 
@@ -315,6 +356,17 @@ async def list_pincodes(
             filt["pincode"] = {"$regex": f"^{pin}"}
     cap = max(1, min(limit, 500))
     rows = await _db.geo_master.find(filt, {"_id": 0}).sort("pincode", 1).limit(cap).to_list(cap)
+    if not rows and q:
+        pin = "".join(c for c in (q or "") if c.isdigit())
+        if pin:
+            static = [r for r in _static_pincode_rows() if r["pincode"].startswith(pin)]
+            if state:
+                static = [r for r in static if r.get("state") == state]
+            if city:
+                static = [r for r in static if r.get("city") == city]
+            if district:
+                static = [r for r in static if r.get("district") == district]
+            rows = static[:cap]
     return {"pincodes": rows, "count": len(rows), "filters": {"state": state, "city": city, "district": district, "q": q}}
 
 
@@ -324,6 +376,8 @@ async def pincode_lookup(pincode: str):
     if len(code) != 6:
         raise HTTPException(400, "Pincode must be 6 digits")
     row = await _db.geo_master.find_one({"pincode": code}, {"_id": 0})
+    if not row:
+        row = _static_pincode_row(code)
     if not row:
         raise HTTPException(404, "Pincode not found")
     return row
@@ -338,6 +392,8 @@ async def reverse_geocode(lat: float, lng: float):
     ).to_list(20000)
     if not rows:
         rows = await _db.geo_master.find({}, {"_id": 0}).to_list(500)
+    if not rows:
+        rows = [r for r in _static_pincode_rows() if r.get("lat") and r.get("lng")]
     if not rows:
         return {"state": "", "city": "", "pincode": "", "lat": lat, "lng": lng}
     best = min(rows, key=lambda r: haversine_km(lat, lng, r.get("lat", 0), r.get("lng", 0)))

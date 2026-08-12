@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { api, apiAssetUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -63,7 +63,7 @@ function Queue() {
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex gap-4">
               <div className="h-16 w-28 bg-muted/40 border border-border flex items-center justify-center overflow-hidden shrink-0">
-                {c.banner_url ? <img src={c.banner_url.startsWith("http") ? c.banner_url : `${process.env.REACT_APP_BACKEND_URL}${c.banner_url}`} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[10px] text-muted-foreground">No banner</span>}
+                {c.banner_url ? <img src={apiAssetUrl(c.banner_url)} alt="" className="max-h-full max-w-full object-contain" /> : <span className="text-[10px] text-muted-foreground">No banner</span>}
               </div>
               <div>
                 <div className="font-display font-bold">{c.name}</div>

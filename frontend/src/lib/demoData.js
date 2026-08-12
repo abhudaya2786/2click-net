@@ -23,6 +23,7 @@ export const DEMO_FEATURES = [
   { id: "customer", path: "/dashboard", en: "Customer Demo", hi: "ग्राहक डेमो", descEn: "Mera Ghar dashboard", descHi: "मेरा घर डैशबोर्ड", icon: "customer", loginProfile: "customer" },
   { id: "vendor", path: "/dashboard", en: "Vendor Demo", hi: "विक्रेता डेमो", descEn: "Orders & catalog", descHi: "ऑर्डर और कैटलॉग", icon: "vendor", loginProfile: "vendor" },
   { id: "contractor", path: "/dashboard", en: "Contractor Demo", hi: "ठेकेदार डेमो", descEn: "Projects & BOQ", descHi: "प्रोजेक्ट और BOQ", icon: "contractor", loginProfile: "contractor" },
+  { id: "architect", path: "/dashboard", en: "Architect Demo", hi: "वास्तुकार डेमो", descEn: "Design studio & enquiries", descHi: "डिज़ाइन स्टूडियो", icon: "architect", loginProfile: "architect" },
 ];
 
 export const DEMO_BOQ_SECTIONS = [

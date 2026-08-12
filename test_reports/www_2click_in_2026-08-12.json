@@ -6,8 +6,8 @@
     "overall": "PARTIAL",
     "public_browsing": "PASS",
     "authentication": "PARTIAL",
-    "geo_location": "FAIL",
-    "recommendation": "Redeploy frontend with same-origin /api proxy; redeploy backend with geo endpoints; seed pincode CSV."
+    "geo_location": "PARTIAL",
+    "recommendation": "Merge PR #43, redeploy frontend + backend. Geo static fallback added in code; full India CSV still needed for production."
   },
   "pages": [
     { "route": "/", "status": 200, "result": "PASS", "notes": "Hero, CTAs, quick links including Complete guide" },

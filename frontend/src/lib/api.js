@@ -46,6 +46,22 @@ function resolveBackendUrl() {
 const BACKEND_URL = resolveBackendUrl();
 export const API = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";
 
+/** Absolute URL for API paths (ads click tracking, uploads). */
+export function apiAbsoluteUrl(path = "") {
+  const p = path.startsWith("/") ? path : `/${path}`;
+  if (BACKEND_URL) return `${BACKEND_URL}${p.startsWith("/api") ? p : `/api${p}`}`;
+  if (typeof window !== "undefined") return `${window.location.origin}${p.startsWith("/api") ? p : `/api${p}`}`;
+  return p.startsWith("/api") ? p : `/api${p}`;
+}
+
+/** Resolve relative upload/banner paths from the API host. */
+export function apiAssetUrl(path = "") {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  const base = BACKEND_URL || (typeof window !== "undefined" ? window.location.origin : "");
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export const api = axios.create({ baseURL: API });
 
 api.interceptors.request.use((config) => {

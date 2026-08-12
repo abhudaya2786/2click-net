@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "@/lib/api";
+import { api, apiAbsoluteUrl, apiAssetUrl } from "@/lib/api";
 import { X } from "lucide-react";
 
-const BACKEND = process.env.REACT_APP_BACKEND_URL;
-const clickUrl = (id) => `${BACKEND}/api/ads/click/${id}`;
-const bannerSrc = (a) => {
-  const u = a.banner_url || "";
-  if (!u) return "";
-  return u.startsWith("http") ? u : `${BACKEND}${u}`;
-};
+const clickUrl = (id) => apiAbsoluteUrl(`/ads/click/${id}`);
+const bannerSrc = (a) => apiAssetUrl(a.banner_url || "");
 
 /**
  * Live ad slot. Fetches an approved+active campaign for the given placement,
