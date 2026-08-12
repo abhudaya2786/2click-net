@@ -6,18 +6,36 @@ const PRODUCTION_APIS = [
 ];
 const PRODUCTION_API = PRODUCTION_APIS[0];
 
+const FRONTEND_HOSTS = new Set(["2click.in", "www.2click.in", "localhost"]);
+const BLOCKED_BACKEND_HOSTS = ["wallet1.unodev.app", "unodev.app"];
+
+function isFrontendHost(hostname) {
+  if (!hostname) return false;
+  if (FRONTEND_HOSTS.has(hostname)) return true;
+  return hostname.endsWith(".vercel.app") || hostname.endsWith(".2click.in");
+}
+
+function isBlockedBackend(url) {
+  try {
+    const host = new URL(url.startsWith("http") ? url : `https://${url}`).hostname;
+    return BLOCKED_BACKEND_HOSTS.some((blocked) => host === blocked || host.endsWith(`.${blocked}`));
+  } catch {
+    return false;
+  }
+}
+
 function resolveBackendUrl() {
+  if (typeof window !== "undefined" && isFrontendHost(window.location.hostname)) {
+    // Vercel rewrites /api → production backend (see vercel.json)
+    return "";
+  }
+
   let url = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/$/, "");
   if (!url) {
-    // Same-origin /api proxy on Vercel (see vercel.json) or local dev proxy
-    if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
-      return "";
-    }
     return process.env.NODE_ENV === "production" ? PRODUCTION_API : "";
   }
-  // Fix misconfigured Vercel env (e.g. doubled URLs)
-  if (url.includes("2click.in") || url.includes("vercel.app")) {
-    console.warn("REACT_APP_BACKEND_URL points to frontend host; using production API fallback.");
+  if (url.includes("2click.in") || url.includes("vercel.app") || isBlockedBackend(url)) {
+    console.warn("REACT_APP_BACKEND_URL is misconfigured; using production API fallback.");
     return PRODUCTION_API;
   }
   const httpsIdx = url.lastIndexOf("https://");
@@ -26,11 +44,6 @@ function resolveBackendUrl() {
 }
 
 const BACKEND_URL = resolveBackendUrl();
-if (!BACKEND_URL && process.env.NODE_ENV === "production") {
-  console.error(
-    "REACT_APP_BACKEND_URL is not set. Add it in Vercel → Settings → Environment Variables, then redeploy."
-  );
-}
 export const API = BACKEND_URL ? `${BACKEND_URL}/api` : "/api";
 
 export const api = axios.create({ baseURL: API });
