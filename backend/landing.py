@@ -198,40 +198,7 @@ def _resolve_landing(state: Optional[str], city: Optional[str]):
     return base
 
 
-@public_router.get("/geo/states")
-async def list_states():
-    return {"states": INDIAN_STATES}
-
-
-@public_router.get("/geo/cities")
-async def list_cities(state: str):
-    if not state:
-        raise HTTPException(400, "state required")
-    cities = CITIES_BY_STATE.get(state, [])
-    rows = await _db.geo_master.find({"state": state}, {"_id": 0, "city": 1}).to_list(200) if _db else []
-    extra = sorted({r["city"] for r in rows if r.get("city")})
-    merged = list(dict.fromkeys(cities + extra))
-    return {"state": state, "cities": merged or [state]}
-
-
-@public_router.get("/geo/pincode/{pincode}")
-async def pincode_lookup(pincode: str):
-    code = "".join(c for c in pincode if c.isdigit())
-    if len(code) != 6:
-        raise HTTPException(400, "Pincode must be 6 digits")
-    row = await _db.geo_master.find_one({"pincode": code}, {"_id": 0})
-    if not row:
-        raise HTTPException(404, "Pincode not found")
-    return row
-
-
-@public_router.get("/geo/reverse")
-async def reverse_geocode(lat: float, lng: float):
-    rows = await _db.geo_master.find({}, {"_id": 0}).to_list(500)
-    if not rows:
-        return {"state": "", "city": "", "pincode": "", "lat": lat, "lng": lng}
-    best = min(rows, key=lambda r: haversine_km(lat, lng, r.get("lat", 0), r.get("lng", 0)))
-    return {**best, "lat": lat, "lng": lng}
+# Geo lookup lives in site_config.py — avoid duplicate /api/geo/* routes here.
 
 
 @public_router.get("/landing")

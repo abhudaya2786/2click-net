@@ -1,0 +1,82 @@
+{
+  "site": "https://www.2click.in",
+  "tested_at": "2026-08-12T02:30:00Z",
+  "environment": "production",
+  "summary": {
+    "overall": "PARTIAL",
+    "public_browsing": "PASS",
+    "authentication": "PARTIAL",
+    "geo_location": "PARTIAL",
+    "recommendation": "Merge PR #43, redeploy frontend + backend. Geo static fallback added in code; full India CSV still needed for production."
+  },
+  "pages": [
+    { "route": "/", "status": 200, "result": "PASS", "notes": "Hero, CTAs, quick links including Complete guide" },
+    { "route": "/login", "status": 200, "result": "PASS", "notes": "Form loads; role tabs visible; no white screen" },
+    { "route": "/platform", "status": 200, "result": "PASS", "notes": "Full guide with work types and module catalog" },
+    { "route": "/how-it-works", "status": 200, "result": "PASS", "notes": "Same guide content as /platform" },
+    { "route": "/build", "status": 200, "result": "PASS", "notes": "Project category wizard step 1" },
+    { "route": "/estimate", "status": 200, "result": "PASS", "notes": "Cost calculator and pincode field render" },
+    { "route": "/store", "status": 200, "result": "PASS", "notes": "Product catalog with prices" },
+    { "route": "/sys/console", "status": 200, "result": "PASS", "notes": "Secure admin login (separate from /login)" },
+    { "route": "/tenders", "status": 200, "result": "PASS" },
+    { "route": "/solar", "status": 200, "result": "PASS" },
+    { "route": "/boq-builder", "status": 200, "result": "PASS" },
+    { "route": "/interior-boq", "status": 200, "result": "PASS" },
+    { "route": "/enroll", "status": 200, "result": "PASS" },
+    { "route": "/mart", "status": 200, "result": "PASS" },
+    { "route": "/projects", "status": 200, "result": "PASS" },
+    { "route": "/design", "status": 200, "result": "PASS" },
+    { "route": "/technology", "status": 200, "result": "PASS" }
+  ],
+  "api": [
+    { "endpoint": "POST /api/auth/login (customer)", "result": "PASS", "notes": "200 + JWT via www.2click.in proxy" },
+    { "endpoint": "POST /api/auth/login (vendor)", "result": "PASS", "notes": "200" },
+    { "endpoint": "POST /api/auth/login (contractor)", "result": "PASS", "notes": "200" },
+    { "endpoint": "POST /api/auth/login (architect)", "result": "FAIL", "notes": "401 Invalid email or password — demo account missing on backend" },
+    { "endpoint": "GET /api/auth/me", "result": "PASS", "notes": "200 with bearer token" },
+    { "endpoint": "GET /api/products", "result": "PASS", "notes": "Product list returns data" },
+    { "endpoint": "GET /api/tenders", "result": "PASS", "notes": "Tender list returns data" },
+    { "endpoint": "GET /api/geo/states", "result": "FAIL", "notes": "404 — geo routes not deployed on production backend" },
+    { "endpoint": "GET /api/geo/meta", "result": "FAIL", "notes": "404" },
+    { "endpoint": "GET /api/site-config", "result": "FAIL", "notes": "404" }
+  ],
+  "performance": {
+    "homepage_ttfb_s": 0.07,
+    "main_bundle_bytes": 1814104,
+    "cdn": "Vercel",
+    "ssl": "PASS"
+  },
+  "issues": [
+    {
+      "severity": "critical",
+      "area": "login_browser",
+      "title": "Browser may call wrong API host",
+      "detail": "Build-time REACT_APP_BACKEND_URL can bypass Vercel /api proxy. Some sessions reported wallet1.unodev.app DNS failures. Fix: force same-origin /api on 2click.in domains."
+    },
+    {
+      "severity": "critical",
+      "area": "geo",
+      "title": "Geo API not live on production backend",
+      "detail": "All /api/geo/* return 404 on wallet-vendor-mvp.emergent.host. Backend redeploy required with site_config.py geo routes + CSV seed."
+    },
+    {
+      "severity": "medium",
+      "area": "auth",
+      "title": "Architect demo login missing",
+      "detail": "architect@2click.in / Demo@12345 returns 401. Seed demo architect user on backend."
+    },
+    {
+      "severity": "low",
+      "area": "console",
+      "title": "Third-party asset DNS errors",
+      "detail": "wallet-vendor.mwc.mx.com scripts fail ERR_NAME_NOT_RESOLVED — non-blocking."
+    }
+  ],
+  "demo_credentials": {
+    "customer": { "email": "customer@2click.in", "password": "Demo@12345", "works": true },
+    "vendor": { "email": "vendor@2click.in", "password": "Demo@12345", "works": true },
+    "contractor": { "email": "contractor@2click.in", "password": "Demo@12345", "works": true },
+    "architect": { "email": "architect@2click.in", "password": "Demo@12345", "works": false },
+    "owner_admin": { "route": "/sys/console", "note": "Not /login" }
+  }
+}

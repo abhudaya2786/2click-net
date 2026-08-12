@@ -37,7 +37,7 @@ AI_MODEL = os.environ.get('AI_MODEL', 'gemini-3.1-pro-preview')
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', '')
 
-ROLES = ["super_admin", "vendor", "customer", "contractor"]
+ROLES = ["super_admin", "vendor", "customer", "contractor", "architect"]
 
 app = FastAPI(title="2click.in Enterprise API")
 api = APIRouter(prefix="/api")
@@ -720,9 +720,24 @@ class ContactIn(BaseModel):
 
 @api.post("/contact")
 async def contact_submit(body: ContactIn):
+    import mailer
     doc = {"id": new_id("msg"), **body.model_dump(), "status": "new", "created_at": iso(now_utc())}
     await db.contact_messages.insert_one(dict(doc))
+    notify = os.environ.get("CONTACT_NOTIFY_EMAIL", "sales@2click.in")
+    html = mailer._wrap(
+        "New contact message",
+        f"<p><strong>{body.name}</strong> &lt;{body.email}&gt;</p>"
+        f"<p>Phone: {body.phone or '—'}</p>"
+        f"<p>Source: {body.source or 'contact'} · Interest: {body.interest or '—'}</p>"
+        f"<p style='white-space:pre-wrap'>{body.message}</p>",
+    )
+    await mailer.send_email(notify, f"2click.in contact — {body.name}", html, reply_to=body.email)
     return {"ok": True}
+
+
+@api.get("/health")
+async def health():
+    return {"ok": True, "service": "2click.in", "time": iso(now_utc())}
 
 
 # ---------------------------------------------------------------------------
@@ -1346,7 +1361,7 @@ async def seed():
         ("Anil Steel Traders", "vendor@2click.in", "vendor", "Anil Steel Traders"),
         ("Priya Sharma", "customer@2click.in", "customer", None),
         ("Rajesh Constructions", "contractor@2click.in", "contractor", "Rajesh Constructions Pvt Ltd"),
-        ("Aarav Mehta", "architect@2click.in", "architect", "Aarav Design Studio"),
+        ("Aarav Mehta", "architect@2click.in", "architect", "Demo Architect Studio"),
     ]
     vendor_id = None
     for name, email, role, company in demo:

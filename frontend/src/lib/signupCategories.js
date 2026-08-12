@@ -1,7 +1,4 @@
-import axios from "axios";
 import { api } from "./api";
-
-const PRODUCTION_API = "https://wallet-vendor-mvp.emergent.host";
 
 function asList(data) {
   if (Array.isArray(data)) return data;
@@ -29,44 +26,6 @@ function buildTreeFromFlat(list) {
   }));
 }
 
-async function fetchTreeFromBase(baseUrl, categoryType) {
-  const root = baseUrl.replace(/\/$/, "");
-  const apiBase = root.endsWith("/api") ? root : `${root}/api`;
-  const enc = encodeURIComponent(categoryType);
-
-  try {
-    const r = await axios.get(`${apiBase}/categories/tree`, {
-      params: { category_type: categoryType },
-      timeout: 20000,
-    });
-    const tree = asList(r.data);
-    if (tree.length) return tree;
-  } catch {
-    /* try flat endpoints */
-  }
-
-  try {
-    const r = await axios.get(`${apiBase}/categories/type/${enc}`, { timeout: 20000 });
-    const flat = asList(r.data);
-    if (flat.length) return buildTreeFromFlat(flat);
-  } catch {
-    /* continue */
-  }
-
-  try {
-    const r = await axios.get(`${apiBase}/categories`, {
-      params: { category_type: categoryType },
-      timeout: 20000,
-    });
-    const flat = asList(r.data);
-    if (flat.length) return buildTreeFromFlat(flat);
-  } catch {
-    /* continue */
-  }
-
-  return [];
-}
-
 async function fetchTreeForType(categoryType) {
   try {
     const r = await api.get("/categories/tree", { params: { category_type: categoryType } });
@@ -92,10 +51,10 @@ async function fetchTreeForType(categoryType) {
     /* fallback */
   }
 
-  return await fetchTreeFromBase(PRODUCTION_API, categoryType);
+  return [];
 }
 
-/** Load grouped category trees for signup — resilient to API host / endpoint issues. */
+/** Load grouped category trees for signup. */
 export async function fetchCategoryTrees(categoryTypes) {
   if (!categoryTypes?.length) return {};
   const entries = await Promise.all(
