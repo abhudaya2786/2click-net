@@ -13,7 +13,7 @@ Phone pe site open karte hi:
 - Standalone / Capacitor mode hides install banner and uses app chrome
 
 **Install on phone (no APK):**  
-Chrome → https://www.2click.in → Menu (⋮) → **Install app** / **Add to Home screen**.
+Chrome → https://www.buildecogroup.com → Menu (⋮) → **Install app** / **Add to Home screen**.
 
 iPhone: Safari → Share → **Add to Home Screen**.
 
@@ -22,7 +22,7 @@ iPhone: Safari → Share → **Add to Home Screen**.
 ### Option A — GitHub Actions (recommended)
 
 1. Merge to `main` or run **Actions → Build Android APK → Run workflow**
-2. Download artifact `2click-android-apk` (`app-debug.apk`)
+2. Download artifact `buildecogroup-android-apk` (`app-debug.apk`)
 3. Optional: set `REACT_APP_APK_URL` on Vercel to a hosted APK URL
 
 ### Option B — Local build
@@ -34,13 +34,13 @@ chmod +x scripts/build-apk.sh
 ./scripts/build-apk.sh
 ```
 
-Output: `frontend/public/2click.apk`
+Output: `frontend/public/buildecogroup.apk`
 
 ### Live-site wrapper (small APK, always latest UI)
 
 ```bash
 cd frontend
-CAPACITOR_SERVER_URL=https://www.2click.in npm run cap:sync
+CAPACITOR_SERVER_URL=https://www.buildecogroup.com npm run cap:sync
 cd android && ./gradlew assembleDebug
 ```
 
@@ -49,7 +49,7 @@ cd android && ./gradlew assembleDebug
 | Variable | Purpose |
 |----------|---------|
 | `REACT_APP_BACKEND_URL` | API base (required for production build) |
-| `REACT_APP_APK_URL` | Custom APK download link (default `/2click.apk`) |
+| `REACT_APP_APK_URL` | Custom APK download link (default `/buildecogroup.apk`) |
 | `CAPACITOR_SERVER_URL` | Load live site in WebView instead of bundled build |
 
 ## Play Store

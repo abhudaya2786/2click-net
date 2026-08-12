@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build a debug Android APK for 2click.in
+# Build a debug Android APK for buildecogroup.com
 set -euo pipefail
 cd "$(dirname "$0")/../frontend"
 
@@ -22,6 +22,6 @@ chmod +x gradlew
 ./gradlew assembleDebug
 
 APK="app/build/outputs/apk/debug/app-debug.apk"
-cp "$APK" ../public/2click.apk
-echo "✓ APK ready: frontend/public/2click.apk"
-echo "  Install: adb install -r public/2click.apk"
+cp "$APK" ../public/buildecogroup.apk
+echo "✓ APK ready: frontend/public/buildecogroup.apk"
+echo "  Install: adb install -r public/buildecogroup.apk"

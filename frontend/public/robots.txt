@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.2click.in/sitemap.xml
+Sitemap: https://www.buildecogroup.com/sitemap.xml

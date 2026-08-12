@@ -39,7 +39,7 @@ export default function PrintShareBar({
   };
 
   const handleEmail = () => {
-    shareViaEmail(emailSubject || "2click.in", [shareText, shareUrl].filter(Boolean).join("\n\n"));
+    shareViaEmail(emailSubject || "buildecogroup.com", [shareText, shareUrl].filter(Boolean).join("\n\n"));
   };
 
   return (

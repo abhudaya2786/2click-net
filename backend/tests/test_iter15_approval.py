@@ -2,7 +2,7 @@
 import time, requests, pytest
 from auth_helpers import login, admin_login, ADMIN, VENDOR, CUSTOMER, API
 
-ARCHITECT = ("architect@2click.in", "Demo@12345")
+ARCHITECT = ("architect@buildecogroup.com", "Demo@12345")
 
 def _h(tok): return {"Authorization": f"Bearer {tok}"}
 

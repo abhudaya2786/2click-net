@@ -7,9 +7,9 @@ from conftest import get_backend_url
 API = f"{get_backend_url()}/api"
 
 ADMIN = ("abbhuadaya@gmail.com", "Admin@12345")
-VENDOR = ("vendor@2click.in", "Demo@12345")
-CUSTOMER = ("customer@2click.in", "Demo@12345")
-CONTRACTOR = ("contractor@2click.in", "Demo@12345")
+VENDOR = ("vendor@buildecogroup.com", "Demo@12345")
+CUSTOMER = ("customer@buildecogroup.com", "Demo@12345")
+CONTRACTOR = ("contractor@buildecogroup.com", "Demo@12345")
 
 
 def login(email, password):

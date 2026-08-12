@@ -15,7 +15,7 @@
   ],
   "updated_files": [],
   "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
-  "test_credentials": "customer@2click.in / Demo@12345, abbhuadaya@gmail.com / Admin@12345",
+  "test_credentials": "customer@buildecogroup.com / Demo@12345, abbhuadaya@gmail.com / Admin@12345",
   "seed_data_creation": "None. Used existing seeded campaigns (Monsoon Cement Sale, TEST_Fe_Campaign, ACC Gold Cement — Best Rates ad_demo_sidebar, TMT Steel Monsoon Offer ad_demo_infeed). During click-count verification, ~5 additional impressions and ~5 clicks were accumulated on demo campaigns — no schema changes.",
   "retest_needed": false,
   "should_main_agent_self_test": false,

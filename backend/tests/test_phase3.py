@@ -100,7 +100,7 @@ class TestBranding:
 
     def test_admin_update_branding(self, admin_tok):
         r = requests.patch(f"{API}/admin/branding", headers=h(admin_tok),
-                           json={"brand_name": "2Click.in", "primary_color": "#FF5A1F",
+                           json={"brand_name": "BuildEco Group", "primary_color": "#FF5A1F",
                                  "tagline": "The operating system for construction"})
         assert r.status_code == 200
         assert r.json()["ok"] is True

@@ -56,7 +56,7 @@ export default function ProjectDashboard({ input }) {
     if (!material) return;
     const m = material.materials;
     const lines = [
-      "2click.in — BOQ Estimate",
+      "buildecogroup.com — BOQ Estimate",
       `Project: ${projectType} · ${builtUp} sqft · ${quality}`,
       `Total: ₹${material.total_cost}`,
       "",
@@ -70,7 +70,7 @@ export default function ProjectDashboard({ input }) {
     const blob = new Blob([lines.join("\n")], { type: "text/plain" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "2click-boq.txt";
+    a.download = "buildecogroup-boq.txt";
     a.click();
     toast.success(hi ? "BOQ डाउनलोड" : "BOQ downloaded");
   };

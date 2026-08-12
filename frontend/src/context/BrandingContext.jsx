@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 
 const BrandingContext = createContext(null);
 const DEFAULTS = {
-  brand_name: "2Click.in",
+  brand_name: "BuildEco Group",
   primary_color: "#FF5A1F",
   accent_color: "#10B981",
   logo: "",

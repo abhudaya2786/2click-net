@@ -1,5 +1,5 @@
 """
-2click.in — AI 3D Home Studio: 5-phase workflow & prompt builders.
+buildecogroup.com — AI 3D Home Studio: 5-phase workflow & prompt builders.
 """
 from typing import Optional
 from fastapi import APIRouter

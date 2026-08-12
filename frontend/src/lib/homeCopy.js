@@ -2,7 +2,7 @@
 
 export const HOME_COPY = {
   en: {
-    seoTitle: "2click.in — Construction Store, BOQ Calculator, Tenders, Solar & ERP",
+    seoTitle: "buildecogroup.com — Construction Store, BOQ Calculator, Tenders, Solar & ERP",
     seoDesc: "India's construction super-app — brand-wise material store, full home BOQ builder, interior calculators, enrollment, tender bidding, solar EPC and Mera Ghar ERP on one login.",
     badge: "Enterprise Construction OS",
     heroTitle: "Build. Bid. Procure.",
@@ -10,7 +10,7 @@ export const HOME_COPY = {
     heroSub: "SaaS, ERP, marketing, solar, tender bidding and marketplace — everything on one login. The complete operating system for India's construction economy.",
     ctaStart: "Start free",
     ctaTenders: "View live tenders",
-    waMsg: "Hello 2click.in — I would like to know more about the construction platform.",
+    waMsg: "Hello buildecogroup.com — I would like to know more about the construction platform.",
     waLabel: "WhatsApp",
     modulesTitle: "One platform. Eight verticals.",
     modulesSub: "Every workflow your construction business needs — modular, integrated, enterprise-grade.",
@@ -33,7 +33,7 @@ export const HOME_COPY = {
     leadVendor: "Become a vendor",
     leadSolar: "Solar calculator",
     bottomTitle: "Ready to digitize your construction business?",
-    bottomSub: "Join thousands of vendors, contractors and buyers already on 2click.in.",
+    bottomSub: "Join thousands of vendors, contractors and buyers already on buildecogroup.com.",
     bottomCta: "Create your account",
     quickGuide: "Complete guide",
     quickStore: "Store",
@@ -46,7 +46,7 @@ export const HOME_COPY = {
     ownerHint: "Use /sys/console — not the regular login page.",
   },
   hi: {
-    seoTitle: "2click.in — कंस्ट्रक्शन स्टोर, BOQ, टेंडर, सोलर और ERP",
+    seoTitle: "buildecogroup.com — कंस्ट्रक्शन स्टोर, BOQ, टेंडर, सोलर और ERP",
     seoDesc: "भारत का निर्माण सुपर ऐप — ब्रांड-वार स्टोर, पूरा घर BOQ, इंटीरियर कैलकुलेटर, पंजीकरण, टेंडर, सोलर और मेरा घर ERP एक लॉगिन पर।",
     badge: "एंटरप्राइज निर्माण प्लेटफ़ॉर्म",
     heroTitle: "बनाएँ। बोली लगाएँ। खरीदें।",
@@ -54,7 +54,7 @@ export const HOME_COPY = {
     heroSub: "सॉफ्टवेयर, ईआरपी, मार्केटिंग, सोलर, टेंडर बिडिंग और मार्केटप्लेस — सब एक ही लॉगिन पर। भारत की निर्माण अर्थव्यवस्था के लिए पूरा संचालन तंत्र।",
     ctaStart: "मुफ़्त शुरू करें",
     ctaTenders: "लाइव टेंडर देखें",
-    waMsg: "नमस्ते 2click.in — मुझे निर्माण प्लेटफ़ॉर्म के बारे में जानकारी चाहिए।",
+    waMsg: "नमस्ते buildecogroup.com — मुझे निर्माण प्लेटफ़ॉर्म के बारे में जानकारी चाहिए।",
     waLabel: "व्हाट्सऐप",
     modulesTitle: "एक प्लेटफ़ॉर्म। आठ क्षेत्र।",
     modulesSub: "आपके निर्माण व्यवसाय के लिए हर कार्यप्रवाह — मॉड्यूलर, एकीकृत, एंटरप्राइज स्तर पर।",
@@ -77,7 +77,7 @@ export const HOME_COPY = {
     leadVendor: "विक्रेता बनें",
     leadSolar: "सोलर कैलकुलेटर",
     bottomTitle: "अपना निर्माण व्यवसाय डिजिटल बनाने के लिए तैयार हैं?",
-    bottomSub: "हज़ारों विक्रेता, ठेकेदार और खरीदार पहले से 2click.in पर हैं।",
+    bottomSub: "हज़ारों विक्रेता, ठेकेदार और खरीदार पहले से buildecogroup.com पर हैं।",
     bottomCta: "अपना खाता बनाएँ",
     quickGuide: "पूर्ण गाइड",
     quickStore: "स्टोर",

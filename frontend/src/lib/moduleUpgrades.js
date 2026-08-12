@@ -164,8 +164,8 @@ export const ADVANCED_UPGRADES = [
 export function buildSolarWhatsAppMessage(res, hi = false) {
   if (!res?.sizing) {
     return hi
-      ? "नमस्ते 2click.in — मुझे rooftop solar EPC estimate और subsidy जानकारी चाहिए।"
-      : "Hi 2click.in — I need a rooftop solar EPC estimate and subsidy details.";
+      ? "नमस्ते buildecogroup.com — मुझे rooftop solar EPC estimate और subsidy जानकारी चाहिए।"
+      : "Hi buildecogroup.com — I need a rooftop solar EPC estimate and subsidy details.";
   }
   const kwp = res.sizing.recommended_capacity_kwp;
   const net = res.pricing?.net_cost;
@@ -173,7 +173,7 @@ export function buildSolarWhatsAppMessage(res, hi = false) {
   const emi = res.financing?.emi;
   const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
   if (hi) {
-    return `नमस्ते 2click.in — सोलर EPC कोट चाहिए:\n• क्षमता: ${kwp} kWp\n• नेट लागत: ${fmt(net)}${subsidy ? `\n• सब्सिडी: ${fmt(subsidy)}` : ""}${emi ? `\n• EMI: ${fmt(emi)}/माह` : ""}`;
+    return `नमस्ते buildecogroup.com — सोलर EPC कोट चाहिए:\n• क्षमता: ${kwp} kWp\n• नेट लागत: ${fmt(net)}${subsidy ? `\n• सब्सिडी: ${fmt(subsidy)}` : ""}${emi ? `\n• EMI: ${fmt(emi)}/माह` : ""}`;
   }
-  return `Hi 2click.in — solar EPC quote request:\n• Capacity: ${kwp} kWp\n• Net cost: ${fmt(net)}${subsidy ? `\n• Subsidy: ${fmt(subsidy)}` : ""}${emi ? `\n• EMI: ${fmt(emi)}/mo` : ""}`;
+  return `Hi buildecogroup.com — solar EPC quote request:\n• Capacity: ${kwp} kWp\n• Net cost: ${fmt(net)}${subsidy ? `\n• Subsidy: ${fmt(subsidy)}` : ""}${emi ? `\n• EMI: ${fmt(emi)}/mo` : ""}`;
 }

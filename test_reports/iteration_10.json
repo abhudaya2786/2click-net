@@ -26,7 +26,7 @@
     "/app/backend/tests/test_regression_iter10.py (new — 19 tests, all pass)"
   ],
   "success_rate": {"backend": "100% (19/19)", "frontend": "100% (all requested flows verified)"},
-  "test_credentials": "customer@2click.in / Demo@12345, contractor@2click.in / Demo@12345, abbhuadaya@gmail.com / Admin@12345 — all working",
+  "test_credentials": "customer@buildecogroup.com / Demo@12345, contractor@buildecogroup.com / Demo@12345, abbhuadaya@gmail.com / Admin@12345 — all working",
   "seed_data_creation": "1 contact_messages doc created via /api/contact (name=TEST_iter10, TEST_regression). No other persistent state added beyond iter8/iter9 (invoices remain unpaid; Stripe checkout initiated only, not completed).",
   "retest_needed": false,
   "should_main_agent_self_test": true,

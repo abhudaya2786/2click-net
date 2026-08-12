@@ -82,7 +82,7 @@ export default function AdminLogin() {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <div className="font-display font-extrabold text-lg tracking-tight">2click.in</div>
+            <div className="font-display font-extrabold text-lg tracking-tight">buildecogroup.com</div>
             <div className="text-xs text-slate-400 font-mono uppercase tracking-widest">
               {t("Secure Admin Console", "सुरक्षित एडमिन कंसोल")}
             </div>

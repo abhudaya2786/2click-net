@@ -7,8 +7,8 @@ BASE = get_backend_url()
 API = f"{BASE}/api"
 
 ADMIN = {"email": "abbhuadaya@gmail.com", "password": "Admin@12345"}
-VENDOR = {"email": "vendor@2click.in", "password": "Demo@12345"}
-CUSTOMER = {"email": "customer@2click.in", "password": "Demo@12345"}
+VENDOR = {"email": "vendor@buildecogroup.com", "password": "Demo@12345"}
+CUSTOMER = {"email": "customer@buildecogroup.com", "password": "Demo@12345"}
 
 
 def _login(creds):

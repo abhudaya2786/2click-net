@@ -75,7 +75,7 @@ class TestRBACSeed:
         r = requests.get(f"{API}/admin/rbac/companies", headers=hdr(tok))
         assert r.status_code == 200
         names = [c["name"] for c in r.json()]
-        assert "2Click.in" in names
+        assert "buildecogroup.com" in names
 
 
 # ---------------------- Guards ----------------------

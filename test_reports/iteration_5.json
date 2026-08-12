@@ -37,7 +37,7 @@
     "/app/backend/tests/test_phase3a.py (NEW - 21 Phase 3A tests)"
   ],
   "success_rate": {"backend": "95% (20/21 new + all critical Phase 3A features verified; 1 skip)", "frontend": "90% (register wizard, dashboards, /freelancers, RBAC tab list all green; Categories tab crashed on stale data — cleaned + fix required for defensive guard)"},
-  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin, via triple-click [data-testid=login-title]); vendor@/customer@/contractor@2click.in — Demo@12345",
+  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin, via triple-click [data-testid=login-title]); vendor@/customer@/contractor@buildecogroup.com — Demo@12345",
   "seed_data_creation": "Test users created via /api/auth/register with TEST_ prefix (TEST_free_*, TEST_con_*, TEST_ven_*, TEST_ref_*, TEST_prof_*, TEST_esc_*, TEST_esc2_*, TEST_ui_*, TEST_target_*). Test categories TEST_Cat_*/TEST_RefCat_*/TEST_Audit_*/TEST_UICat_* — unreferenced ones hard-deleted; TEST_RefCat_* soft-disabled (still in DB with status=disabled). Cleaned 1 stale legacy-schema row (cat_34ffef988842) that was crashing the Categories tab.",
   "retest_needed": true,
   "should_main_agent_self_test": true,

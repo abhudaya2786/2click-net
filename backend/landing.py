@@ -1,5 +1,5 @@
 """
-2Click.in — Regional landing content + lightweight geo lookup for homepage.
+buildecogroup.com — Regional landing content + lightweight geo lookup for homepage.
 """
 import math
 from datetime import datetime, timezone

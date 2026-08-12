@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-const SITE = "https://www.2click.in";
+const SITE = "https://www.buildecogroup.com";
 
 /**
  * Injects Organization + WebSite JSON-LD for Google rich results / discoverability.
@@ -13,7 +13,7 @@ export default function SiteJsonLd() {
         {
           "@type": "Organization",
           "@id": `${SITE}/#organization`,
-          name: "2click.in",
+          name: "buildecogroup.com",
           url: SITE,
           description: "Construction super app — tenders, brand-wise material store, BOQ calculators, enrollment, solar EPC, consultants, India.",
         },
@@ -21,7 +21,7 @@ export default function SiteJsonLd() {
           "@type": "WebSite",
           "@id": `${SITE}/#website`,
           url: SITE,
-          name: "2click.in",
+          name: "buildecogroup.com",
           publisher: { "@id": `${SITE}/#organization` },
           inLanguage: ["en", "hi"],
           potentialAction: {

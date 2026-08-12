@@ -90,7 +90,7 @@ export default function Cart() {
 
   return (
     <div className="mx-auto max-w-[1100px] px-4 md:px-10 py-10">
-      <PageSEO title={hi ? "मेरा बैग" : "My bag"} description="Cart checkout on 2click construction store" path="/cart" />
+      <PageSEO title={hi ? "मेरा बैग" : "My bag"} description="Cart checkout on BuildEco Group construction store" path="/cart" />
 
       <Link to="/store" className="text-sm text-primary hover:underline flex items-center gap-1 mb-6">
         <ArrowLeft className="h-4 w-4" />{hi ? "स्टोर पर वापस" : "Back to store"}

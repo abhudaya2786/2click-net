@@ -86,7 +86,7 @@ export default function Store() {
     <div className="min-h-screen bg-background" data-testid="construction-store">
       <MarketRateTicker />
       <PageSEO
-        title={hi ? "2click Store — ब्रांड-वार सामग्री" : "2click Store — Brand-wise materials"}
+        title={hi ? "BuildEco Store — ब्रांड-वार सामग्री" : "BuildEco Store — Brand-wise materials"}
         description="Myntra-style construction store — tiles, cement, steel, interior, solar — brand catalogs with live rates and cart checkout."
         path="/store"
       />
@@ -96,7 +96,7 @@ export default function Store() {
         <div className="mx-auto max-w-[1400px] px-4 md:px-10 py-8 md:py-10">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <div className="text-[10px] font-mono uppercase tracking-widest opacity-90">2click.in</div>
+              <div className="text-[10px] font-mono uppercase tracking-widest opacity-90">buildecogroup.com</div>
               <h1 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight mt-1">
                 {hi ? "कंस्ट्रक्शन स्टोर" : "Construction Store"}
               </h1>

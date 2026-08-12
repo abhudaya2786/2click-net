@@ -16,7 +16,7 @@ const SERVICES = [
   { icon: FileText, t: "Enrollment & Agreements", d: "User-wise and shop-wise registration with legal agreements, print and share receipts.", to: "/enroll", cta: "Start enrollment" },
   { icon: Truck, t: "Logistics & Fleet", d: "Fleet booking, freight calculators, driver management and delivery tracking for heavy materials.", to: "/contact", soon: true },
   { icon: Boxes, t: "Inventory Management", d: "SKU, warehouse, stock alerts, barcode/QR and supplier management across locations.", to: "/dashboard", cta: "Manage stock" },
-  { icon: Bot, t: "AI Platform", d: "AI assistant, OCR, cost estimation, image analysis and a smart recommendation engine.", action: "ai", cta: "Ask 2click AI" },
+  { icon: Bot, t: "AI Platform", d: "AI assistant, OCR, cost estimation, image analysis and a smart recommendation engine.", action: "ai", cta: "Ask BuildEco AI" },
 ];
 
 export default function Services() {
@@ -50,7 +50,7 @@ export default function Services() {
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24">
       <PageSEO
         title="Services — Construction ERP, Marketplace, Solar & AI"
-        description="Tender management, B2B marketplace, construction ERP, solar EPC, interior BOQ, consultants, enrollment and AI — full capabilities on 2click.in"
+        description="Tender management, B2B marketplace, construction ERP, solar EPC, interior BOQ, consultants, enrollment and AI — full capabilities on buildecogroup.com"
         path="/services"
       />
       <div className="max-w-2xl mb-14">

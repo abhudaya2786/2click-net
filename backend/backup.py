@@ -1,4 +1,4 @@
-"""Database and config backup utilities for 2click.in."""
+"""Database and config backup utilities for buildecogroup.com."""
 import json
 import os
 import shutil

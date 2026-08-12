@@ -149,8 +149,8 @@ export default function EquipmentRental() {
       <PageSEO
         title={hi ? "कंस्ट्रक्शन उपकरण रेंटल" : "Construction equipment rental"}
         description={hi
-          ? "JCB, क्रेन, टिपर, लॉजिस्टिक्स — मशीनरी रेंटल और साइट ट्रांसपोर्ट 2click.in पर।"
-          : "JCB, crane, tipper, logistics — machinery rental and site transport on 2click.in."}
+          ? "JCB, क्रेन, टिपर, लॉजिस्टिक्स — मशीनरी रेंटल और साइट ट्रांसपोर्ट buildecogroup.com पर।"
+          : "JCB, crane, tipper, logistics — machinery rental and site transport on buildecogroup.com."}
         path="/equipment-rental"
         keywords="JCB rental, crane hire, tipper logistics, construction equipment rental India"
       />

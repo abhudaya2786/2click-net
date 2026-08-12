@@ -21,7 +21,7 @@ export default function Solar() {
     <div>
       <PageSEO
         title="Solar EPC Calculator — Subsidy, EMI & DPR India"
-        description="Rooftop solar capacity calculator, PM Surya Ghar subsidy, EMI financing, 25-year ROI model और bank-ready DPR — 2click.in Solar Portal।"
+        description="Rooftop solar capacity calculator, PM Surya Ghar subsidy, EMI financing, 25-year ROI model और bank-ready DPR — buildecogroup.com Solar Portal।"
         path="/solar"
       />
       <section className="relative border-b border-border">

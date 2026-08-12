@@ -143,7 +143,7 @@ export default function CustomerDashboard() {
                 <Button data-testid="wallet-checkout-btn" onClick={payWithWallet} disabled={cart.length === 0 || paying} variant="outline" className="w-full rounded-none mt-2">
                   <Wallet className="h-4 w-4 mr-1.5" />Pay with Wallet
                 </Button>
-                <p className="text-[10px] text-muted-foreground mt-2 text-center">Razorpay demo mode · Wallet uses your 2click balance</p>
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">Razorpay demo mode · Wallet uses your BuildEco balance</p>
               </div>
             </div>
           )}

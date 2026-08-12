@@ -17,11 +17,11 @@ function LegalPage({ code, fallbackTitle }) {
 
   const title = doc ? (hi ? doc.title_hi || doc.title : doc.title) : fallbackTitle;
   const body = doc ? (hi ? doc.content_hi || doc.content : doc.content) : "";
-  const pageUrl = typeof window !== "undefined" ? window.location.href : `https://www.2click.in/${code.replace("_", "-")}`;
+  const pageUrl = typeof window !== "undefined" ? window.location.href : `https://www.buildecogroup.com/${code.replace("_", "-")}`;
 
   const handlePrint = () => {
     if (!doc) return;
-    printHtml(`2click.in — ${title}`, buildAgreementPrintHtml(doc, lang));
+    printHtml(`buildecogroup.com — ${title}`, buildAgreementPrintHtml(doc, lang));
   };
 
   return (

@@ -24,7 +24,7 @@ export default function SiteCustomizer() {
   const [section, setSection] = useState("theme");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    brand_name: "2Click.in",
+    brand_name: "BuildEco Group",
     tagline: "",
     primary_color: "#FF5A1F",
     accent_color: "#10B981",

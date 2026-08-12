@@ -15,15 +15,15 @@ def admin_h():
 
 @pytest.fixture(scope="module")
 def customer_h():
-    return {"Authorization": f"Bearer {_login('customer@2click.in', 'Demo@12345')}"}
+    return {"Authorization": f"Bearer {_login('customer@buildecogroup.com', 'Demo@12345')}"}
 
 @pytest.fixture(scope="module")
 def vendor_h():
-    return {"Authorization": f"Bearer {_login('vendor@2click.in', 'Demo@12345')}"}
+    return {"Authorization": f"Bearer {_login('vendor@buildecogroup.com', 'Demo@12345')}"}
 
 @pytest.fixture(scope="module")
 def contractor_h():
-    return {"Authorization": f"Bearer {_login('contractor@2click.in', 'Demo@12345')}"}
+    return {"Authorization": f"Bearer {_login('contractor@buildecogroup.com', 'Demo@12345')}"}
 
 
 # ---------- Wallet: user endpoint ----------
@@ -78,7 +78,7 @@ def _find_user(admin_h, email):
     raise AssertionError(f"user {email} not found")
 
 def test_admin_credit_and_debit_flow(admin_h):
-    u = _find_user(admin_h, "customer@2click.in")
+    u = _find_user(admin_h, "customer@buildecogroup.com")
     uid = u["id"]
     before = u["wallet_balance"]
     # Credit
@@ -94,26 +94,26 @@ def test_admin_credit_and_debit_flow(admin_h):
     assert round(r.json()["balance"] - before, 2) == 0.0
 
 def test_admin_adjust_empty_reason_422(admin_h):
-    u = _find_user(admin_h, "customer@2click.in")
+    u = _find_user(admin_h, "customer@buildecogroup.com")
     r = requests.post(f"{BASE}/api/admin/wallet/adjust", headers=admin_h,
                       json={"user_id": u["id"], "type": "credit", "amount": 10, "reason": ""}, timeout=30)
     assert r.status_code == 422
 
 def test_admin_adjust_zero_amount_422(admin_h):
-    u = _find_user(admin_h, "customer@2click.in")
+    u = _find_user(admin_h, "customer@buildecogroup.com")
     r = requests.post(f"{BASE}/api/admin/wallet/adjust", headers=admin_h,
                       json={"user_id": u["id"], "type": "credit", "amount": 0, "reason": "zero"}, timeout=30)
     assert r.status_code == 422
 
 def test_admin_debit_insufficient_balance(admin_h):
-    u = _find_user(admin_h, "customer@2click.in")
+    u = _find_user(admin_h, "customer@buildecogroup.com")
     huge = u["wallet_balance"] + 10_000_000
     r = requests.post(f"{BASE}/api/admin/wallet/adjust", headers=admin_h,
                       json={"user_id": u["id"], "type": "debit", "amount": huge, "reason": "TEST_overdraw"}, timeout=30)
     assert r.status_code == 400
     assert "Insufficient" in r.text
     # Balance unchanged
-    u2 = _find_user(admin_h, "customer@2click.in")
+    u2 = _find_user(admin_h, "customer@buildecogroup.com")
     assert u2["wallet_balance"] == u["wallet_balance"]
 
 def test_admin_wallet_transactions_list(admin_h):
@@ -139,7 +139,7 @@ def _order_item(p, qty=1):
 def test_order_captures_site_architect_and_pay_wallet(customer_h, vendor_h, admin_h):
     p = _pick_product()
     # Ensure customer has enough balance — top up 5000
-    cust = _find_user(admin_h, "customer@2click.in")
+    cust = _find_user(admin_h, "customer@buildecogroup.com")
     requests.post(f"{BASE}/api/admin/wallet/adjust", headers=admin_h,
                   json={"user_id": cust["id"], "type": "credit", "amount": 5000, "reason": "TEST_iter11 topup"}, timeout=30)
     order_payload = {
@@ -177,7 +177,7 @@ def test_order_captures_site_architect_and_pay_wallet(customer_h, vendor_h, admi
 
 def test_pay_wallet_insufficient_balance(customer_h, admin_h):
     # Drain customer balance to zero, then attempt to pay a new order
-    cust = _find_user(admin_h, "customer@2click.in")
+    cust = _find_user(admin_h, "customer@buildecogroup.com")
     bal = cust["wallet_balance"]
     if bal > 0:
         requests.post(f"{BASE}/api/admin/wallet/adjust", headers=admin_h,

@@ -70,13 +70,13 @@ export default function TenderDetail() {
 
   const canBid = user && ["vendor", "contractor", "super_admin"].includes(user.role);
   const canEdit = user && (user.role === "super_admin" || tender.owner_id === user.id);
-  const shareMsg = `2click.in Tender: ${tender.title} — Budget ₹${(tender.budget / 100000).toFixed(1)}L. Bid now: ${window.location.href}`;
+  const shareMsg = `buildecogroup.com Tender: ${tender.title} — Budget ₹${(tender.budget / 100000).toFixed(1)}L. Bid now: ${window.location.href}`;
 
   return (
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-10">
       <PageSEO
         title={tender.title}
-        description={`${tender.description?.slice(0, 140) || "Construction tender"} — Budget ₹${(tender.budget / 100000).toFixed(1)}L. Live reverse auction on 2click.in`}
+        description={`${tender.description?.slice(0, 140) || "Construction tender"} — Budget ₹${(tender.budget / 100000).toFixed(1)}L. Live reverse auction on buildecogroup.com`}
         path={`/tenders/${id}`}
       />
       <Link to="/tenders" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="h-4 w-4" />Back to tenders</Link>

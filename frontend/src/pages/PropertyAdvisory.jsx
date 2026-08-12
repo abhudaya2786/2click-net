@@ -148,7 +148,7 @@ export default function PropertyAdvisory() {
         title={hi ? "प्रॉपर्टी सलाह — विशेषज्ञ मार्गदर्शन" : "Property advisory — expert guidance"}
         description={hi
           ? "कंपनी या व्यक्ति — प्रॉपर्टी प्रकार के हिसाब से रियल एस्टेट सलाहकार, आर्किटेक्ट और पूर्ण निर्माण गाइड।"
-          : "Company or individual — real estate advisors, architects and full build guidance by property type on 2click.in."}
+          : "Company or individual — real estate advisors, architects and full build guidance by property type on buildecogroup.com."}
         path="/property-advisory"
         keywords="property advisory, real estate consultant, new building guidance, construction expert India"
       />

@@ -8,7 +8,7 @@ from conftest import get_backend_url
 BASE = get_backend_url()
 API = f"{BASE}/api/sales-mom"
 
-SAMPLE = """Sales Rep: Thanks for joining. 2click.in Super Mart gives brand-wise rates and BOQ templates.
+SAMPLE = """Sales Rep: Thanks for joining. buildecogroup.com Super Mart gives brand-wise rates and BOQ templates.
 Client: We use IndiaMART today. Your subscription feels costly — can you discount annual billing?
 Sales Rep: I can check Business annual pricing. Shall we run a pilot on the Pune site next week?
 Client: Yes, let's proceed. Please send the proposal by Friday with SLA and ROI versus IndiaMART.

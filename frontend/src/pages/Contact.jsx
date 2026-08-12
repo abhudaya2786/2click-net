@@ -30,7 +30,7 @@ export default function Contact() {
     <>
       <PageSEO
         title="Contact — Sales, Partnerships & Support"
-        description="Contact 2click.in — Gorakhpur head office, Gurugram corporate office. Sales, enterprise plans and partnerships."
+        description="Contact buildecogroup.com — Gorakhpur head office, Gurugram corporate office. Sales, enterprise plans and partnerships."
         path="/contact"
       />
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24 grid lg:grid-cols-2 gap-px bg-border border border-border">
@@ -39,9 +39,9 @@ export default function Contact() {
         <h1 className="font-display font-extrabold text-3xl md:text-4xl tracking-tight mt-3">Let's build something big.</h1>
         <p className="mt-4 text-muted-foreground">Questions about enterprise plans, integrations or partnerships? We're here.</p>
         <div className="mt-10 space-y-5">
-          <a href="mailto:sales@2click.in" data-testid="contact-email-link" className="flex items-center gap-4 group">
+          <a href="mailto:sales@buildecogroup.com" data-testid="contact-email-link" className="flex items-center gap-4 group">
             <div className="h-10 w-10 bg-primary/10 flex items-center justify-center shrink-0"><Mail className="h-5 w-5 text-primary" strokeWidth={1.5} /></div>
-            <div><div className="text-xs text-muted-foreground">Email</div><div className="text-sm font-medium group-hover:text-primary transition-colors">sales@2click.in</div></div>
+            <div><div className="text-xs text-muted-foreground">Email</div><div className="text-sm font-medium group-hover:text-primary transition-colors">sales@buildecogroup.com</div></div>
           </a>
           <a href="tel:+917007254932" data-testid="contact-phone-link" className="flex items-center gap-4 group">
             <div className="h-10 w-10 bg-primary/10 flex items-center justify-center shrink-0"><Phone className="h-5 w-5 text-primary" strokeWidth={1.5} /></div>

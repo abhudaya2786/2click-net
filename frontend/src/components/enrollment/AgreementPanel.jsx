@@ -19,17 +19,17 @@ export default function AgreementPanel({
 
   const printOne = (a) => {
     const title = hi ? a.title_hi || a.title : a.title;
-    printHtml(`2click.in — ${title}`, buildAgreementPrintHtml(a, lang));
+    printHtml(`buildecogroup.com — ${title}`, buildAgreementPrintHtml(a, lang));
   };
 
   const shareOne = (a) => {
     const title = hi ? a.title_hi || a.title : a.title;
     const content = hi ? a.content_hi || a.content : a.content;
-    openWhatsAppShare(`${title}\n\n${content}\n\n— 2click.in`);
+    openWhatsAppShare(`${title}\n\n${content}\n\n— buildecogroup.com`);
   };
 
   const printAll = () => {
-    printHtml(hi ? "2click.in समझौते" : "2click.in Agreements", buildAgreementsBundleHtml(agreements, lang));
+    printHtml(hi ? "buildecogroup.com समझौते" : "buildecogroup.com Agreements", buildAgreementsBundleHtml(agreements, lang));
   };
 
   return (
@@ -38,11 +38,11 @@ export default function AgreementPanel({
         <p className="text-sm text-muted-foreground">{t("agreements_intro")}</p>
         <PrintShareBar
           onPrint={printAll}
-          printTitle={hi ? "2click.in समझौते" : "2click.in Agreements"}
+          printTitle={hi ? "buildecogroup.com समझौते" : "buildecogroup.com Agreements"}
           printHtmlBody={buildAgreementsBundleHtml(agreements, lang)}
-          shareText={hi ? "2click.in पंजीकरण समझौते — www.2click.in/enroll" : "2click.in enrollment agreements — www.2click.in/enroll"}
-          shareUrl="https://www.2click.in/enroll"
-          emailSubject={hi ? "2click.in समझौते" : "2click.in agreements"}
+          shareText={hi ? "buildecogroup.com पंजीकरण समझौते — www.buildecogroup.com/enroll" : "buildecogroup.com enrollment agreements — www.buildecogroup.com/enroll"}
+          shareUrl="https://www.buildecogroup.com/enroll"
+          emailSubject={hi ? "buildecogroup.com समझौते" : "buildecogroup.com agreements"}
           t={(k) => (k === "print" ? t("print_all") : t(k))}
           size="sm"
         />

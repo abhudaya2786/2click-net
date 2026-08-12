@@ -1,5 +1,5 @@
 """
-2Click.in — Phase 3A (ADDITIVE): Dynamic Category Engine, configurable User Types,
+buildecogroup.com — Phase 3A (ADDITIVE): Dynamic Category Engine, configurable User Types,
 user_categories, Freelancer module, rich login session profile + dashboard routing.
 Reuses rbac.audit_log / rbac.require_permission / rbac.rbac_admin / rbac.get_effective_permissions.
 Non-destructive: nothing existing is removed.
@@ -284,7 +284,7 @@ async def build_session(user: dict):
         "default_dashboard": user.get("default_dashboard") or dashboard_for_user_type(user_type),
         "workspace": {
             "company_id": user.get("company_id", DEFAULT_COMPANY_ID),
-            "brand_name": branding.get("brand_name") or (company or {}).get("name") or "2Click.in",
+            "brand_name": branding.get("brand_name") or (company or {}).get("name") or "BuildEco Group",
             "logo": branding.get("logo", ""), "primary_color": branding.get("primary_color", "#FF5A1F"),
             "theme": branding.get("theme", "light"),
         },

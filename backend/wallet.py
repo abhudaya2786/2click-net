@@ -1,5 +1,5 @@
 """
-2Click.in — Universal Payment Wallet.
+buildecogroup.com — Universal Payment Wallet.
 Per-user wallet balance + credit/debit ledger. Only Super Admin can credit/debit
 (with a mandatory reason). Users can pay marketplace orders from their wallet.
 """

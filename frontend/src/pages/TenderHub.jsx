@@ -69,7 +69,7 @@ export default function TenderHub() {
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-10">
       <PageSEO
         title="Tender Hub — Subject & Material-wise Live Auctions"
-        description="Browse construction tenders by subject and material type — steel, cement, solar, electrical, plumbing. Live reverse auction on 2click.in"
+        description="Browse construction tenders by subject and material type — steel, cement, solar, electrical, plumbing. Live reverse auction on buildecogroup.com"
         path="/tenders"
       />
 

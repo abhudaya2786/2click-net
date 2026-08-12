@@ -1,5 +1,5 @@
 """
-2Click.in — Platform enrollment: user-wise + shop-wise registration with legal agreements.
+buildecogroup.com — Platform enrollment: user-wise + shop-wise registration with legal agreements.
 """
 import uuid
 from datetime import datetime, timezone
@@ -53,17 +53,17 @@ AGREEMENTS = [
     {
         "code": "platform_terms",
         "version": "1.0",
-        "title": "2click.in Platform Terms of Service",
-        "title_hi": "2click.in प्लेटफ़ॉर्म सेवा की शर्तें",
+        "title": "buildecogroup.com Platform Terms of Service",
+        "title_hi": "buildecogroup.com प्लेटफ़ॉर्म सेवा की शर्तें",
         "applies_to": ["user", "vendor", "shop", "all"],
         "required": True,
         "content": (
-            "By using 2click.in you agree to use the marketplace, tenders, and tools lawfully. "
+            "By using buildecogroup.com you agree to use the marketplace, tenders, and tools lawfully. "
             "Listings must be accurate. Platform commission applies per category. "
             "Disputes are subject to Indian jurisdiction. We may suspend accounts for fraud or policy violations."
         ),
         "content_hi": (
-            "2click.in उपयोग करने पर आप मार्केटप्लेस, टेंडर और टूल्स का कानूनी उपयोग करने के लिए सहमत हैं। "
+            "buildecogroup.com उपयोग करने पर आप मार्केटप्लेस, टेंडर और टूल्स का कानूनी उपयोग करने के लिए सहमत हैं। "
             "लिस्टिंग सही होनी चाहिए। श्रेणी के अनुसार कमीशन लागू होता है। "
             "विवाद भारतीय क्षेत्राधिकार के अधीन हैं। धोखाधड़ी पर खाता निलंबित किया जा सकता है।"
         ),
@@ -110,12 +110,12 @@ AGREEMENTS = [
         "applies_to": ["shop"],
         "required": True,
         "content": (
-            "Each enrolled shop is a distinct business listing on 2click.in. "
+            "Each enrolled shop is a distinct business listing on buildecogroup.com. "
             "Shop owner is responsible for shop-specific compliance, pricing, and customer service. "
             "Shop profile must match physical business. One owner may operate multiple shops with separate enrollment."
         ),
         "content_hi": (
-            "हर पंजीकृत दुकान 2click.in पर एक व्यवसाय लिस्टिंग है। "
+            "हर पंजीकृत दुकान buildecogroup.com पर एक व्यवसाय लिस्टिंग है। "
             "दुकान मालिक compliance, मूल्य और सेवा के लिए ज़िम्मेदार है। "
             "एक मालिक कई दुकानें अलग-अलग पंजीकरण से चला सकता है।"
         ),
@@ -128,26 +128,26 @@ AGREEMENTS = [
         "applies_to": ["user", "customer", "contractor", "company", "employee", "other"],
         "required": True,
         "content": (
-            "As a client on 2click.in you may browse freelancers, send enquiries, place orders, and hire "
+            "As a client on buildecogroup.com you may browse freelancers, send enquiries, place orders, and hire "
             "professionals for construction, design, accounting, and related services.\n\n"
-            "1. Scope: You are the client (buyer) of services listed on the platform. 2click.in is a "
+            "1. Scope: You are the client (buyer) of services listed on the platform. buildecogroup.com is a "
             "marketplace facilitator, not the service provider unless explicitly stated.\n\n"
             "2. Payments: Agreed fees are paid through platform flows where available. Platform commission "
-            "and taxes may apply. Do not pay outside the platform for bookings initiated on 2click.in "
+            "and taxes may apply. Do not pay outside the platform for bookings initiated on buildecogroup.com "
             "unless both parties accept documented off-platform terms.\n\n"
             "3. Your responsibilities: Provide accurate project details, respond in good faith, and pay "
             "agreed amounts on time. Do not request illegal work or misuse freelancer deliverables.\n\n"
             "4. Deliverables & disputes: Quality and timelines are between you and the freelancer. "
-            "Raise disputes via support within 7 days of delivery. 2click.in may mediate but does not "
+            "Raise disputes via support within 7 days of delivery. buildecogroup.com may mediate but does not "
             "guarantee outcomes.\n\n"
             "5. Confidentiality: Respect freelancer IP and confidential information shared during projects.\n\n"
-            "6. Liability: 2click.in is not liable for freelancer performance, delays, or indirect losses. "
+            "6. Liability: buildecogroup.com is not liable for freelancer performance, delays, or indirect losses. "
             "Indian law and jurisdiction apply."
         ),
         "content_hi": (
-            "2click.in पर क्लाइंट के रूप में आप फ्रीलांसर ब्राउज़ कर सकते हैं, पूछताछ भेज सकते हैं, "
+            "buildecogroup.com पर क्लाइंट के रूप में आप फ्रीलांसर ब्राउज़ कर सकते हैं, पूछताछ भेज सकते हैं, "
             "ऑर्डर दे सकते हैं और निर्माण, डिज़ाइन, लेखा आदि सेवाओं के लिए पेशेवर हायर कर सकते हैं।\n\n"
-            "1. दायरा: आप सेवा का क्लाइंट (खरीदार) हैं। 2click.in मार्केटप्लेस सुविधा प्रदान करता है, "
+            "1. दायरा: आप सेवा का क्लाइंट (खरीदार) हैं। buildecogroup.com मार्केटप्लेस सुविधा प्रदान करता है, "
             "सेवा प्रदाता नहीं (जब तक स्पष्ट न कहा हो)।\n\n"
             "2. भुगतान: सहमत शुल्क प्लेटफ़ॉर्म के माध्यम से। कमीशन और टैक्स लागू हो सकते हैं। "
             "प्लेटफ़ॉर्म पर शुरू की बुकिंग के लिए बिना दस्तावेज़ के बाहर भुगतान न करें।\n\n"
@@ -155,7 +155,7 @@ AGREEMENTS = [
             "4. विवाद: गुणवत्ता और समयसीमा आप और फ्रीलांसर के बीच है। डिलीवरी के 7 दिनों में सपोर्ट पर "
             "विवाद उठाएँ।\n\n"
             "5. गोपनीयता: फ्रीलांसर की IP और गोपनीय जानकारी का सम्मान करें।\n\n"
-            "6. दायित्व: फ्रीलांसर प्रदर्शन के लिए 2click.in ज़िम्मेदार नहीं। भारतीय कानून लागू।"
+            "6. दायित्व: फ्रीलांसर प्रदर्शन के लिए buildecogroup.com ज़िम्मेदार नहीं। भारतीय कानून लागू।"
         ),
     },
     {
@@ -166,7 +166,7 @@ AGREEMENTS = [
         "applies_to": ["freelancer", "architect", "engineer", "ca", "service_provider"],
         "required": True,
         "content": (
-            "As a freelancer or professional on 2click.in you offer services to clients through "
+            "As a freelancer or professional on buildecogroup.com you offer services to clients through "
             "the platform talent network, enquiries, and orders.\n\n"
             "1. Profile & listings: Your name, skills, portfolio, pricing, and categories must be accurate. "
             "You represent that you have the qualifications to perform listed services.\n\n"
@@ -176,15 +176,15 @@ AGREEMENTS = [
             "settings (category/product/order-wise). Net payout is credited per platform settlement rules. "
             "GST and tax compliance is your responsibility where applicable.\n\n"
             "4. Prohibited conduct: No plagiarism, fake credentials, off-platform payment solicitation for "
-            "2click.in-originated leads without disclosure, or sharing client data without consent.\n\n"
+            "buildecogroup.com-originated leads without disclosure, or sharing client data without consent.\n\n"
             "5. IP & deliverables: Unless agreed otherwise, clients receive usage rights for paid deliverables. "
             "You retain pre-existing IP. License terms may be specified per project.\n\n"
             "6. Suspension: Misrepresentation, repeated disputes, or policy violations may lead to delisting "
             "or account suspension.\n\n"
-            "7. Liability: You are independent, not an employee of 2click.in. Indian law applies."
+            "7. Liability: You are independent, not an employee of buildecogroup.com. Indian law applies."
         ),
         "content_hi": (
-            "2click.in पर फ्रीलांसर/पेशेवर के रूप में आप टैलेंट नेटवर्क, पूछताछ और ऑर्डर के माध्यम से "
+            "buildecogroup.com पर फ्रीलांसर/पेशेवर के रूप में आप टैलेंट नेटवर्क, पूछताछ और ऑर्डर के माध्यम से "
             "क्लाइंटों को सेवा देते हैं।\n\n"
             "1. प्रोफ़ाइल: नाम, कौशल, पोर्टफोलियो, मूल्य और श्रेणियाँ सही होनी चाहिए। "
             "आप सूचीबद्ध सेवाएँ करने के लिए योग्य हैं।\n\n"
@@ -194,7 +194,7 @@ AGREEMENTS = [
             "4. निषिद्ध: नकली प्रमाणपत्र, बिना बताए बाहर भुगतान मांगना, क्लाइंट डेटा बिना अनुमति साझा करना।\n\n"
             "5. IP: भुगतान के बाद क्लाइंट को उपयोग अधिकार (जब तक अन्य सहमति न हो)। आप पूर्व IP रखते हैं।\n\n"
             "6. निलंबन: गलत जानकारी या उल्लंघन पर हटाया/निलंबित किया जा सकता है।\n\n"
-            "7. दायित्व: आप स्वतंत्र हैं, 2click.in के कर्मचारी नहीं। भारतीय कानून लागू।"
+            "7. दायित्व: आप स्वतंत्र हैं, buildecogroup.com के कर्मचारी नहीं। भारतीय कानून लागू।"
         ),
     },
 ]

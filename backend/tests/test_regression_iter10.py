@@ -13,9 +13,9 @@ API = f"{BASE_URL}/api"
 
 CREDS = {
     "admin": ("abbhuadaya@gmail.com", "Admin@12345"),
-    "customer": ("customer@2click.in", "Demo@12345"),
-    "vendor": ("vendor@2click.in", "Demo@12345"),
-    "contractor": ("contractor@2click.in", "Demo@12345"),
+    "customer": ("customer@buildecogroup.com", "Demo@12345"),
+    "vendor": ("vendor@buildecogroup.com", "Demo@12345"),
+    "contractor": ("contractor@buildecogroup.com", "Demo@12345"),
 }
 
 
@@ -41,15 +41,15 @@ class TestAuth:
     def test_me(self, tokens):
         r = requests.get(f"{API}/auth/me", headers=hdr(tokens["customer"]))
         assert r.status_code == 200
-        assert r.json()["email"] == "customer@2click.in"
+        assert r.json()["email"] == "customer@buildecogroup.com"
 
     def test_forgot_password_ok_generic(self):
-        r = requests.post(f"{API}/auth/forgot-password", json={"email": "customer@2click.in", "origin": BASE_URL})
+        r = requests.post(f"{API}/auth/forgot-password", json={"email": "customer@buildecogroup.com", "origin": BASE_URL})
         assert r.status_code == 200
         assert r.json().get("ok") is True
 
     def test_bad_login(self):
-        r = requests.post(f"{API}/auth/login", json={"email": "customer@2click.in", "password": "wrong"})
+        r = requests.post(f"{API}/auth/login", json={"email": "customer@buildecogroup.com", "password": "wrong"})
         assert r.status_code in (401, 429)
 
 

@@ -43,10 +43,10 @@ class TestBrandingPhase3B:
     def test_admin_update_persists_slug_accent_favicon(self, admin_tok):
         payload = {
             "company_id": "company_default",
-            "slug": "twoclick",
+            "slug": "buildecogroup",
             "accent_color": "#10B981",
             "favicon": "/favicon-test.ico",
-            "brand_name": "2Click.in",
+            "brand_name": "BuildEco Group",
             "primary_color": "#FF5A1F",
             "tagline": "The operating system for construction",
         }
@@ -58,27 +58,27 @@ class TestBrandingPhase3B:
         d = r.json()
         assert d["accent_color"] == "#10B981"
         assert d["favicon"] == "/favicon-test.ico"
-        assert d["slug"] == "twoclick"
+        assert d["slug"] == "buildecogroup"
 
     def test_resolve_by_slug(self, admin_tok):
         # ensure slug set
         requests.patch(f"{API}/admin/branding", headers=h(admin_tok), json={
-            "company_id": "company_default", "slug": "twoclick"})
-        r = requests.get(f"{API}/branding", params={"slug": "twoclick"})
+            "company_id": "company_default", "slug": "buildecogroup"})
+        r = requests.get(f"{API}/branding", params={"slug": "buildecogroup"})
         assert r.status_code == 200
         d = r.json()
         assert d["company_id"] == "company_default"
-        assert d["slug"] == "twoclick"
+        assert d["slug"] == "buildecogroup"
 
     def test_resolve_by_host_custom_domain(self, admin_tok):
         requests.patch(f"{API}/admin/branding", headers=h(admin_tok), json={
-            "company_id": "company_default", "custom_domain": "test.2click.local"})
-        r = requests.get(f"{API}/branding", params={"host": "test.2click.local"})
+            "company_id": "company_default", "custom_domain": "test.buildecogroup.local"})
+        r = requests.get(f"{API}/branding", params={"host": "test.buildecogroup.local"})
         assert r.status_code == 200
         assert r.json()["company_id"] == "company_default"
 
     def test_resolve_by_host_subdomain(self):
-        r = requests.get(f"{API}/branding", params={"host": "twoclick.example.com"})
+        r = requests.get(f"{API}/branding", params={"host": "buildecogroup.example.com"})
         assert r.status_code == 200
         assert r.json()["company_id"] == "company_default"
 
@@ -300,6 +300,6 @@ class TestPhase3ARegression:
 
     def test_seeded_logins(self):
         admin_login()
-        for cred in [VENDOR, CUSTOMER, ("contractor@2click.in", "Demo@12345")]:
+        for cred in [VENDOR, CUSTOMER, ("contractor@buildecogroup.com", "Demo@12345")]:
             r = requests.post(f"{API}/auth/login", json={"email": cred[0], "password": cred[1]})
             assert r.status_code == 200, f"{cred[0]} login failed"

@@ -1,5 +1,5 @@
 /**
- * 2click.in — Platform architecture: nav mapping, coefficients, brand tiers, personas
+ * buildecogroup.com — Platform architecture: nav mapping, coefficients, brand tiers, personas
  */
 
 export const NAV_CAPABILITY_MAP = [

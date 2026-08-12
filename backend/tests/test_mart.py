@@ -20,12 +20,12 @@ def admin_token():
 
 @pytest.fixture(scope="module")
 def contractor_token():
-    return _login("contractor@2click.in", "Demo@12345")
+    return _login("contractor@buildecogroup.com", "Demo@12345")
 
 
 @pytest.fixture(scope="module")
 def customer_token():
-    return _login("customer@2click.in", "Demo@12345")
+    return _login("customer@buildecogroup.com", "Demo@12345")
 
 
 # ---------- Public reads ----------

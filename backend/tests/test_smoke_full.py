@@ -3,7 +3,7 @@ import requests
 import pytest
 from auth_helpers import login, admin_login, ADMIN, VENDOR, CUSTOMER, CONTRACTOR, API
 
-ARCHITECT = ("architect@2click.in", "Demo@12345")
+ARCHITECT = ("architect@buildecogroup.com", "Demo@12345")
 
 
 def _h(tok):

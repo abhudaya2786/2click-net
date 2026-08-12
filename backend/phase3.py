@@ -1,5 +1,5 @@
 """
-2Click.in — Phase 3 (ADDITIVE): Dynamic Categories, White-Label Branding,
+buildecogroup.com — Phase 3 (ADDITIVE): Dynamic Categories, White-Label Branding,
 Pricing Plans + Commission Engine. Public read endpoints + Super-Admin managed.
 Reuses rbac.audit_log / rbac.rbac_admin. Nothing existing is removed.
 """
@@ -107,7 +107,7 @@ async def get_branding(company_id: Optional[str] = None, slug: Optional[str] = N
         "company_id": (c or {}).get("id", DEFAULT_COMPANY_ID),
         "slug": (c or {}).get("slug") or "",
         "custom_domain": (c or {}).get("custom_domain") or "",
-        "brand_name": b.get("brand_name") or (c or {}).get("name") or "2Click.in",
+        "brand_name": b.get("brand_name") or (c or {}).get("name") or "buildecogroup.com",
         "logo": b.get("logo") or "",
         "favicon": b.get("favicon") or "",
         "primary_color": b.get("primary_color") or "#FF5A1F",
@@ -346,6 +346,6 @@ async def seed_phase3():
     c = await _db.companies.find_one({"id": DEFAULT_COMPANY_ID}, {"_id": 0})
     if c and not (c.get("branding") or {}).get("brand_name"):
         await _db.companies.update_one({"id": DEFAULT_COMPANY_ID}, {"$set": {"branding": {
-            "brand_name": "2Click.in", "logo": "", "primary_color": "#FF5A1F",
+            "brand_name": "BuildEco Group", "logo": "", "primary_color": "#FF5A1F",
             "tagline": "The operating system for construction",
         }}})

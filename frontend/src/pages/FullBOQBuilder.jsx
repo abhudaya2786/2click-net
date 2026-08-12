@@ -220,7 +220,7 @@ export default function FullBOQBuilder() {
       await copyToClipboard(text);
       toast.success(hi ? "कॉपी हो गया" : "Copied to clipboard");
     } catch {
-      shareViaEmail(hi ? "2click BOQ" : "2click BOQ", text);
+      shareViaEmail(hi ? "BuildEco BOQ" : "BuildEco BOQ", text);
     }
   };
 

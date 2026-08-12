@@ -8,7 +8,7 @@ export default function MaterialCalculatorPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 md:px-8 py-10 md:py-14">
       <PageSEO
-        title={lang === "hi" ? "निर्माण सामग्री कैलकुलेटर — 2click.in" : "Material calculator — 2click.in"}
+        title={lang === "hi" ? "निर्माण सामग्री कैलकुलेटर — buildecogroup.com" : "Material calculator — buildecogroup.com"}
         description={lang === "hi"
           ? "बिल्ट-अप एरिया से सीमेंट, सरिया, ईंट, टाइल्स और कुल लागत का अनुमान"
           : "Estimate cement, steel, bricks, tiles and total cost from built-up area"}

@@ -1,4 +1,4 @@
-# 2Click.in — EXISTING SYSTEM AUDIT REPORT
+# buildecogroup.com — EXISTING SYSTEM AUDIT REPORT
 Status: AUDIT ONLY. No code changed. Awaiting approval before any implementation.
 Date: 2026-06
 

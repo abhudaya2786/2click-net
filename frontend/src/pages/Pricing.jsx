@@ -36,7 +36,7 @@ export default function Pricing() {
     <div className="mx-auto max-w-[1400px] px-5 md:px-10 py-16 md:py-24">
       <PageSEO
         title="Pricing — SaaS Plans for Construction Businesses"
-        description="Starter, Business and Enterprise SaaS plans for vendors, contractors and builders on 2click.in — transparent pricing, cancel anytime"
+        description="Starter, Business and Enterprise SaaS plans for vendors, contractors and builders on buildecogroup.com — transparent pricing, cancel anytime"
         path="/pricing"
       />
       <div className="max-w-2xl mb-14">

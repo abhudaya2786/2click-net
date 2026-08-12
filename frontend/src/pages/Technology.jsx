@@ -60,7 +60,7 @@ export default function Technology() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 md:px-8 py-10 md:py-14">
-      <PageSEO title="3D / VR / LiDAR — 2click.in" path="/technology" />
+      <PageSEO title="3D / VR / LiDAR — buildecogroup.com" path="/technology" />
       <h1 className="font-display font-extrabold text-3xl tracking-tight">{c.techTitle}</h1>
       <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
         {hi
