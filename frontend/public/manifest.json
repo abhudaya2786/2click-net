@@ -24,29 +24,37 @@
   ],
   "start_url": "/?source=pwa",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "theme_color": "#C87941",
   "background_color": "#F8F9FB",
   "scope": "/",
-  "categories": ["business", "productivity"],
+  "id": "/",
+  "categories": ["business", "productivity", "shopping"],
   "prefer_related_applications": false,
   "shortcuts": [
     {
-      "name": "Tenders",
-      "short_name": "Tenders",
-      "url": "/tenders",
+      "name": "Store",
+      "short_name": "Store",
+      "url": "/store?source=pwa",
       "icons": [{ "src": "icon-512.png", "sizes": "192x192" }]
     },
     {
-      "name": "Marketplace",
-      "short_name": "Shop",
-      "url": "/marketplace",
+      "name": "Estimate",
+      "short_name": "Estimate",
+      "url": "/estimate?source=pwa",
+      "icons": [{ "src": "icon-512.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tenders",
+      "short_name": "Tenders",
+      "url": "/tenders?source=pwa",
       "icons": [{ "src": "icon-512.png", "sizes": "192x192" }]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "url": "/dashboard",
+      "url": "/dashboard?source=pwa",
       "icons": [{ "src": "icon-512.png", "sizes": "192x192" }]
     }
   ]

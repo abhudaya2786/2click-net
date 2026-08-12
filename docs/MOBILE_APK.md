@@ -1,15 +1,21 @@
 # Mobile app & APK
 
-## Mobile website (PWA)
+## Mobile website (PWA) — works like an app
 
-The site is mobile-friendly with:
+Phone pe site open karte hi:
 
-- Bottom navigation on phones
-- Safe-area padding for notched devices
-- Install banner + `/download-app` page
-- Service worker for offline shell caching
+- **Bottom tabs:** Home · Store · Estimate · More · Profile
+- **More sheet:** Mart, BOQ, Tenders, Solar, Consultants, Rental, Install…
+- Safe-area padding (notch / home indicator)
+- Sticky compact header + brand name
+- Install banner + `/download-app`
+- Service worker (`sw.js` v2) — offline shell + `/offline.html`
+- Standalone / Capacitor mode hides install banner and uses app chrome
 
-**Install on phone (no APK):** Open https://www.2click.in in Chrome → Menu → **Install app** / **Add to Home screen**.
+**Install on phone (no APK):**  
+Chrome → https://www.2click.in → Menu (⋮) → **Install app** / **Add to Home screen**.
+
+iPhone: Safari → Share → **Add to Home Screen**.
 
 ## Android APK
 

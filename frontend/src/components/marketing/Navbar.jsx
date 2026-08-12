@@ -51,14 +51,14 @@ export default function Navbar() {
 
   return (
     <header
-      className={`z-50 border-b border-border/40 bg-background/80 backdrop-blur-2xl ${
-        navbar_style === "sticky" ? "sticky top-0" : ""
+      className={`z-50 border-b border-border/40 bg-background/80 backdrop-blur-2xl mobile-app-header ${
+        navbar_style === "sticky" ? "sticky top-0" : "sticky top-0 md:static"
       }`}
     >
       <div className="mx-auto max-w-6xl px-4 md:px-8 h-16 flex items-center justify-between gap-4">
         <Link to="/" data-testid="nav-logo" className="flex items-center gap-2.5 shrink-0">
           <BrandLogo className="h-8 w-8" iconClass="h-4 w-4" />
-          <span className="font-display font-extrabold text-base tracking-tight hidden sm:inline">{brand_name}</span>
+          <span className="font-display font-extrabold text-base tracking-tight truncate max-w-[10rem] sm:max-w-none">{brand_name}</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-4 xl:gap-5">
