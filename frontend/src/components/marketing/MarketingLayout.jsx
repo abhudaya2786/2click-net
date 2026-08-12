@@ -17,7 +17,7 @@ export default function MarketingLayout({ children }) {
   const hideFooter = pathname.startsWith("/login") || pathname.startsWith("/register");
 
   return (
-    <div className="App min-h-screen flex flex-col mobile-app-shell">
+    <div className="App min-h-screen flex flex-col mobile-app-shell" data-testid="mobile-app-shell">
       <Navbar />
       <DemoModeBanner />
       <AdSlot placement="header" />
