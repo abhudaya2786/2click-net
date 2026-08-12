@@ -3,10 +3,11 @@ import { useLang } from "@/context/LanguageContext";
 import { withDemoParam } from "@/lib/demoData";
 import {
   Gavel, Store, Sun, Building2, Calculator, Users, Briefcase,
-  FileText, ClipboardList, ArrowRight, HardHat, Compass, ShoppingBag, Wand2,
+  FileText, ClipboardList, ArrowRight, HardHat, Compass, ShoppingBag, Wand2, Sparkles,
 } from "lucide-react";
 
 const TOOLS = [
+  { to: "/sales-mom", icon: Sparkles, en: "Sales MoM AI", hi: "सेल्स MoM AI", descEn: "Call transcript → MoM + WhatsApp", descHi: "कॉल ट्रांसक्रिप्ट → MoM + WhatsApp" },
   { to: "/tenders", icon: Gavel, en: "Tender Hub", hi: "टेंडर", descEn: "Live tenders & reverse auction", descHi: "लाइव टेंडर और ऑक्शन" },
   { to: "/upcoming-projects", icon: Building2, en: "Upcoming Projects", hi: "आगामी प्रोजेक्ट", descEn: "Land location & BHK filters", descHi: "लोकेशन और BHK फ़िल्टर" },
   { to: "/property-advisory", icon: Compass, en: "Property Advisory", hi: "प्रॉपर्टी सलाह", descEn: "Real estate + build guidance", descHi: "रियल एस्टेट + निर्माण गाइड" },
