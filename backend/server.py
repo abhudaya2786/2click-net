@@ -1594,6 +1594,8 @@ import project_planner as _planner
 _planner.init(db, get_current_user)
 import design_studio as _design
 import platform_api as _platform
+import sales_mom as _sales_mom
+_sales_mom.init(db, get_current_user)
 app.include_router(api)
 app.include_router(_rbac.rbac_router)
 app.include_router(_rbac.auth_perm_router)
@@ -1625,6 +1627,7 @@ app.include_router(_backup.admin_router)
 app.include_router(_planner.router)
 app.include_router(_design.router)
 app.include_router(_platform.router)
+app.include_router(_sales_mom.router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

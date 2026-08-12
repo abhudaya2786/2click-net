@@ -19,6 +19,7 @@ const COLS = [
       { label: "Complete guide", to: "/platform" },
       { label: "How it works", to: "/how-it-works" },
       { label: "Consultants", to: "/consultants" },
+      { label: "Sales MoM AI", to: "/sales-mom" },
       { label: "Solar", to: "/solar" },
       { label: "Services", to: "/services" },
       { label: "Pricing", to: "/pricing" },

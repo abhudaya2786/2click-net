@@ -54,6 +54,7 @@ import About from "@/pages/About";
 import PlatformGuide from "@/pages/PlatformGuide";
 import ProfessionalsHub from "@/pages/ProfessionalsHub";
 import MaterialCalculatorPage from "@/pages/MaterialCalculatorPage";
+import SalesMoM from "@/pages/SalesMoM";
 
 const M = (C) => <MarketingLayout>{C}</MarketingLayout>;
 
@@ -92,6 +93,7 @@ function AppRouter() {
       <Route path="/tenders/:id" element={M(<TenderDetail />)} />
       <Route path="/freelancers" element={M(<Freelancers />)} />
       <Route path="/consultants" element={M(<Consultants />)} />
+      <Route path="/sales-mom" element={M(<SalesMoM />)} />
       <Route path="/download-app" element={M(<DownloadApp />)} />
       <Route path="/become-vendor" element={M(<BecomeVendor />)} />
       <Route path="/login" element={<Login />} />
