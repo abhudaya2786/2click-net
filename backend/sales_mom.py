@@ -25,6 +25,9 @@ router = APIRouter(prefix="/api/sales-mom", tags=["sales-mom"])
 EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY")
 AI_PROVIDER = os.environ.get("AI_PROVIDER", "gemini")
 AI_MODEL = os.environ.get("AI_MODEL", "gemini-3.1-pro-preview")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
+OPENAI_BASE_URL = os.environ.get("OPENAI_BASE_URL")  # optional proxy / AI Gateway
 
 PERSONAL_NOISE = re.compile(
     r"\b("
@@ -106,36 +109,58 @@ Sales Rep: Confirmed. I'll send the proposal by Friday with SLA, ROI comparison,
 Client: Good. If the pilot works we can roll out to all three sites.
 """
 
-MOM_JSON_SCHEMA_HINT = """
-Return ONLY valid JSON matching this schema (no markdown):
+SYSTEM_PROMPT = """
+You are an expert AI Sales Intelligence & Minutes of Meeting (MoM) Generator.
+
+Your task is to analyze the provided conversation transcript between a Sales Representative and a Client/Customer.
+
+INSTRUCTIONS & RULES:
+1. IGNORE PERSONAL TALK: Filter out irrelevant personal chatter (e.g., family talk, general gossip, weather, food/tea offers). Focus ONLY on business-related discussion.
+2. ACCURACY: Do not invent or fabricate details not present in the transcript.
+3. OUTPUT FORMAT: Respond ONLY in valid JSON format matching the schema below. Do not wrap in markdown quotes or add extra text.
+
+JSON SCHEMA TO FOLLOW EXACTLY:
 {
   "mom": {
-    "meeting_title": "String",
-    "executive_summary": "String (2-3 sentences)",
-    "key_discussion_points": ["String"],
-    "decisions_made": ["String"],
-    "client_objections": ["String"],
-    "missed_pitch_gaps": ["String"]
+    "meeting_title": "String - Short title summarizing the primary purpose",
+    "executive_summary": "String - 2 to 3 sentences summarizing the meeting outcome",
+    "key_discussion_points": [
+      "String - Point 1",
+      "String - Point 2"
+    ],
+    "decisions_made": [
+      "String - Decision 1"
+    ],
+    "client_objections": [
+      "String - Price concern, competitor mention, or doubt raised by client"
+    ],
+    "missed_pitch_gaps": [
+      "String - What feature, discount, or info the sales rep failed to mention or address"
+    ]
   },
   "sales_intelligence": {
     "client_engagement_level": "High / Medium / Low",
     "lead_status": "Hot / Warm / Cold",
-    "conversion_probability_percentage": 0-100,
-    "competitors_mentioned": ["String"],
-    "coaching_tips_for_rep": "String"
+    "conversion_probability_percentage": 75,
+    "competitors_mentioned": [
+      "String - Competitor company or product names mentioned"
+    ],
+    "coaching_tips_for_rep": "String - 1-2 actionable tips to help the sales rep improve their pitch next time"
   },
   "action_plan": [
     {
-      "task": "String",
+      "task": "String - Task to perform",
       "owner": "Sales Rep / Client / Manager",
       "deadline_date": "YYYY-MM-DD",
       "reminder_time": "HH:MM"
     }
   ],
-  "whatsapp_template_message": "String"
+  "whatsapp_template_message": "String - A short, polite, highly professional WhatsApp follow-up message ready to be sent to the client, summarizing key decisions and next steps."
 }
-Rules: Ignore personal chatter. Do not invent facts not in the transcript.
-"""
+""".strip()
+
+# Back-compat alias used by Emergent path
+MOM_JSON_SCHEMA_HINT = SYSTEM_PROMPT
 
 
 def init(db, get_current_user):
@@ -541,7 +566,56 @@ def _validate_payload(data: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def analyze_with_llm(transcript: str, meeting_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def _parse_llm_json(raw: str) -> Dict[str, Any]:
+    text = (raw or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    return _validate_payload(json.loads(text))
+
+
+def process_sales_meeting(transcript_text: str, meeting_date: str) -> Dict[str, Any]:
+    """
+    OpenAI JSON-mode MoM generator (sync).
+    Requires OPENAI_API_KEY. Optional OPENAI_BASE_URL for proxies / gateways.
+    """
+    if not OPENAI_API_KEY:
+        raise RuntimeError("OPENAI_API_KEY is not configured")
+
+    import openai
+
+    kwargs: Dict[str, Any] = {"api_key": OPENAI_API_KEY}
+    if OPENAI_BASE_URL:
+        kwargs["base_url"] = OPENAI_BASE_URL
+    client = openai.OpenAI(**kwargs)
+
+    user_content = f"Meeting Date: {meeting_date}\n\nTranscript:\n{transcript_text}"
+    response = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_content},
+        ],
+        temperature=0.2,
+    )
+    content = response.choices[0].message.content or "{}"
+    return _parse_llm_json(content)
+
+
+async def analyze_with_openai(transcript: str, meeting_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    if not OPENAI_API_KEY:
+        return None
+    import asyncio
+
+    date = meeting_date or now_utc().strftime("%Y-%m-%d")
+    try:
+        return await asyncio.to_thread(process_sales_meeting, transcript, date)
+    except Exception:
+        return None
+
+
+async def analyze_with_emergent(transcript: str, meeting_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
     if not EMERGENT_LLM_KEY:
         return None
     try:
@@ -550,11 +624,7 @@ async def analyze_with_llm(transcript: str, meeting_date: Optional[str] = None) 
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=session_id,
-            system_message=(
-                "You are an expert AI Sales Intelligence & Minutes of Meeting generator. "
-                "Ignore personal chatter. Never invent facts. "
-                + MOM_JSON_SCHEMA_HINT
-            ),
+            system_message=SYSTEM_PROMPT,
         )
         if hasattr(chat, "with_model"):
             try:
@@ -562,20 +632,27 @@ async def analyze_with_llm(transcript: str, meeting_date: Optional[str] = None) 
             except Exception:
                 pass
         prompt = (
-            f"Meeting date (for deadlines): {meeting_date or now_utc().strftime('%Y-%m-%d')}\n\n"
-            f"Transcript:\n{transcript}\n\n"
-            "Produce the JSON now."
+            f"Meeting Date: {meeting_date or now_utc().strftime('%Y-%m-%d')}\n\n"
+            f"Transcript:\n{transcript}"
         )
         result = await chat.send_message(UserMessage(text=prompt))
         raw = result if isinstance(result, str) else str(result)
-        raw = raw.strip()
-        if raw.startswith("```"):
-            raw = re.sub(r"^```(?:json)?\s*", "", raw)
-            raw = re.sub(r"\s*```$", "", raw)
-        data = json.loads(raw)
-        return _validate_payload(data)
+        return _parse_llm_json(raw)
     except Exception:
         return None
+
+
+async def analyze_with_llm(transcript: str, meeting_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """Prefer OpenAI JSON mode, then Emergent LLM."""
+    openai_result = await analyze_with_openai(transcript, meeting_date)
+    if openai_result:
+        openai_result["_engine"] = "openai"
+        return openai_result
+    emergent = await analyze_with_emergent(transcript, meeting_date)
+    if emergent:
+        emergent["_engine"] = "emergent"
+        return emergent
+    return None
 
 
 async def generate_mom(transcript: str, meeting_date: Optional[str] = None, use_llm: bool = True) -> Dict[str, Any]:
@@ -583,9 +660,11 @@ async def generate_mom(transcript: str, meeting_date: Optional[str] = None, use_
     if use_llm:
         llm = await analyze_with_llm(transcript, meeting_date)
         if llm:
-            llm["_meta"] = {"engine": "llm", "demo": False}
+            engine = llm.pop("_engine", "llm")
+            llm["_meta"] = {"engine": engine, "demo": False}
             return llm
-    heuristic["_meta"] = {"engine": "heuristic", "demo": not bool(EMERGENT_LLM_KEY)}
+    has_llm = bool(OPENAI_API_KEY or EMERGENT_LLM_KEY)
+    heuristic["_meta"] = {"engine": "heuristic", "demo": not has_llm}
     return heuristic
 
 

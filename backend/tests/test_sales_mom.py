@@ -105,3 +105,24 @@ def test_pure_heuristic_unit():
     assert "IndiaMART" in validated["sales_intelligence"]["competitors_mentioned"] or \
            "Indiamart" in validated["sales_intelligence"]["competitors_mentioned"]
     assert validated["whatsapp_template_message"]
+
+
+def test_openai_helper_requires_key():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import sales_mom as sm
+
+    assert "IGNORE PERSONAL TALK" in sm.SYSTEM_PROMPT
+    assert "whatsapp_template_message" in sm.SYSTEM_PROMPT
+    # Without OPENAI_API_KEY, sync helper must fail clearly (no silent fake JSON)
+    old = sm.OPENAI_API_KEY
+    try:
+        sm.OPENAI_API_KEY = None
+        try:
+            sm.process_sales_meeting(SAMPLE, "2026-08-12")
+            assert False, "expected RuntimeError"
+        except RuntimeError as exc:
+            assert "OPENAI_API_KEY" in str(exc)
+    finally:
+        sm.OPENAI_API_KEY = old
