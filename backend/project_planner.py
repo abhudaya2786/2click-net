@@ -1,5 +1,5 @@
 """
-buildecogroup.com — AI project planner: 2-click estimate, journey meta, plan generation.
+buildecogroup.com — AI project planner: BuildEco estimate, journey meta, plan generation.
 """
 import uuid
 from datetime import datetime, timezone

@@ -11,13 +11,13 @@ const GUEST_TIPS = {
   en: [
     "Estimate construction cost with plot area and quality tier.",
     "Plan solar sizing from monthly electricity bill.",
-    "Use Build → 2 clicks to open your AI project dashboard.",
+    "Use Build → BuildEco flow to open your AI project dashboard.",
     "Compare materials and request vendor quotations in Store.",
   ],
   hi: [
     "प्लॉट एरिया और गुणवत्ता से निर्माण लागत अनुमान।",
     "मासिक बिल से सोलर साइज़िंग की योजना बनाएं।",
-    "बिल्ड → 2 क्लिक से AI प्रोजेक्ट डैशबोर्ड खोलें।",
+    "बिल्ड → BuildEco फ्लो से AI प्रोजेक्ट डैशबोर्ड खोलें।",
     "स्टोर में सामग्री तुलना और विक्रेता कोटेशन।",
   ],
 };

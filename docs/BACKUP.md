@@ -6,7 +6,7 @@
 2. **API:** `POST /api/admin/backup/create` (super_admin JWT)
 3. **Cron (daily 2 AM example):**
    ```cron
-   0 2 * * * cd /path/to/2click-net && ./scripts/backup.sh >> /var/log/buildecogroup-backup.log 2>&1
+   0 2 * * * cd /path/to/buildecogroup && ./scripts/backup.sh >> /var/log/buildecogroup-backup.log 2>&1
    ```
 
 ## What is backed up

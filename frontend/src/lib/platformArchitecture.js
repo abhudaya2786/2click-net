@@ -20,7 +20,7 @@ export const NAV_CAPABILITY_MAP = [
   {
     nav: "Build",
     navHi: "बिल्ड",
-    capability: "2-Click Wizard & User Profiling",
+    capability: "BuildEco Wizard & User Profiling",
     path: "/build",
     logic: "Project type + persona + property scope → dashboard",
   },

@@ -3,9 +3,7 @@
 Construction super-app: Store, Super Mart, Full BOQ, Interior BOQ, Tenders, Solar, Consultants, Upcoming Projects, Property Advisory, Enrollment, Mera Ghar ERP, and more.
 
 **Live site:** https://www.buildecogroup.com  
-**Brand:** BuildEco Group (formerly 2click.in)
-
-> GitHub repository folder may still be named `2click-net`; product branding is **buildecogroup.com**.
+**Brand:** BuildEco Group · **Domain:** https://www.buildecogroup.com
 
 ---
 
@@ -15,20 +13,20 @@ Construction super-app: Store, Super Mart, Full BOQ, Interior BOQ, Tenders, Sola
 
 ```bash
 # Latest branch (all recent features)
-git clone https://github.com/abhudaya2786/2click-net.git
-cd 2click-net
+git clone https://github.com/abhudaya2786/2click-net.git buildecogroup
+cd buildecogroup
 git checkout cursor/upcoming-projects-4cd6
 ```
 
 **ZIP download (no git):**
 
-https://github.com/abhudaya2786/2click-net/archive/refs/heads/cursor/upcoming-projects-4cd6.zip
+https://github.com/abhudaya2786/buildecogroup/archive/refs/heads/cursor/upcoming-projects-4cd6.zip
 
 **Stable `main` branch:**
 
-https://github.com/abhudaya2786/2click-net/archive/refs/heads/main.zip
+https://github.com/abhudaya2786/buildecogroup/archive/refs/heads/main.zip
 
-**Open PR (merge for latest on main):** https://github.com/abhudaya2786/2click-net/pull/29
+**Open PR (merge for latest on main):** https://github.com/abhudaya2786/buildecogroup/pull/29
 
 ### Option 2 — GitHub Releases
 
@@ -39,7 +37,7 @@ After merging PR #29, download the latest zip from the repository page → **Cod
 ## Project structure
 
 ```
-2click-net/
+buildecogroup/
 ├── backend/                 # FastAPI + MongoDB API
 │   ├── server.py            # Main app entry
 │   ├── mart.py              # Super Mart, Store, BOQ builder, fabrication
