@@ -126,3 +126,50 @@ def test_openai_helper_requires_key():
             assert "OPENAI_API_KEY" in str(exc)
     finally:
         sm.OPENAI_API_KEY = old
+
+
+def test_hindi_example_schema_and_owner_alias():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import sales_mom as sm
+
+    assert sm._normalize_owner("Sales Manager") == "Manager"
+    raw = {
+        **sm.EXAMPLE_RESULT_HI,
+        "action_plan": [
+            {**sm.EXAMPLE_RESULT_HI["action_plan"][0], "owner": "Sales Manager"},
+            sm.EXAMPLE_RESULT_HI["action_plan"][1],
+        ],
+    }
+    validated = sm._validate_payload(raw)
+    assert validated["mom"]["meeting_title"].startswith("सॉफ्टवेयर")
+    assert validated["action_plan"][0]["owner"] == "Manager"
+    assert validated["sales_intelligence"]["competitors_mentioned"] == ["X-Tech Solutions"]
+    assert "नमस्ते" in validated["whatsapp_template_message"]
+
+
+def test_hindi_sample_analyze(client):
+    r = client.get(f"{API}/sample?lang=hi", timeout=30)
+    assert r.status_code == 200
+    sample = r.json()
+    assert "जियो" in sample["transcript"] or "जियो-फेंसिंग" in sample["transcript"]
+    assert sample.get("example_result", {}).get("mom", {}).get("meeting_title")
+
+    r2 = client.post(
+        f"{API}/analyze",
+        json={
+            "transcript": sample["transcript"],
+            "meeting_date": "2026-08-12",
+            "output_language": "hi",
+            "use_llm": False,
+            "save": False,
+        },
+        timeout=60,
+    )
+    assert r2.status_code == 200, r2.text
+    data = r2.json()
+    assert "डेमो" in data["mom"]["meeting_title"] or "सॉफ्टवेयर" in data["mom"]["meeting_title"]
+    assert data["sales_intelligence"]["lead_status"] == "Warm"
+    assert data["action_plan"][0]["owner"] in ("Sales Rep", "Client", "Manager")
+    assert data["meta"].get("output_language") == "hi"

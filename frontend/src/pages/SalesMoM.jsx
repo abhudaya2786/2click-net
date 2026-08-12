@@ -68,11 +68,14 @@ export default function SalesMoM() {
 
   const loadSample = async () => {
     try {
-      const { data } = await api.get("/sales-mom/sample");
+      const { data } = await api.get("/sales-mom/sample", { params: { lang: hi ? "hi" : "en" } });
       setTranscript(data.transcript || "");
       setClientName(data.client_name || "");
       setRepName(data.rep_name || "");
       if (data.meeting_date) setMeetingDate(data.meeting_date);
+      if (data.example_result) {
+        setResult({ ...data.example_result, meta: { ...(data.example_result.meta || {}), engine: "example_hi", demo: true } });
+      }
       toast.success(hi ? "सैंपल ट्रांसक्रिप्ट लोड" : "Sample transcript loaded");
     } catch (e) {
       toast.error(formatApiErrorDetail(e?.response?.data?.detail) || "Failed to load sample");
@@ -92,6 +95,7 @@ export default function SalesMoM() {
         meeting_date: meetingDate || null,
         client_name: clientName || null,
         rep_name: repName || null,
+        output_language: hi ? "hi" : "en",
         use_llm: true,
         save: true,
       });

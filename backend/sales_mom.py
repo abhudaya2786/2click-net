@@ -50,7 +50,7 @@ OBJECTION_PATTERNS = [
 # Always-flag marketplace / platform rivals
 COMPETITOR_PLATFORMS = [
     "indiamart", "justdial", "amazon business", "magicbricks", "99acres",
-    "competitor", "other vendor", "another company", "rival",
+    "x-tech", "x-tech solutions", "competitor", "other vendor", "another company", "rival",
 ]
 # Product brands — only count when client cites them competitively
 COMPETITOR_BRANDS = [
@@ -109,6 +109,68 @@ Sales Rep: Confirmed. I'll send the proposal by Friday with SLA, ROI comparison,
 Client: Good. If the pilot works we can roll out to all three sites.
 """
 
+SAMPLE_TRANSCRIPT_HI = """सेल्स रेप: नमस्ते राहुल जी, आज सॉफ्टवेयर डेमो के लिए धन्यवाद। चाय लेंगे?
+क्लाइंट: नहीं धन्यवाद, चलिए सीधे डेमो शुरू करते हैं।
+सेल्स रेप: ज़रूर। यह लाइव जियो-फेंसिंग फीचर है — फील्ड टीम रियल-टाइम ट्रैक होती है।
+क्लाइंट: ट्रैकिंग अच्छी लग रही है, हम संतुष्ट हैं। लेकिन मासिक सब्सक्रिप्शन बजट से लगभग 15% ज्यादा लग रहा है। क्या 10% और डिस्काउंट मिल सकता है?
+सेल्स रेप: मैं मैनेजर से कमर्शियल रिवाइज़ करवा सकता हूँ। 3-दिन का नि:शुल्क ट्रायल शुरू करें?
+क्लाइंट: हाँ, ट्रायल के लिए सहमत हूँ। हमारे वर्तमान वेंडर X-Tech Solutions 24/7 सपोर्ट देते हैं — डाटा बैकअप और सिक्योरिटी पर भी स्पष्टता चाहिए।
+सेल्स रेप: समझ गया। ट्रायल क्रेडेंशियल्स आज शेयर करूँगा और रिवाइज्ड कोटेशन भेजूँगा।
+"""
+
+# Golden Hindi MoM shape (schema owners: Sales Rep / Client / Manager)
+EXAMPLE_RESULT_HI = {
+    "mom": {
+        "meeting_title": "सॉफ्टवेयर डेमो एवं कमर्शियल डिस्कशन",
+        "executive_summary": (
+            "क्लाइंट ने सॉफ्टवेयर का डेमो देखा और ट्रैकिंग फीचर्स से संतुष्ट हुए। "
+            "हालाँकि, वे कीमत को लेकर झिझक रहे हैं और 10% अतिरिक्त डिस्काउंट की मांग कर रहे हैं।"
+        ),
+        "key_discussion_points": [
+            "लाइव जियो-फेंसिंग फीचर का प्रेजेंटेशन",
+            "मासिक सब्सक्रिप्शन मॉडल पर चर्चा",
+            "डाटा बैकअप और सिक्योरिटी की चिंताएं",
+        ],
+        "decisions_made": [
+            "क्लाइंट 3-दिन के नि:शुल्क ट्रायल के लिए सहमत हुए।",
+        ],
+        "client_objections": [
+            "कीमत बजट से 15% अधिक लग रही है।",
+            "वर्तमान वेंडर 'X-Tech' 24/7 सपोर्ट दे रहा है।",
+        ],
+        "missed_pitch_gaps": [
+            "सेल्स रिप ने वार्षिक भुगतान (Annual Plan) पर मिलने वाले 20% डिस्काउंट के बारे में नहीं बताया।",
+        ],
+    },
+    "sales_intelligence": {
+        "client_engagement_level": "High",
+        "lead_status": "Warm",
+        "conversion_probability_percentage": 70,
+        "competitors_mentioned": ["X-Tech Solutions"],
+        "coaching_tips_for_rep": (
+            "अगली बार जब क्लाइंट कीमत पर आपत्ति जताए, तो तुरंत वार्षिक डिस्काउंट ऑफर पिच करें।"
+        ),
+    },
+    "action_plan": [
+        {
+            "task": "3-दिन के ट्रायल क्रेडेंशियल्स शेयर करना",
+            "owner": "Sales Rep",
+            "deadline_date": "2026-08-13",
+            "reminder_time": "10:00",
+        },
+        {
+            "task": "रिवाइज्ड कमर्शियल कोटेशन भेजना",
+            "owner": "Manager",
+            "deadline_date": "2026-08-14",
+            "reminder_time": "14:00",
+        },
+    ],
+    "whatsapp_template_message": (
+        "नमस्ते राहुल जी, आज सॉफ्टवेयर डेमो के लिए धन्यवाद! आपकी सहमति के अनुसार हमने आपका "
+        "3-दिन का ट्रायल एक्टिवेट कर दिया है। 14 अगस्त तक रिवाइज्ड कोटेशन भी भेज दिया जाएगा। - 2click.in"
+    ),
+}
+
 SYSTEM_PROMPT = """
 You are an expert AI Sales Intelligence & Minutes of Meeting (MoM) Generator.
 
@@ -118,6 +180,8 @@ INSTRUCTIONS & RULES:
 1. IGNORE PERSONAL TALK: Filter out irrelevant personal chatter (e.g., family talk, general gossip, weather, food/tea offers). Focus ONLY on business-related discussion.
 2. ACCURACY: Do not invent or fabricate details not present in the transcript.
 3. OUTPUT FORMAT: Respond ONLY in valid JSON format matching the schema below. Do not wrap in markdown quotes or add extra text.
+4. LANGUAGE: Write all narrative string values (titles, summaries, points, objections, tips, WhatsApp message, task text) in the language requested by the user message (en or hi). Keep enum fields in English exactly as specified: client_engagement_level, lead_status, and action_plan.owner.
+5. action_plan.owner MUST be exactly one of: "Sales Rep", "Client", "Manager" (map "Sales Manager" → "Manager").
 
 JSON SCHEMA TO FOLLOW EXACTLY:
 {
@@ -162,6 +226,72 @@ JSON SCHEMA TO FOLLOW EXACTLY:
 # Back-compat alias used by Emergent path
 MOM_JSON_SCHEMA_HINT = SYSTEM_PROMPT
 
+OWNER_ALIASES = {
+    "sales rep": "Sales Rep",
+    "sales representative": "Sales Rep",
+    "rep": "Sales Rep",
+    "ae": "Sales Rep",
+    "client": "Client",
+    "customer": "Client",
+    "prospect": "Client",
+    "manager": "Manager",
+    "sales manager": "Manager",
+    "sales_manager": "Manager",
+}
+
+
+def _normalize_owner(raw: str) -> str:
+    key = re.sub(r"\s+", " ", (raw or "").strip().lower())
+    if key in OWNER_ALIASES:
+        return OWNER_ALIASES[key]
+    if "manager" in key:
+        return "Manager"
+    if any(x in key for x in ("client", "customer", "buyer")):
+        return "Client"
+    return "Sales Rep"
+
+
+def _normalize_lang(lang: Optional[str]) -> str:
+    v = (lang or "en").strip().lower()
+    return "hi" if v.startswith("hi") else "en"
+
+
+def _hi_demo_result(meeting_date: Optional[str] = None) -> Dict[str, Any]:
+    """Golden Hindi MoM example with deadlines anchored to meeting_date."""
+    base = now_utc()
+    if meeting_date:
+        try:
+            base = datetime.strptime(meeting_date, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except ValueError:
+            pass
+    d1 = (base + timedelta(days=1)).strftime("%Y-%m-%d")
+    d2 = (base + timedelta(days=2)).strftime("%Y-%m-%d")
+    out = json.loads(json.dumps(EXAMPLE_RESULT_HI))  # deep copy
+    if out["action_plan"]:
+        out["action_plan"][0]["deadline_date"] = d1
+        if len(out["action_plan"]) > 1:
+            out["action_plan"][1]["deadline_date"] = d2
+    # Refresh WhatsApp date mention to d2 day/month (Indian style)
+    try:
+        dt2 = datetime.strptime(d2, "%Y-%m-%d")
+        months_hi = [
+            "", "जनवरी", "फरवरी", "मार्च", "अप्रैल", "मई", "जून",
+            "जुलाई", "अगस्त", "सितंबर", "अक्टूबर", "नवंबर", "दिसंबर",
+        ]
+        date_hi = f"{dt2.day} {months_hi[dt2.month]}"
+        out["whatsapp_template_message"] = (
+            "नमस्ते राहुल जी, आज सॉफ्टवेयर डेमो के लिए धन्यवाद! आपकी सहमति के अनुसार हमने आपका "
+            f"3-दिन का ट्रायल एक्टिवेट कर दिया है। {date_hi} तक रिवाइज्ड कोटेशन भी भेज दिया जाएगा। - 2click.in"
+        )
+    except Exception:
+        pass
+    return _validate_payload(out)
+
+
+def _looks_like_hi_demo(transcript: str) -> bool:
+    t = transcript or ""
+    return ("जियो-फेंसिंग" in t or "जियो फेंसिंग" in t) and ("X-Tech" in t or "एक्स-टेक" in t)
+
 
 def init(db, get_current_user):
     global _db, _get_current_user
@@ -191,14 +321,17 @@ def _split_turns(transcript: str) -> List[Tuple[str, str]]:
         if not line:
             continue
         m = re.match(
-            r"^(sales\s*rep|rep|seller|ae|account\s*executive|client|customer|prospect|buyer)\s*[:\-–]\s*(.+)$",
+            r"^(sales\s*rep|rep|seller|ae|account\s*executive|client|customer|prospect|buyer|"
+            r"सेल्स\s*रेप|सेल्स\s*रिप|क्लाइंट|ग्राहक)\s*[:\-–]\s*(.+)$",
             line,
             re.I,
         )
         if m:
             role = m.group(1).lower()
             text = m.group(2).strip()
-            speaker = "client" if any(k in role for k in ("client", "customer", "prospect", "buyer")) else "rep"
+            speaker = "client" if any(
+                k in role for k in ("client", "customer", "prospect", "buyer", "क्लाइंट", "ग्राहक")
+            ) else "rep"
             turns.append((speaker, text))
         else:
             turns.append(("unknown", line))
@@ -331,7 +464,12 @@ def analyze_transcript_heuristic(transcript: str, meeting_date: Optional[str] = 
     client_blob = " ".join(client_lines).lower()
     for name in COMPETITOR_PLATFORMS:
         if name in low_all:
-            pretty = "IndiaMART" if name == "indiamart" else name.title()
+            if name.startswith("x-tech"):
+                pretty = "X-Tech Solutions"
+            elif name == "indiamart":
+                pretty = "IndiaMART"
+            else:
+                pretty = name.title()
             if pretty.lower() not in {c.lower() for c in competitors}:
                 competitors.append(pretty)
     for name in COMPETITOR_BRANDS:
@@ -526,9 +664,7 @@ def _validate_payload(data: Dict[str, Any]) -> Dict[str, Any]:
     for a in actions if isinstance(actions, list) else []:
         if not isinstance(a, dict):
             continue
-        owner = str(a.get("owner") or "Sales Rep").strip()
-        if owner not in ("Sales Rep", "Client", "Manager"):
-            owner = "Sales Rep"
+        owner = _normalize_owner(str(a.get("owner") or "Sales Rep"))
         deadline = str(a.get("deadline_date") or "").strip()
         if not re.match(r"^\d{4}-\d{2}-\d{2}$", deadline):
             deadline = (now_utc() + timedelta(days=3)).strftime("%Y-%m-%d")
@@ -574,7 +710,11 @@ def _parse_llm_json(raw: str) -> Dict[str, Any]:
     return _validate_payload(json.loads(text))
 
 
-def process_sales_meeting(transcript_text: str, meeting_date: str) -> Dict[str, Any]:
+def process_sales_meeting(
+    transcript_text: str,
+    meeting_date: str,
+    output_language: str = "en",
+) -> Dict[str, Any]:
     """
     OpenAI JSON-mode MoM generator (sync).
     Requires OPENAI_API_KEY. Optional OPENAI_BASE_URL for proxies / gateways.
@@ -584,12 +724,18 @@ def process_sales_meeting(transcript_text: str, meeting_date: str) -> Dict[str, 
 
     import openai
 
+    lang = _normalize_lang(output_language)
     kwargs: Dict[str, Any] = {"api_key": OPENAI_API_KEY}
     if OPENAI_BASE_URL:
         kwargs["base_url"] = OPENAI_BASE_URL
     client = openai.OpenAI(**kwargs)
 
-    user_content = f"Meeting Date: {meeting_date}\n\nTranscript:\n{transcript_text}"
+    user_content = (
+        f"Meeting Date: {meeting_date}\n"
+        f"Output language: {lang} "
+        f"({'Hindi Devanagari for all narrative fields' if lang == 'hi' else 'English'})\n\n"
+        f"Transcript:\n{transcript_text}"
+    )
     response = client.chat.completions.create(
         model=OPENAI_MODEL,
         response_format={"type": "json_object"},
@@ -603,24 +749,35 @@ def process_sales_meeting(transcript_text: str, meeting_date: str) -> Dict[str, 
     return _parse_llm_json(content)
 
 
-async def analyze_with_openai(transcript: str, meeting_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+async def analyze_with_openai(
+    transcript: str,
+    meeting_date: Optional[str] = None,
+    output_language: str = "en",
+) -> Optional[Dict[str, Any]]:
     if not OPENAI_API_KEY:
         return None
     import asyncio
 
     date = meeting_date or now_utc().strftime("%Y-%m-%d")
     try:
-        return await asyncio.to_thread(process_sales_meeting, transcript, date)
+        return await asyncio.to_thread(
+            process_sales_meeting, transcript, date, output_language
+        )
     except Exception:
         return None
 
 
-async def analyze_with_emergent(transcript: str, meeting_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+async def analyze_with_emergent(
+    transcript: str,
+    meeting_date: Optional[str] = None,
+    output_language: str = "en",
+) -> Optional[Dict[str, Any]]:
     if not EMERGENT_LLM_KEY:
         return None
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         session_id = new_id("mom")
+        lang = _normalize_lang(output_language)
         chat = LlmChat(
             api_key=EMERGENT_LLM_KEY,
             session_id=session_id,
@@ -632,7 +789,8 @@ async def analyze_with_emergent(transcript: str, meeting_date: Optional[str] = N
             except Exception:
                 pass
         prompt = (
-            f"Meeting Date: {meeting_date or now_utc().strftime('%Y-%m-%d')}\n\n"
+            f"Meeting Date: {meeting_date or now_utc().strftime('%Y-%m-%d')}\n"
+            f"Output language: {lang}\n\n"
             f"Transcript:\n{transcript}"
         )
         result = await chat.send_message(UserMessage(text=prompt))
@@ -642,29 +800,56 @@ async def analyze_with_emergent(transcript: str, meeting_date: Optional[str] = N
         return None
 
 
-async def analyze_with_llm(transcript: str, meeting_date: Optional[str] = None) -> Optional[Dict[str, Any]]:
+async def analyze_with_llm(
+    transcript: str,
+    meeting_date: Optional[str] = None,
+    output_language: str = "en",
+) -> Optional[Dict[str, Any]]:
     """Prefer OpenAI JSON mode, then Emergent LLM."""
-    openai_result = await analyze_with_openai(transcript, meeting_date)
+    openai_result = await analyze_with_openai(transcript, meeting_date, output_language)
     if openai_result:
         openai_result["_engine"] = "openai"
         return openai_result
-    emergent = await analyze_with_emergent(transcript, meeting_date)
+    emergent = await analyze_with_emergent(transcript, meeting_date, output_language)
     if emergent:
         emergent["_engine"] = "emergent"
         return emergent
     return None
 
 
-async def generate_mom(transcript: str, meeting_date: Optional[str] = None, use_llm: bool = True) -> Dict[str, Any]:
+async def generate_mom(
+    transcript: str,
+    meeting_date: Optional[str] = None,
+    use_llm: bool = True,
+    output_language: str = "en",
+) -> Dict[str, Any]:
+    lang = _normalize_lang(output_language)
+
+    # Offline Hindi golden path for the geo-fencing / X-Tech demo transcript
+    if lang == "hi" and _looks_like_hi_demo(transcript):
+        demo = _hi_demo_result(meeting_date)
+        if use_llm:
+            llm = await analyze_with_llm(transcript, meeting_date, lang)
+            if llm:
+                engine = llm.pop("_engine", "llm")
+                llm["_meta"] = {"engine": engine, "demo": False, "output_language": lang}
+                return llm
+        demo["_meta"] = {"engine": "example_hi", "demo": True, "output_language": lang}
+        return demo
+
     heuristic = _validate_payload(analyze_transcript_heuristic(transcript, meeting_date))
     if use_llm:
-        llm = await analyze_with_llm(transcript, meeting_date)
+        llm = await analyze_with_llm(transcript, meeting_date, lang)
         if llm:
             engine = llm.pop("_engine", "llm")
-            llm["_meta"] = {"engine": engine, "demo": False}
+            llm["_meta"] = {"engine": engine, "demo": False, "output_language": lang}
             return llm
     has_llm = bool(OPENAI_API_KEY or EMERGENT_LLM_KEY)
-    heuristic["_meta"] = {"engine": "heuristic", "demo": not has_llm}
+    heuristic["_meta"] = {
+        "engine": "heuristic",
+        "demo": not has_llm,
+        "output_language": lang,
+    }
     return heuristic
 
 
@@ -676,6 +861,7 @@ class AnalyzeIn(BaseModel):
     meeting_date: Optional[str] = Field(None, description="YYYY-MM-DD for deadline anchoring")
     client_name: Optional[str] = None
     rep_name: Optional[str] = None
+    output_language: str = Field("en", description="en or hi — narrative field language")
     save: bool = True
     use_llm: bool = True
 
@@ -693,20 +879,36 @@ class AnalyzeOut(BaseModel):
 # Routes
 # ---------------------------------------------------------------------------
 @router.get("/sample")
-async def get_sample():
-    """Return a sample Sales Rep / Client transcript for demos."""
+async def get_sample(lang: str = "en"):
+    """Return a sample Sales Rep / Client transcript for demos (en|hi)."""
+    lang = _normalize_lang(lang)
+    if lang == "hi":
+        return {
+            "transcript": SAMPLE_TRANSCRIPT_HI.strip(),
+            "meeting_date": now_utc().strftime("%Y-%m-%d"),
+            "client_name": "राहुल जी",
+            "rep_name": "सेल्स रेप",
+            "output_language": "hi",
+            "example_result": _hi_demo_result(now_utc().strftime("%Y-%m-%d")),
+        }
     return {
         "transcript": SAMPLE_TRANSCRIPT.strip(),
         "meeting_date": now_utc().strftime("%Y-%m-%d"),
         "client_name": "Mr. Sharma",
         "rep_name": "Sales Rep",
+        "output_language": "en",
     }
 
 
 @router.post("/analyze")
 async def analyze(body: AnalyzeIn):
     try:
-        result = await generate_mom(body.transcript, body.meeting_date, use_llm=body.use_llm)
+        result = await generate_mom(
+            body.transcript,
+            body.meeting_date,
+            use_llm=body.use_llm,
+            output_language=body.output_language,
+        )
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
 
@@ -719,6 +921,7 @@ async def analyze(body: AnalyzeIn):
             "client_name": (body.client_name or "").strip() or None,
             "rep_name": (body.rep_name or "").strip() or None,
             "meeting_date": body.meeting_date or now_utc().strftime("%Y-%m-%d"),
+            "output_language": _normalize_lang(body.output_language),
             "transcript_preview": body.transcript.strip()[:400],
             "result": {
                 "mom": result["mom"],
