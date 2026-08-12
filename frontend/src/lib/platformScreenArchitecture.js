@@ -8,8 +8,8 @@ export const CORE_PLATFORM_SCREENS = [
     id: "build-step-1",
     screen: 1,
     path: "/build",
-    titleEn: "2-Click Builder — Step 1",
-    titleHi: "2-क्लिक बिल्डर — चरण 1",
+    titleEn: "BuildEco Builder — Step 1",
+    titleHi: "BuildEco बिल्डर — चरण 1",
     headlineEn: "What do you want to build?",
     headlineHi: "आप क्या बनाना चाहते हैं?",
     flowEn: "Category card → Next — click 2",
@@ -184,7 +184,7 @@ export const CORE_PLATFORM_SCREENS = [
 /** End-to-end system workflow nodes for platform guide */
 export const END_TO_END_WORKFLOW = {
   nodesEn: [
-    "2-Click Builder (Step 1 + 2)",
+    "BuildEco Builder (Step 1 + 2)",
     "Property Profiling",
     "Cost Calculator → BOQ & materials",
     "AI Design Studio → 3D renders",
@@ -192,7 +192,7 @@ export const END_TO_END_WORKFLOW = {
     "Construction Store checkout",
   ],
   nodesHi: [
-    "2-क्लिक बिल्डर (चरण 1 + 2)",
+    "BuildEco बिल्डर (चरण 1 + 2)",
     "प्रॉपर्टी प्रोफ़ाइलिंग",
     "लागत कैलकुलेटर → BOQ",
     "AI डिज़ाइन → 3D रेंडर",

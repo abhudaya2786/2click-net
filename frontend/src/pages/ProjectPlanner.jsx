@@ -48,7 +48,7 @@ export default function ProjectPlanner() {
         <PageSEO title="AI Project Dashboard — buildecogroup.com" path="/projects" />
         <EmptyState
           title={hi ? "कोई प्रोजेक्ट नहीं" : "No project yet"}
-          description={hi ? "2-क्लिक फ्लो से शुरू करें।" : "Start with the 2-click flow."}
+          description={hi ? "BuildEco फ्लो से शुरू करें।" : "Start with the BuildEco flow."}
           actionLabel={hi ? "प्रोजेक्ट शुरू करें" : "Start my project"}
           onAction={() => window.location.href = "/build"}
         />

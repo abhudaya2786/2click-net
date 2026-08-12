@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "in.twoclick.app"
+    namespace = "com.buildecogroup.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "in.twoclick.app"
+        applicationId "com.buildecogroup.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -185,8 +185,8 @@ export default function PlatformGuide() {
         </h2>
         <p className="text-sm text-muted-foreground mb-6">
           {hi
-            ? "2-क्लिक बिल्डर से स्टोर चेकआउट तक — विकल्प-दर-विकल्प विश्लेषण और बैकएंड लॉजिक।"
-            : "From 2-click builder to store checkout — option-by-option analysis and backend logic."}
+            ? "BuildEco बिल्डर से स्टोर चेकआउट तक — विकल्प-दर-विकल्प विश्लेषण और बैकएंड लॉजिक।"
+            : "From BuildEco builder to store checkout — option-by-option analysis and backend logic."}
         </p>
         <div className="space-y-5">
           {CORE_PLATFORM_SCREENS.map((s) => (

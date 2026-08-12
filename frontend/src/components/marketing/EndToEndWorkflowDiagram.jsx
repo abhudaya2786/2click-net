@@ -11,7 +11,7 @@ export default function EndToEndWorkflowDiagram() {
 
   const diagram = hi
     ? `
-[ चरण 1: 2-क्लिक बिल्डर ]
+[ चरण 1: BuildEco बिल्डर ]
            │
            ▼
 [ चरण 2: प्रॉपर्टी प्रोफ़ाइलिंग ]
@@ -26,7 +26,7 @@ export default function EndToEndWorkflowDiagram() {
                                             [ कंस्ट्रक्शन स्टोर चेकआउट ]
 `
     : `
-[ Step 1: 2-Click Builder ]
+[ Step 1: BuildEco Builder ]
            │
            ▼
 [ Step 2: Property Profiling ]

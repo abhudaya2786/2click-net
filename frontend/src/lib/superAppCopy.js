@@ -2,8 +2,8 @@
 
 export const SUPER_COPY = {
   en: {
-    tagline: "From land to complete home — in just 2 clicks",
-    taglineHiShort: "ज़मीन से संपूर्ण घर — मात्र 2 क्लिक में",
+    tagline: "From land to complete home — with BuildEco Group",
+    taglineHiShort: "ज़मीन से संपूर्ण घर — BuildEco Group के साथ",
     heroTitle: "India's AI Construction Super App",
     heroSub: "Construction, interior, solar, design, materials, professionals and project tracking — one premium platform.",
     ctaStartProject: "Start my project",
@@ -12,8 +12,8 @@ export const SUPER_COPY = {
     servicesSub: "One screen. No endless scrolling.",
     trustTitle: "Built for trust & transparency",
     techTitle: "Powered by modern technology",
-    twoClickTitle: "The real 2-click experience",
-    twoClickSub: "Click 1: what to build. Click 2: project details. Then your AI project dashboard opens.",
+    quickStartTitle: "The real BuildEco quick-start",
+    quickStartSub: "Step 1: what to build. Step 2: project details. Then your AI project dashboard opens.",
     plannerTitle: "AI Project Dashboard",
     estimateTitle: "Cost calculator",
     generatePlan: "Generate my project plan",
@@ -74,8 +74,8 @@ export const SUPER_COPY = {
     ],
   },
   hi: {
-    tagline: "ज़मीन से संपूर्ण घर — मात्र 2 क्लिक में",
-    taglineHiShort: "ज़मीन से संपूर्ण घर — मात्र 2 क्लिक में",
+    tagline: "ज़मीन से संपूर्ण घर — BuildEco Group के साथ",
+    taglineHiShort: "ज़मीन से संपूर्ण घर — BuildEco Group के साथ",
     heroTitle: "भारत का AI निर्माण सुपर ऐप",
     heroSub: "निर्माण, इंटीरियर, सोलर, डिज़ाइन, सामग्री, पेशेवर और प्रोजेक्ट ट्रैकिंग — एक प्रीमियम प्लेटफ़ॉर्म।",
     ctaStartProject: "मेरा प्रोजेक्ट शुरू करें",
@@ -84,8 +84,8 @@ export const SUPER_COPY = {
     servicesSub: "एक स्क्रीन। बिना लंबे स्क्रॉल के।",
     trustTitle: "विश्वास और पारदर्शिता के लिए",
     techTitle: "आधुनिक तकनीक से संचालित",
-    twoClickTitle: "वास्तविक 2-क्लिक अनुभव",
-    twoClickSub: "क्लिक 1: क्या बनाना है। क्लिक 2: प्रोजेक्ट विवरण। फिर AI डैशबोर्ड खुलता है।",
+    quickStartTitle: "BuildEco त्वरित शुरुआत",
+    quickStartSub: "चरण 1: क्या बनाना है। चरण 2: प्रोजेक्ट विवरण। फिर AI डैशबोर्ड खुलता है।",
     plannerTitle: "AI प्रोजेक्ट डैशबोर्ड",
     estimateTitle: "लागत कैलकुलेटर",
     generatePlan: "मेरी प्रोजेक्ट योजना बनाएं",

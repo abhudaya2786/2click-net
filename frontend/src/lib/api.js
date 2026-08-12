@@ -6,13 +6,13 @@ const PRODUCTION_APIS = [
 ];
 const PRODUCTION_API = PRODUCTION_APIS[0];
 
-const FRONTEND_HOSTS = new Set(["buildecogroup.com", "www.buildecogroup.com", "2click.in", "www.2click.in", "localhost"]);
+const FRONTEND_HOSTS = new Set(["buildecogroup.com", "www.buildecogroup.com", "localhost"]);
 const BLOCKED_BACKEND_HOSTS = ["wallet1.unodev.app", "unodev.app"];
 
 function isFrontendHost(hostname) {
   if (!hostname) return false;
   if (FRONTEND_HOSTS.has(hostname)) return true;
-  return hostname.endsWith(".vercel.app") || hostname.endsWith(".buildecogroup.com") || hostname.endsWith(".2click.in");
+  return hostname.endsWith(".vercel.app") || hostname.endsWith(".buildecogroup.com");
 }
 
 function isBlockedBackend(url) {

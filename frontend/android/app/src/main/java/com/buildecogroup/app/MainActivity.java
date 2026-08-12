@@ -1,4 +1,4 @@
-package in.twoclick.app;
+package com.buildecogroup.app;
 
 import com.getcapacitor.BridgeActivity;
 

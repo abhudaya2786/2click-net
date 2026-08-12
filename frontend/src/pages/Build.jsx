@@ -56,14 +56,14 @@ export default function Build() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 md:px-8 py-10 md:py-14">
-      <PageSEO title="Start your project — buildecogroup.com" description="2-click project setup" path="/build" />
-      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{c.twoClickTitle}</p>
+      <PageSEO title="Start your project — buildecogroup.com" description="BuildEco Group quick project setup" path="/build" />
+      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">{c.quickStartTitle}</p>
       <h1 className="font-display font-extrabold text-3xl tracking-tight">
         {step === 0
           ? (hi ? "आप क्या बनाना चाहते हैं?" : "What do you want to build?")
           : (hi ? "आप कौन हैं और प्रोजेक्ट विवरण" : "Who are you & project details")}
       </h1>
-      <p className="text-sm text-muted-foreground mt-2">{c.twoClickSub}</p>
+      <p className="text-sm text-muted-foreground mt-2">{c.quickStartSub}</p>
 
       <div className="mt-8 flex gap-2 mb-4">
         {[0, 1].map((i) => (
