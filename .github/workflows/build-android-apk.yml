@@ -38,7 +38,7 @@ jobs:
 
       - name: Build web app
         env:
-          REACT_APP_BACKEND_URL: https://wallet-vendor-mvp.emergent.host
+          REACT_APP_BACKEND_URL: https://api.buildecogroup.com
           CI: "false"
         run: npm run build
 

@@ -18,7 +18,14 @@ import requests
 from fastapi import APIRouter, Request, HTTPException, Query, UploadFile, File, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+
+try:
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+    HAS_EMERGENT_STRIPE = True
+except ImportError:
+    StripeCheckout = None
+    CheckoutSessionRequest = None
+    HAS_EMERGENT_STRIPE = False
 
 logger = logging.getLogger("ads")
 
@@ -41,7 +48,6 @@ def today(): return now_utc().date()
 router = APIRouter(prefix="/api/ads", tags=["ads"])
 
 TAX_RATE = 0.18
-STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "sk_test_emergent")
 
 DEFAULT_PLACEMENTS = [
     {"code": "header", "name": "Header Banner", "price_per_week": 1000.0,
@@ -110,9 +116,14 @@ async def _agg(cid: str):
     return impr, clk, ctr, s
 
 
-def _stripe(request: Request) -> StripeCheckout:
+def _stripe(request: Request):
+    if not HAS_EMERGENT_STRIPE:
+        raise HTTPException(503, "Stripe package not installed on this owner-hosted API")
+    key = os.environ.get("STRIPE_API_KEY", "")
+    if not key:
+        raise HTTPException(503, "STRIPE_API_KEY is not configured")
     webhook_url = f"{str(request.base_url)}api/webhook/stripe"
-    return StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
+    return StripeCheckout(api_key=key, webhook_url=webhook_url)
 
 
 # --------------------------------------------------------------------------- #

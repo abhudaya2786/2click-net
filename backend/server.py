@@ -1270,17 +1270,27 @@ async def add_dpr(body: DPRIn, user=Depends(require_roles("contractor", "super_a
 
 
 # ---------------------------------------------------------------------------
-# AI (Emergent LLM)
+# AI (optional on owner-hosted API — Emergent package not required to boot)
 # ---------------------------------------------------------------------------
 def get_chat(session_id, system):
-    from emergentintegrations.llm.chat import LlmChat
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(503, "AI is not configured. Set EMERGENT_LLM_KEY on the owner API.")
+    try:
+        from emergentintegrations.llm.chat import LlmChat
+    except ImportError as e:
+        raise HTTPException(503, "AI package not installed on this owner-hosted API") from e
     return LlmChat(api_key=EMERGENT_LLM_KEY, session_id=session_id,
                    system_message=system).with_model(AI_PROVIDER, AI_MODEL)
 
 
 @api.post("/ai/chat")
 async def ai_chat(body: AIChatIn, user=Depends(get_current_user)):
-    from emergentintegrations.llm.chat import UserMessage, TextDelta, StreamDone
+    try:
+        from emergentintegrations.llm.chat import UserMessage, TextDelta, StreamDone
+    except ImportError as e:
+        raise HTTPException(503, "AI package not installed on this owner-hosted API") from e
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(503, "AI is not configured. Set EMERGENT_LLM_KEY on the owner API.")
     session_id = body.session_id or new_id("chat")
     system = ("You are BuildEco AI (buildecogroup.com), an expert assistant for a construction, tender, "
               "solar and B2B marketplace platform in India. Be concise, practical, and helpful "
