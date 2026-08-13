@@ -50,8 +50,13 @@ export default function AdminLogin() {
       if (status === 404 || detail === "Not Found") {
         setErr(
           t(
+<<<<<<< HEAD
             "API Not Found: production backend is outdated. Redeploy the Emergent API with latest main, set ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_ACCESS_PIN, then retry.",
             "API Not Found: production backend पुराना है। Emergent API को latest main से redeploy करें, ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_ACCESS_PIN सेट करें, फिर फिर से कोशिश करें।"
+=======
+            "API Not Found: point Vercel /api to your owner API (api.buildecogroup.com) and run Docker from docs/OWNER_CONTROL.md — Emergent is not used.",
+            "API Not Found: Vercel /api को अपने owner API (api.buildecogroup.com) पर लगाएँ और docs/OWNER_CONTROL.md से Docker चलाएँ — Emergent उपयोग नहीं होता।"
+>>>>>>> 2ce4075 (Finish Emergent cutover: owner API path is the only control plane)
           )
         );
       } else {

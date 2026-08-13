@@ -308,8 +308,8 @@ export default function FullBOQBuilder() {
                 </p>
                 <p className="text-muted-foreground">
                   {hi
-                    ? "फ्रंटएंड नया है लेकिन बैकएंड सर्वर पर BOQ API अपडेट नहीं हुआ। Backend redeploy/restart करें (wallet-vendor-mvp.emergent.host)।"
-                    : "The website is updated but the API server does not have BOQ builder endpoints yet. Restart/redeploy the backend with the latest code from main."}
+                    ? "फ्रंटएंड नया है लेकिन owner API पर BOQ endpoints नहीं मिले। api.buildecogroup.com को latest code से restart/redeploy करें (docs/OWNER_CONTROL.md)।"
+                    : "The website is updated but your owner API does not expose BOQ builder endpoints yet. Redeploy/restart api.buildecogroup.com with latest main (see docs/OWNER_CONTROL.md)."}
                 </p>
                 <Button variant="outline" size="sm" className="rounded-lg" onClick={loadSections}>
                   {hi ? "फिर से कोशिश करें" : "Retry"}
