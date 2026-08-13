@@ -13,7 +13,7 @@ export default function SiteJsonLd() {
         {
           "@type": "Organization",
           "@id": `${SITE}/#organization`,
-          name: "buildecogroup.com",
+          name: "BuildEco Group",
           url: SITE,
           description: "Construction super app — tenders, brand-wise material store, BOQ calculators, enrollment, solar EPC, consultants, India.",
         },
@@ -21,7 +21,7 @@ export default function SiteJsonLd() {
           "@type": "WebSite",
           "@id": `${SITE}/#website`,
           url: SITE,
-          name: "buildecogroup.com",
+          name: "BuildEco Group",
           publisher: { "@id": `${SITE}/#organization` },
           inLanguage: ["en", "hi"],
           potentialAction: {
