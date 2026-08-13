@@ -1,57 +1,101 @@
-# Deploy buildecogroup.com
+# Fix www.buildecogroup.com (Vercel DEPLOYMENT_NOT_FOUND)
 
-Product brand is **BuildEco Group** on domain **https://www.buildecogroup.com**.
+Agar browser / curl pe ye error aaye:
 
-## 1. Merge the rebrand PR
+```text
+x-vercel-error: DEPLOYMENT_NOT_FOUND
+HTTP 404
+```
 
-Merge PR that rebrands 2click.in → buildecogroup.com into `main`  
-(https://github.com/abhudaya2786/2click-net/pull/47).
+Matlab DNS Vercel tak pahunch raha hai, lekin **kisi live Production deployment se domain link nahi** hai.
 
-Vercel will rebuild from `main` automatically.
+---
 
-## 2. Add domain in Vercel
+## GitHub check (already done in repo)
 
-1. Vercel → your **2click-net / buildecogroup** project → **Settings → Domains**
-2. Add:
-   - `buildecogroup.com`
-   - `www.buildecogroup.com`
-3. Prefer **www** as primary; redirect apex → www (Vercel option).
+- Brand / SEO / sitemap → `buildecogroup.com`
+- `vercel.json` → frontend build + `/api` proxy to backend
+- `api.js` → `www.buildecogroup.com` as frontend host (uses `/api` rewrite)
+- CORS example → `https://buildecogroup.com,https://www.buildecogroup.com`
 
-## 3. DNS at your domain registrar
+Repo: `main` branch latest rebrand commit.
 
-Use the exact records Vercel shows. Typical pattern:
+---
 
-| Type  | Name | Value                          |
-|-------|------|--------------------------------|
-| A     | `@`  | `76.76.21.21` (Vercel apex)    |
-| CNAME | `www`| `cname.vercel-dns.com`         |
+## Vercel pe ye exact steps (zaroori)
 
-Wait for DNS (often 5–60 minutes).
+### 1) Sahi project kholo
+1. https://vercel.com/dashboard  
+2. Jo project **GitHub `abhudaya2786/2click-net`** se linked hai, wahi open karo  
+3. **Settings → Git** → confirm: Production Branch = **`main`**
 
-## 4. Backend CORS
+### 2) Production deploy exist kare
+1. **Deployments** tab  
+2. Latest **Production** deploy from `main` → status **Ready**  
+3. Agar koi Ready deploy nahi:
+   - **Deployments → … → Redeploy**  
+   - ya GitHub pe empty commit / “Redeploy” from Vercel
 
-On the API host, set:
+### 3) Domain dubara add (2click hata chuke ho — theek hai)
+1. **Settings → Domains**  
+2. Ensure **sirf**:
+   - `www.buildecogroup.com`  
+   - `buildecogroup.com` (redirect → www recommended)  
+3. **2click.in / www.2click.in yahan na hon**  
+4. Add ke baad Vercel **Assign to Production** / Valid dikhe
+
+### 4) Hostinger DNS (confirm)
+Domain **buildecogroup.com** → DNS:
+
+| Type | Name | Value |
+|------|------|--------|
+| A | `@` | Vercel A IP (often `76.76.21.21`) |
+| CNAME | `www` | `cname.vercel-dns.com` |
+
+Vercel Domains page pe jo exact values dikhen, wahi use karo.
+
+### 5) Purana 2click.in
+- Vercel se remove (aapne kar diya) ✓  
+- Hostinger pe 2click.in ke purane A/CNAME (Vercel wale) delete rakho  
+- Baad mein naya project ke liye khali chhod sakte ho  
+
+---
+
+## Backend CORS (API server)
+
+Emergent / API host `.env`:
 
 ```bash
 CORS_ORIGINS=https://buildecogroup.com,https://www.buildecogroup.com,http://localhost:3000
 ```
 
-Restart the API after changing env.
+API restart.
 
-## 5. Admin branding (after site is up)
+---
 
-1. Login as super admin  
-2. Administration → Branding / White Label  
-3. Brand name: **BuildEco Group**  
-4. Save  
+## Verify checklist
 
-## 6. Verify
+```bash
+curl -sI https://www.buildecogroup.com | head
+# Expect: HTTP 200 (not DEPLOYMENT_NOT_FOUND)
 
-- https://www.buildecogroup.com  
-- https://buildecogroup.com (should open or redirect)  
-- Footer shows BuildEco Group / sales@buildecogroup.com  
-- `/api/health` via site proxy works  
+curl -s https://www.buildecogroup.com/api/health
+# Expect: JSON ok from backend via Vercel rewrite
+```
 
-## Optional: keep old 2click.in
+Browser:
+- Title: **BuildEco Group**
+- Footer: buildecogroup.com / sales@buildecogroup.com
 
-Point old domain DNS to the same Vercel project, or set a redirect 2click.in → buildecogroup.com.
+---
+
+## Common mistakes
+
+| Mistake | Result |
+|---------|--------|
+| Domain dusre / empty Vercel project pe | DEPLOYMENT_NOT_FOUND |
+| Git not connected / no Production deploy | DEPLOYMENT_NOT_FOUND |
+| DNS theek, domain project se remove | DEPLOYMENT_NOT_FOUND |
+| Manual upload alag project mein | GitHub `main` sync nahi |
+
+**Fix formula:** GitHub `main` → Vercel project Production Ready → Domains add `www.buildecogroup.com` on **same** project.
