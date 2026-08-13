@@ -45,7 +45,18 @@ export default function AdminLogin() {
         finish(data);
       }
     } catch (e2) {
-      setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
+      const status = e2.response?.status;
+      const detail = e2.response?.data?.detail;
+      if (status === 404 || detail === "Not Found") {
+        setErr(
+          t(
+            "API Not Found: production backend is outdated. Redeploy the Emergent API with latest main, set ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_ACCESS_PIN, then retry.",
+            "API Not Found: production backend पुराना है। Emergent API को latest main से redeploy करें, ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_ACCESS_PIN सेट करें, फिर फिर से कोशिश करें।"
+          )
+        );
+      } else {
+        setErr(formatApiErrorDetail(detail) || e2.message);
+      }
     } finally {
       setBusy(false);
     }
