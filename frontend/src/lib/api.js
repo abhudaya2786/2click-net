@@ -2,9 +2,9 @@ import axios from "axios";
 
 /**
  * Owner-controlled API resolution.
- * On buildecogroup.com / Vercel: use same-origin `/api` (rewritten to OWNER API host in vercel.json).
- * Elsewhere: REACT_APP_BACKEND_URL, else empty (relative /api for local proxy).
- * Emergent hosts are not used as defaults.
+ * On buildecogroup.com / Vercel: use same-origin `/api` (rewritten in vercel.json).
+ * Transitional production rewrite → Emergent host until api.buildecogroup.com DNS is live
+ * (see docs/OWNER_CONTROL.md). Then change vercel.json destination to the owner API.
  */
 const FRONTEND_HOSTS = new Set(["buildecogroup.com", "www.buildecogroup.com", "localhost"]);
 const BLOCKED_BACKEND_HOSTS = ["wallet1.unodev.app", "unodev.app", "emergent.host", "emergentagent.com"];
@@ -67,6 +67,21 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => {
+    const ctype = String(response.headers?.["content-type"] || "");
+    if (ctype.includes("text/html") && typeof response.data === "string") {
+      return Promise.reject(
+        Object.assign(new Error("API returned HTML instead of JSON — check Vercel /api rewrite."), {
+          response: { status: 502, data: { detail: "API proxy misconfigured" } },
+        })
+      );
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
 
 export function formatApiErrorDetail(detail) {
   if (detail == null) return "Something went wrong. Please try again.";

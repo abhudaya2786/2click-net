@@ -29,7 +29,19 @@ Agar step 4 pehle kar doge aur DNS ready nahi → site `/api` toot jayegi.
 | Email OTP | `RESEND_API_KEY` (Resend.com) | Owner |
 | Branding | Admin console after login | Owner |
 
-`vercel.json` `/api/*` → **`https://api.buildecogroup.com`** (Emergent nahi).
+`vercel.json` `/api/*` currently rewrites to the **transitional** Emergent API so the public site keeps working until your VPS DNS is ready.
+
+When `curl -s https://api.buildecogroup.com/api/` returns BuildEco JSON, change both `vercel.json` and `frontend/vercel.json`:
+
+```json
+"destination": "https://api.buildecogroup.com/api/:path*"
+```
+
+Then redeploy Vercel. Until then, keep:
+
+```json
+"destination": "https://wallet-vendor-mvp.emergent.host/api/:path*"
+```
 
 Google login via Emergent **band** hai — email/password use karo.
 

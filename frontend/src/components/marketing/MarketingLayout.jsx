@@ -3,6 +3,7 @@ import Navbar from "@/components/marketing/Navbar";
 import Footer from "@/components/marketing/Footer";
 import MobileBottomNav from "@/components/marketing/MobileBottomNav";
 import InstallAppBanner from "@/components/marketing/InstallAppBanner";
+import ApiStatusBanner from "@/components/marketing/ApiStatusBanner";
 import AIAssistant from "@/components/AIAssistant";
 import AdSlot from "@/components/ads/AdSlot";
 import CatalogBrandStrip from "@/components/catalog/CatalogBrandStrip";
@@ -18,6 +19,7 @@ export default function MarketingLayout({ children }) {
 
   return (
     <div className="App min-h-screen flex flex-col mobile-app-shell" data-testid="mobile-app-shell">
+      <ApiStatusBanner />
       <Navbar />
       <DemoModeBanner />
       <AdSlot placement="header" />

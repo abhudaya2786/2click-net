@@ -16,8 +16,16 @@
   ],
   "rewrites": [
     {
+      "source": "/api",
+      "destination": "https://wallet-vendor-mvp.emergent.host/api/"
+    },
+    {
+      "source": "/api/",
+      "destination": "https://wallet-vendor-mvp.emergent.host/api/"
+    },
+    {
       "source": "/api/:path*",
-      "destination": "https://api.buildecogroup.com/api/:path*"
+      "destination": "https://wallet-vendor-mvp.emergent.host/api/:path*"
     },
     {
       "source": "/((?!api/|.*\\..*).*)",
