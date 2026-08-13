@@ -74,8 +74,8 @@ Agar `/sys/console` pe **"Not Found"** aaye → password galat nahi hai. Live AP
 
 ```bash
 ADMIN_EMAIL=admin@buildecogroup.com
-ADMIN_PASSWORD=Be@iLxPJXWdEp!
-ADMIN_ACCESS_PIN=827871
+ADMIN_PASSWORD=<your-strong-password>
+ADMIN_ACCESS_PIN=<6-digit-pin>
 ENABLE_TEST_OTP=1
 CORS_ORIGINS=https://buildecogroup.com,https://www.buildecogroup.com,http://localhost:3000
 ```
@@ -87,10 +87,10 @@ CORS_ORIGINS=https://buildecogroup.com,https://www.buildecogroup.com,http://loca
 curl -s https://wallet-vendor-mvp.emergent.host/api/
 # Expect: "buildecogroup" (not "2click.in")
 
-curl -s -X POST https://www.buildecogroup.com/api/auth/admin/login \
+curl -s -o /tmp/admin.json -w "%{http_code}\n" -X POST https://www.buildecogroup.com/api/auth/admin/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"admin@buildecogroup.com","password":"Be@iLxPJXWdEp!","access_pin":"827871"}'
-# Expect: token OR {"requires_otp":true,...} — NOT {"detail":"Not Found"}
+  -d '{"email":"YOUR_ADMIN_EMAIL","password":"YOUR_PASSWORD","access_pin":"YOUR_PIN"}'
+# Expect: HTTP 200 with token OR requires_otp — NOT 404 {"detail":"Not Found"}
 ```
 
 5. Browser: https://www.buildecogroup.com/sys/console → same email / password / PIN
