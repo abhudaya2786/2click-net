@@ -8,7 +8,7 @@ const DEFAULTS = {
   accent_color: "#10B981",
   logo: "",
   favicon: "",
-  tagline: "",
+  tagline: "Construction super app for India",
   theme: {
     default_theme: "light",
     layout: "standard",
@@ -22,6 +22,27 @@ const DEFAULTS = {
     default_language: "en",
   },
 };
+
+/** Never surface Emergent-era 2Click branding on owner domains. */
+function sanitizeBranding(data = {}) {
+  const raw = (data.brand_name || "").trim();
+  const compact = raw.toLowerCase().replace(/\s+/g, "");
+  const isLegacy = !raw || compact === "2click.in" || compact === "2click" || compact.includes("2click");
+  if (!isLegacy) {
+    return { ...data, theme: { ...DEFAULTS.theme, ...(data.theme || {}) } };
+  }
+  return {
+    ...DEFAULTS,
+    ...data,
+    brand_name: DEFAULTS.brand_name,
+    tagline:
+      !data.tagline || /operating system for construction/i.test(data.tagline)
+        ? DEFAULTS.tagline
+        : data.tagline,
+    favicon: data.favicon && !/favicon-test/i.test(data.favicon) ? data.favicon : "",
+    theme: { ...DEFAULTS.theme, ...(data.theme || {}) },
+  };
+}
 
 export const useBranding = () => {
   const ctx = useContext(BrandingContext);
@@ -55,11 +76,11 @@ export function BrandingProvider({ children }) {
       const slug = params.get("company") || params.get("tenant") || undefined;
       const host = window.location.hostname;
       const { data } = await api.get("/site-config", { params: { slug, host, company_id: undefined } });
-      setBrand({ ...DEFAULTS, ...data, theme: { ...DEFAULTS.theme, ...(data.theme || {}) } });
+      setBrand(sanitizeBranding({ ...DEFAULTS, ...data }));
     } catch {
       try {
         const { data } = await api.get("/branding");
-        setBrand({ ...DEFAULTS, ...data, theme: { ...DEFAULTS.theme, ...(data.theme || {}) } });
+        setBrand(sanitizeBranding({ ...DEFAULTS, ...data }));
       } catch { /* keep defaults */ }
     }
   }, []);

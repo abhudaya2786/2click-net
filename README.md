@@ -3,7 +3,8 @@
 Construction super-app: Store, Super Mart, Full BOQ, Interior BOQ, Tenders, Solar, Consultants, Upcoming Projects, Property Advisory, Enrollment, Mera Ghar ERP, and more.
 
 **Live site:** https://www.buildecogroup.com  
-**Brand:** BuildEco Group · **Domain:** https://www.buildecogroup.com
+**Brand:** BuildEco Group · **Domain:** https://www.buildecogroup.com  
+**Owner control (off Emergent):** see [`docs/OWNER_CONTROL.md`](docs/OWNER_CONTROL.md)
 
 ---
 

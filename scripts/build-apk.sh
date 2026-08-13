@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../frontend"
 
-export REACT_APP_BACKEND_URL="${REACT_APP_BACKEND_URL:-https://wallet-vendor-mvp.emergent.host}"
+export REACT_APP_BACKEND_URL="${REACT_APP_BACKEND_URL:-https://api.buildecogroup.com}"
 export CI=false
 
 echo "→ npm ci"

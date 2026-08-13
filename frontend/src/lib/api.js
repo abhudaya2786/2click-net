@@ -1,13 +1,13 @@
 import axios from "axios";
 
-const PRODUCTION_APIS = [
-  "https://wallet-vendor-mvp.emergent.host",
-  "https://wallet-vendor-mvp.preview.emergentagent.com",
-];
-const PRODUCTION_API = PRODUCTION_APIS[0];
-
+/**
+ * Owner-controlled API resolution.
+ * On buildecogroup.com / Vercel: use same-origin `/api` (rewritten to OWNER API host in vercel.json).
+ * Elsewhere: REACT_APP_BACKEND_URL, else empty (relative /api for local proxy).
+ * Emergent hosts are not used as defaults.
+ */
 const FRONTEND_HOSTS = new Set(["buildecogroup.com", "www.buildecogroup.com", "localhost"]);
-const BLOCKED_BACKEND_HOSTS = ["wallet1.unodev.app", "unodev.app"];
+const BLOCKED_BACKEND_HOSTS = ["wallet1.unodev.app", "unodev.app", "emergent.host", "emergentagent.com"];
 
 function isFrontendHost(hostname) {
   if (!hostname) return false;
@@ -26,17 +26,15 @@ function isBlockedBackend(url) {
 
 function resolveBackendUrl() {
   if (typeof window !== "undefined" && isFrontendHost(window.location.hostname)) {
-    // Vercel rewrites /api → production backend (see vercel.json)
+    // Vercel rewrites /api → owner API (see vercel.json → api.buildecogroup.com)
     return "";
   }
 
   let url = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/$/, "");
-  if (!url) {
-    return process.env.NODE_ENV === "production" ? PRODUCTION_API : "";
-  }
+  if (!url) return "";
   if (url.includes("buildecogroup.com") || url.includes("vercel.app") || isBlockedBackend(url)) {
-    console.warn("REACT_APP_BACKEND_URL is misconfigured; using production API fallback.");
-    return PRODUCTION_API;
+    console.warn("REACT_APP_BACKEND_URL points at a frontend or blocked host; using same-origin /api.");
+    return "";
   }
   const httpsIdx = url.lastIndexOf("https://");
   if (httpsIdx > 0) url = url.slice(httpsIdx);

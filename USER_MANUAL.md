@@ -1,7 +1,8 @@
 # buildecogroup.com — Complete User & Admin Manual
 _Enterprise Construction SaaS · React + FastAPI + MongoDB_
 
-Live app: https://wallet-vendor-mvp.emergent.host · All API calls are prefixed with `/api`.
+Live app: https://www.buildecogroup.com · Owner API: https://api.buildecogroup.com · All API calls are prefixed with `/api`.  
+See `docs/OWNER_CONTROL.md` to run the API yourself (no Emergent required).
 
 ---
 

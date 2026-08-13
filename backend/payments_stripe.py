@@ -1,7 +1,7 @@
 """
-buildecogroup.com — Real payments via Stripe (emergentintegrations, Flow B / shared sandbox).
-Collects payment for a specific invoice; amount is computed SERVER-SIDE from the
-invoice record. Demo pay flow (phase3c.pay_invoice) remains as a fallback.
+buildecogroup.com — Real payments via Stripe.
+Uses emergentintegrations when installed; otherwise returns a clear 503 so the
+owner stack can run without Emergent packages (demo pay remains available).
 """
 import os
 import uuid
@@ -9,10 +9,17 @@ import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
 import rbac
 
 logger = logging.getLogger("payments_stripe")
+
+try:
+    from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+    HAS_EMERGENT_STRIPE = True
+except ImportError:  # owner self-host without Emergent wheels
+    StripeCheckout = None
+    CheckoutSessionRequest = None
+    HAS_EMERGENT_STRIPE = False
 
 _db = None
 _get_current_user = None
@@ -28,12 +35,20 @@ def now_utc(): return datetime.now(timezone.utc)
 def iso(dt): return dt.isoformat() if isinstance(dt, datetime) else dt
 def new_id(p): return f"{p}_{uuid.uuid4().hex[:12]}"
 
-STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "sk_test_emergent")
+STRIPE_API_KEY = os.environ.get("STRIPE_API_KEY", "")
 
 router = APIRouter(prefix="/api", tags=["stripe-payments"])
 
 
-def _client(request: Request) -> StripeCheckout:
+def _client(request: Request):
+    if not HAS_EMERGENT_STRIPE:
+        raise HTTPException(
+            503,
+            "Stripe checkout package not installed on this server. "
+            "Use demo pay, or install emergentintegrations / wire native Stripe.",
+        )
+    if not STRIPE_API_KEY:
+        raise HTTPException(503, "STRIPE_API_KEY is not configured")
     webhook_url = f"{str(request.base_url)}api/webhook/stripe"
     return StripeCheckout(api_key=STRIPE_API_KEY, webhook_url=webhook_url)
 

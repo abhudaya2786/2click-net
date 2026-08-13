@@ -17,7 +17,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://wallet-vendor-mvp.emergent.host/api/:path*"
+      "destination": "https://api.buildecogroup.com/api/:path*"
     },
     {
       "source": "/((?!api/|.*\\..*).*)",
