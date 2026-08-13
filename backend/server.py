@@ -525,7 +525,7 @@ async def login(body: LoginIn, request: Request, response: Response):
 
 @api.post("/auth/admin/login")
 async def admin_login(body: AdminLoginIn, request: Request, response: Response):
-    """Secure super-admin login: hidden URL + optional access PIN + mandatory email OTP."""
+    """Owner console login: email + password (+ optional PIN). OTP only if ADMIN_REQUIRE_OTP=1."""
     try:
         _check_admin_network(request, body.access_pin)
     except HTTPException:
@@ -538,11 +538,17 @@ async def admin_login(body: AdminLoginIn, request: Request, response: Response):
     if not user or user.get("role") != "super_admin" or not verify_password(body.password, user.get("password_hash", "")):
         await _record_failed_login(identifier)
         await audit(user or {"email": email}, "admin_login_failed", module="auth", status="failed", request=request)
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     await db.login_attempts.delete_one({"identifier": identifier})
-    if os.environ.get("ENABLE_TEST_OTP") == "1":
-        await audit(user, "admin_login_test_bypass", module="auth", request=request)
+
+    # Default: password login issues a session immediately (owner-friendly).
+    # Set ADMIN_REQUIRE_OTP=1 (and email keys) when you want email OTP after password.
+    require_otp = os.environ.get("ADMIN_REQUIRE_OTP", "").strip() == "1"
+    bypass = os.environ.get("ENABLE_TEST_OTP", "").strip() == "1"
+    if bypass or not require_otp:
+        await audit(user, "admin_login_password", module="auth", request=request)
         return await _issue_login_token(user, response)
+
     await _send_login_otp(user, purpose="admin_login")
     await audit(user, "admin_login_2fa_challenge", module="auth", request=request)
     return {"requires_otp": True, "email": email}
@@ -1358,19 +1364,20 @@ async def seed():
 
     admin_email = os.environ["ADMIN_EMAIL"].lower()
     admin_pw = os.environ["ADMIN_PASSWORD"]
+    require_otp = os.environ.get("ADMIN_REQUIRE_OTP", "").strip() == "1"
     existing = await db.users.find_one({"email": admin_email})
     if not existing:
         await db.users.insert_one({
             "id": new_id("user"), "name": "Platform Owner", "email": admin_email,
             "password_hash": hash_password(admin_pw), "role": "super_admin",
             "company": "BuildEco Group", "picture": None, "auth": "jwt",
-            "kyc_status": "verified", "wallet": 0.0, "two_factor_enabled": True,
+            "kyc_status": "verified", "wallet": 0.0, "two_factor_enabled": require_otp,
             "created_at": iso(now_utc()),
         })
     else:
         await db.users.update_one({"email": admin_email},
                                   {"$set": {"password_hash": hash_password(admin_pw), "role": "super_admin",
-                                            "two_factor_enabled": True}})
+                                            "two_factor_enabled": require_otp}})
 
     # demo users
     demo = [

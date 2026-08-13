@@ -20,6 +20,7 @@ export default function AdminLogin() {
   const [otpEmail, setOtpEmail] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showPin, setShowPin] = useState(false);
 
   const finish = (data) => {
     setSession(data.token, data.user);
@@ -50,13 +51,8 @@ export default function AdminLogin() {
       if (status === 404 || detail === "Not Found") {
         setErr(
           t(
-<<<<<<< HEAD
-            "API Not Found: production backend is outdated. Redeploy the Emergent API with latest main, set ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_ACCESS_PIN, then retry.",
-            "API Not Found: production backend पुराना है। Emergent API को latest main से redeploy करें, ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_ACCESS_PIN सेट करें, फिर फिर से कोशिश करें।"
-=======
-            "API Not Found: point Vercel /api to your owner API (api.buildecogroup.com) and run Docker from docs/OWNER_CONTROL.md — Emergent is not used.",
-            "API Not Found: Vercel /api को अपने owner API (api.buildecogroup.com) पर लगाएँ और docs/OWNER_CONTROL.md से Docker चलाएँ — Emergent उपयोग नहीं होता।"
->>>>>>> 2ce4075 (Finish Emergent cutover: owner API path is the only control plane)
+            "API Not Found: start your owner API (api.buildecogroup.com) — see docs/OWNER_CONTROL.md. Then sign in with ADMIN_EMAIL + ADMIN_PASSWORD.",
+            "API Not Found: अपना owner API (api.buildecogroup.com) चालू करें — docs/OWNER_CONTROL.md देखें। फिर ADMIN_EMAIL + ADMIN_PASSWORD से लॉगिन करें।"
           )
         );
       } else {
@@ -94,25 +90,28 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md border border-white/10 bg-slate-900/80 backdrop-blur p-8 text-white">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-10 w-10 bg-destructive flex items-center justify-center rounded-lg">
+          <div className="h-10 w-10 bg-primary flex items-center justify-center rounded-lg">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <div className="font-display font-extrabold text-lg tracking-tight">buildecogroup.com</div>
+            <div className="font-display font-extrabold text-lg tracking-tight">BuildEco Group</div>
             <div className="text-xs text-slate-400 font-mono uppercase tracking-widest">
-              {t("Secure Admin Console", "सुरक्षित एडमिन कंसोल")}
+              {t("Owner login", "ओनर लॉगिन")}
             </div>
           </div>
         </div>
 
-        <p className="text-sm text-slate-400 mb-4">
+        <p className="text-sm text-slate-400 mb-2">
           {t(
-            "Owner access only. Use the email and password set in server ADMIN_EMAIL / ADMIN_PASSWORD. Email OTP is required after password verification.",
-            "केवल मालिक की पहुँच। सर्वर पर ADMIN_EMAIL / ADMIN_PASSWORD से सेट ईमेल और पासवर्ड उपयोग करें। पासवर्ड के बाद ईमेल OTP ज़रूरी है।"
+            "Sign in with the email and password from your API server .env (ADMIN_EMAIL / ADMIN_PASSWORD).",
+            "अपने API सर्वर .env के ADMIN_EMAIL / ADMIN_PASSWORD से लॉगिन करें।"
           )}
         </p>
-        <p className="text-xs text-slate-500 mb-6 font-mono">
-          {t("Regular /login does not work for owner — use this page only.", "सामान्य /login मालिक के लिए नहीं — केवल यह पेज।")}
+        <p className="text-xs text-slate-500 mb-6">
+          {t(
+            "Password login only — regular /login will not work for owner.",
+            "केवल पासवर्ड लॉगिन — सामान्य /login ओनर के लिए नहीं चलेगा।"
+          )}
         </p>
 
         {err && (
@@ -122,15 +121,17 @@ export default function AdminLogin() {
         )}
 
         {stage === "login" && (
-          <form onSubmit={submit} className="space-y-4">
+          <form onSubmit={submit} className="space-y-4" data-testid="admin-password-login-form">
             <div>
               <label className="text-xs text-slate-400 mb-1.5 flex items-center gap-1.5">
-                <Mail className="h-3.5 w-3.5" />{t("Admin email", "एडमिन ईमेल")}
+                <Mail className="h-3.5 w-3.5" />{t("Email", "ईमेल")}
               </label>
               <Input
                 data-testid="admin-login-email"
                 type="email"
+                autoComplete="username"
                 required
+                placeholder="admin@buildecogroup.com"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="rounded-none bg-slate-950 border-white/15 text-white"
@@ -143,29 +144,43 @@ export default function AdminLogin() {
               <Input
                 data-testid="admin-login-password"
                 type="password"
+                autoComplete="current-password"
                 required
+                placeholder="••••••••"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 className="rounded-none bg-slate-950 border-white/15 text-white"
               />
             </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1.5 flex items-center gap-1.5">
-                <KeyRound className="h-3.5 w-3.5" />{t("Access PIN", "एक्सेस PIN")}
-              </label>
-              <Input
-                data-testid="admin-login-pin"
-                type="password"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                placeholder={t("Set in ADMIN_ACCESS_PIN", "ADMIN_ACCESS_PIN में सेट करें")}
-                value={form.access_pin}
-                onChange={(e) => setForm({ ...form, access_pin: e.target.value })}
-                className="rounded-none bg-slate-950 border-white/15 text-white"
-              />
-            </div>
+
+            {showPin ? (
+              <div>
+                <label className="text-xs text-slate-400 mb-1.5 flex items-center gap-1.5">
+                  <KeyRound className="h-3.5 w-3.5" />{t("Access PIN (optional)", "एक्सेस PIN (वैकल्पिक)")}
+                </label>
+                <Input
+                  data-testid="admin-login-pin"
+                  type="password"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder={t("Only if ADMIN_ACCESS_PIN is set", "केवल अगर ADMIN_ACCESS_PIN सेट हो")}
+                  value={form.access_pin}
+                  onChange={(e) => setForm({ ...form, access_pin: e.target.value })}
+                  className="rounded-none bg-slate-950 border-white/15 text-white"
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="text-xs text-slate-500 hover:text-slate-300"
+                onClick={() => setShowPin(true)}
+              >
+                {t("Have an access PIN?", "एक्सेस PIN है?")}
+              </button>
+            )}
+
             <Button data-testid="admin-login-submit" type="submit" disabled={busy} className="w-full rounded-none">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Continue securely", "सुरक्षित जारी रखें")}
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Sign in with password", "पासवर्ड से साइन इन")}
             </Button>
           </form>
         )}
@@ -190,6 +205,13 @@ export default function AdminLogin() {
             </Button>
             <button type="button" onClick={resendOtp} className="text-xs text-slate-400 hover:text-white w-full text-center">
               {t("Resend code", "कोड फिर भेजें")}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setStage("login"); setOtp(""); setErr(""); }}
+              className="text-xs text-slate-500 hover:text-white w-full text-center"
+            >
+              {t("Back to password", "पासवर्ड पर वापस")}
             </button>
           </form>
         )}

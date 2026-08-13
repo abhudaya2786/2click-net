@@ -106,22 +106,26 @@ Agar API kisi aur host pe hai, `vercel.json` + `frontend/vercel.json` mein desti
 
 ---
 
-## 4) Super admin (owner)
+## 4) Super admin — password login
 
 `backend/.env`:
 
 ```bash
 ADMIN_EMAIL=you@yourdomain.com
 ADMIN_PASSWORD=<strong-password>
-ADMIN_ACCESS_PIN=<6-digit>
-ENABLE_TEST_OTP=1          # pehli baar; baad mein 0 + RESEND
+ADMIN_ACCESS_PIN=            # blank = PIN not required
+ADMIN_REQUIRE_OTP=0          # password-only login (recommended)
+ENABLE_TEST_OTP=1            # also skips OTP
 CORS_ORIGINS=https://buildecogroup.com,https://www.buildecogroup.com
 JWT_SECRET=<long-random-string>
 ```
 
 API restart → `seed()` super_admin banata / password update karta hai.
 
-Login: https://www.buildecogroup.com/sys/console
+Login: https://www.buildecogroup.com/sys/console  
+→ **Email + Password** → dashboard (OTP tab nahi, jab tak `ADMIN_REQUIRE_OTP=1` na ho).
+
+Regular `/login` owner ke liye kaam nahi karta — sirf `/sys/console`.
 
 Admin console se branding (`BuildEco Group`), users, rates — **aapke Mongo** pe save. Emergent dashboard ki zarurat nahi.
 
