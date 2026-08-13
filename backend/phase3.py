@@ -24,9 +24,28 @@ def new_id(p): return f"{p}_{uuid.uuid4().hex[:12]}"
 def slug(s): return "".join(c if c.isalnum() else "-" for c in s.lower()).strip("-")
 
 DEFAULT_COMPANY_ID = "company_default"
+DEFAULT_BRAND_NAME = "BuildEco Group"
+DEFAULT_TAGLINE = "Construction super app for India"
+LEGACY_BRAND_NAMES = {"2click.in", "2click", "2click.in enterprise", "2 click", "2 click.in"}
 
 public_router = APIRouter(prefix="/api", tags=["phase3-public"])
 admin_router = APIRouter(prefix="/api/admin", tags=["phase3-admin"])
+
+
+def _is_legacy_brand_name(name: Optional[str]) -> bool:
+    n = (name or "").strip().lower().replace(" ", "")
+    if not n:
+        return True
+    if n in {x.replace(" ", "") for x in LEGACY_BRAND_NAMES}:
+        return True
+    return "2click" in n
+
+
+def _public_brand_name(raw: Optional[str], company_name: Optional[str] = None) -> str:
+    for candidate in (raw, company_name):
+        if candidate and not _is_legacy_brand_name(candidate):
+            return candidate.strip()
+    return DEFAULT_BRAND_NAME
 
 
 # ---------------------------------------------------------------------------
@@ -103,16 +122,22 @@ async def get_branding(company_id: Optional[str] = None, slug: Optional[str] = N
         c = await _db.companies.find_one({"id": DEFAULT_COMPANY_ID}, {"_id": 0})
     b = (c or {}).get("branding") or {}
     theme = b.get("theme") or {}
+    tagline = b.get("tagline") or DEFAULT_TAGLINE
+    if "operating system for construction" in tagline.lower():
+        tagline = DEFAULT_TAGLINE
+    favicon = b.get("favicon") or ""
+    if "favicon-test" in favicon.lower():
+        favicon = ""
     return {
         "company_id": (c or {}).get("id", DEFAULT_COMPANY_ID),
         "slug": (c or {}).get("slug") or "",
         "custom_domain": (c or {}).get("custom_domain") or "",
-        "brand_name": b.get("brand_name") or (c or {}).get("name") or "buildecogroup.com",
+        "brand_name": _public_brand_name(b.get("brand_name"), (c or {}).get("name")),
         "logo": b.get("logo") or "",
-        "favicon": b.get("favicon") or "",
+        "favicon": favicon,
         "primary_color": b.get("primary_color") or "#FF5A1F",
         "accent_color": b.get("accent_color") or "#10B981",
-        "tagline": b.get("tagline") or "The operating system for construction",
+        "tagline": tagline,
         "theme": {
             "default_theme": theme.get("default_theme", "light"),
             "layout": theme.get("layout", "standard"),
@@ -342,10 +367,33 @@ async def seed_phase3():
             "freelancer": _default_freelancer_commission(),
         }, "updated_at": iso(now_utc())})
 
-    # Ensure default company branding
+    # Ensure default company branding (also migrate legacy 2Click.in leftovers)
     c = await _db.companies.find_one({"id": DEFAULT_COMPANY_ID}, {"_id": 0})
-    if c and not (c.get("branding") or {}).get("brand_name"):
-        await _db.companies.update_one({"id": DEFAULT_COMPANY_ID}, {"$set": {"branding": {
-            "brand_name": "BuildEco Group", "logo": "", "primary_color": "#FF5A1F",
-            "tagline": "The operating system for construction",
-        }}})
+    if c:
+        branding = dict(c.get("branding") or {})
+        name = branding.get("brand_name") or c.get("name") or ""
+        needs = (
+            not branding.get("brand_name")
+            or _is_legacy_brand_name(name)
+            or _is_legacy_brand_name(c.get("name"))
+        )
+        if needs:
+            branding.update({
+                "brand_name": DEFAULT_BRAND_NAME,
+                "logo": branding.get("logo") or "",
+                "primary_color": branding.get("primary_color") or "#FF5A1F",
+                "tagline": DEFAULT_TAGLINE if (
+                    not branding.get("tagline")
+                    or "operating system for construction" in (branding.get("tagline") or "").lower()
+                ) else branding.get("tagline"),
+            })
+            if "favicon-test" in (branding.get("favicon") or "").lower():
+                branding["favicon"] = ""
+            await _db.companies.update_one(
+                {"id": DEFAULT_COMPANY_ID},
+                {"$set": {
+                    "name": DEFAULT_BRAND_NAME,
+                    "branding": branding,
+                    "updated_at": iso(now_utc()),
+                }},
+            )

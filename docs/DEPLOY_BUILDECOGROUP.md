@@ -97,6 +97,10 @@ curl -s -o /tmp/admin.json -w "%{http_code}\n" -X POST https://www.buildecogroup
 
 Server start pe `seed()` `ADMIN_EMAIL` se super_admin create/update karta hai.
 
+### Navbar pe "2Click.in" dikhe to
+
+Domain theek hai — API `/branding` Mongo se purana `brand_name: "2Click.in"` bhej raha hota hai. Frontend ab isko sanitize karta hai; backend seed bhi migrate karta hai. Vercel pe latest frontend deploy karo (hard refresh / cache clear). Emergent API redeploy se DB bhi BuildEco pe update ho jayegi.
+
 ---
 
 ## Verify checklist
@@ -110,7 +114,7 @@ curl -s https://www.buildecogroup.com/api/
 ```
 
 Browser:
-- Title: **BuildEco Group**
+- Title / navbar: **BuildEco Group** (not 2Click.in)
 - Footer: buildecogroup.com / sales@buildecogroup.com
 
 ---
