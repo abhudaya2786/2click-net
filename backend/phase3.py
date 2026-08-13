@@ -26,6 +26,7 @@ def slug(s): return "".join(c if c.isalnum() else "-" for c in s.lower()).strip(
 DEFAULT_COMPANY_ID = "company_default"
 DEFAULT_BRAND_NAME = "BuildEco Group"
 DEFAULT_TAGLINE = "Construction super app for India"
+LEGACY_BRAND_NAMES = {"2click.in", "2click", "2click.in enterprise", "2 click", "2 click.in"}
 
 public_router = APIRouter(prefix="/api", tags=["phase3-public"])
 admin_router = APIRouter(prefix="/api/admin", tags=["phase3-admin"])
@@ -33,7 +34,11 @@ admin_router = APIRouter(prefix="/api/admin", tags=["phase3-admin"])
 
 def _is_legacy_brand_name(name: Optional[str]) -> bool:
     n = (name or "").strip().lower().replace(" ", "")
-    return (not n) or ("2click" in n)
+    if not n:
+        return True
+    if n in {x.replace(" ", "") for x in LEGACY_BRAND_NAMES}:
+        return True
+    return "2click" in n
 
 
 def _public_brand_name(raw: Optional[str], company_name: Optional[str] = None) -> str:
@@ -362,12 +367,17 @@ async def seed_phase3():
             "freelancer": _default_freelancer_commission(),
         }, "updated_at": iso(now_utc())})
 
-    # Ensure default company branding (migrate legacy 2Click leftovers for owner DB)
+    # Ensure default company branding (also migrate legacy 2Click.in leftovers)
     c = await _db.companies.find_one({"id": DEFAULT_COMPANY_ID}, {"_id": 0})
     if c:
         branding = dict(c.get("branding") or {})
         name = branding.get("brand_name") or c.get("name") or ""
-        if not branding.get("brand_name") or _is_legacy_brand_name(name) or _is_legacy_brand_name(c.get("name")):
+        needs = (
+            not branding.get("brand_name")
+            or _is_legacy_brand_name(name)
+            or _is_legacy_brand_name(c.get("name"))
+        )
+        if needs:
             branding.update({
                 "brand_name": DEFAULT_BRAND_NAME,
                 "logo": branding.get("logo") or "",
@@ -381,5 +391,9 @@ async def seed_phase3():
                 branding["favicon"] = ""
             await _db.companies.update_one(
                 {"id": DEFAULT_COMPANY_ID},
-                {"$set": {"name": DEFAULT_BRAND_NAME, "branding": branding, "updated_at": iso(now_utc())}},
+                {"$set": {
+                    "name": DEFAULT_BRAND_NAME,
+                    "branding": branding,
+                    "updated_at": iso(now_utc()),
+                }},
             )

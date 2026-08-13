@@ -262,14 +262,24 @@ async def _branding_doc(company_id: str = DEFAULT_COMPANY_ID):
     c = await _db.companies.find_one({"id": company_id}, {"_id": 0}) or {}
     b = c.get("branding") or {}
     theme = {**DEFAULT_THEME, **(b.get("theme") or {})}
+    raw_name = (b.get("brand_name") or c.get("name") or "BuildEco Group").strip()
+    compact = raw_name.lower().replace(" ", "")
+    if not raw_name or "2click" in compact:
+        raw_name = "BuildEco Group"
+    tagline = b.get("tagline") or "Construction super app for India"
+    if "operating system for construction" in tagline.lower():
+        tagline = "Construction super app for India"
+    favicon = b.get("favicon") or ""
+    if "favicon-test" in favicon.lower():
+        favicon = ""
     return {
         "company_id": c.get("id", company_id),
-        "brand_name": b.get("brand_name") or c.get("name") or "BuildEco Group",
+        "brand_name": raw_name,
         "logo": b.get("logo") or "",
-        "favicon": b.get("favicon") or "",
+        "favicon": favicon,
         "primary_color": b.get("primary_color") or "#FF5A1F",
         "accent_color": b.get("accent_color") or "#10B981",
-        "tagline": b.get("tagline") or "The operating system for construction",
+        "tagline": tagline,
         "slug": c.get("slug") or "",
         "custom_domain": c.get("custom_domain") or "",
         "theme": theme,

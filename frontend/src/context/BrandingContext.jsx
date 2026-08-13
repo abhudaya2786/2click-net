@@ -23,13 +23,20 @@ const DEFAULTS = {
   },
 };
 
-/** Never surface Emergent-era 2Click branding on owner domains. */
+/** Live API DB may still store pre-rebrand names — never show them on buildecogroup. */
 function sanitizeBranding(data = {}) {
   const raw = (data.brand_name || "").trim();
   const compact = raw.toLowerCase().replace(/\s+/g, "");
-  const isLegacy = !raw || compact === "2click.in" || compact === "2click" || compact.includes("2click");
+  const isLegacy =
+    !raw ||
+    compact === "2click.in" ||
+    compact === "2click" ||
+    compact.includes("2click");
   if (!isLegacy) {
-    return { ...data, theme: { ...DEFAULTS.theme, ...(data.theme || {}) } };
+    return {
+      ...data,
+      theme: { ...DEFAULTS.theme, ...(data.theme || {}) },
+    };
   }
   return {
     ...DEFAULTS,
