@@ -1,0 +1,9 @@
+# HTTPS reverse proxy for owner API (api.buildecogroup.com → Docker on :8001)
+# Install Caddy on VPS, then:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+
+api.buildecogroup.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8001
+}

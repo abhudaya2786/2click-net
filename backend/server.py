@@ -562,6 +562,12 @@ async def logout(response: Response):
 
 @api.post("/auth/google/session")
 async def google_session(request: Request, response: Response):
+    """Legacy Emergent Google OAuth — disabled for owner-controlled deployments."""
+    if os.environ.get("ENABLE_EMERGENT_GOOGLE", "").strip() != "1":
+        raise HTTPException(
+            status_code=503,
+            detail="Google sign-in via Emergent is disabled. Use email/password on the owner API.",
+        )
     session_id = request.headers.get("X-Session-ID")
     if not session_id:
         raise HTTPException(status_code=400, detail="Missing session id")

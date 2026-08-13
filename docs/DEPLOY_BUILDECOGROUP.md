@@ -1,5 +1,7 @@
 # Fix www.buildecogroup.com (Vercel DEPLOYMENT_NOT_FOUND)
 
+> **Full owner control (API off Emergent):** see [`OWNER_CONTROL.md`](./OWNER_CONTROL.md) — Docker API on `api.buildecogroup.com`, then Vercel.
+
 Agar browser / curl pe ye error aaye:
 
 ```text

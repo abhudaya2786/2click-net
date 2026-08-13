@@ -134,8 +134,12 @@ export default function Login() {
   };
 
   const google = () => {
-    const redirectUrl = window.location.origin + "/dashboard";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
+    toast.info(
+      t(
+        "Google sign-in via Emergent is disabled. Use email/password — full control is on your owner API.",
+        "Emergent वाला Google साइन-इन बंद है। ईमेल/पासवर्ड उपयोग करें — पूरा नियंत्रण आपके owner API पर है।"
+      )
+    );
   };
 
   const Icon = profile.icon;
@@ -306,8 +310,8 @@ export default function Login() {
                 <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
                   <div className="h-px flex-1 bg-border" />{t("OR", "या")}<div className="h-px flex-1 bg-border" />
                 </div>
-                <Button data-testid="login-google" variant="outline" onClick={google} className="w-full rounded-none">
-                  {t("Continue with Google", "Google से जारी रखें")}
+                <Button data-testid="login-google" variant="outline" onClick={google} className="w-full rounded-none opacity-70">
+                  {t("Google (owner email login only)", "Google बंद — ईमेल लॉगिन उपयोग करें")}
                 </Button>
 
                 <p className="text-sm text-muted-foreground mt-6 text-center">
