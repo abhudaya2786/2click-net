@@ -71,6 +71,10 @@ CORS_ORIGINS=https://buildecogroup.com,https://www.buildecogroup.com,http://loca
 
 API restart.
 
+### Navbar pe "2Click.in" dikhe to
+
+Domain theek hai — API `/branding` Mongo se purana `brand_name: "2Click.in"` bhej raha hota hai. Frontend ab isko sanitize karta hai; backend seed bhi migrate karta hai. Vercel pe latest frontend deploy karo (hard refresh / cache clear). Emergent API redeploy se DB bhi BuildEco pe update ho jayegi.
+
 ---
 
 ## Verify checklist
@@ -79,12 +83,12 @@ API restart.
 curl -sI https://www.buildecogroup.com | head
 # Expect: HTTP 200 (not DEPLOYMENT_NOT_FOUND)
 
-curl -s https://www.buildecogroup.com/api/health
-# Expect: JSON ok from backend via Vercel rewrite
+curl -s https://www.buildecogroup.com/api/branding
+# After backend redeploy: brand_name should be BuildEco Group (not 2Click.in)
 ```
 
 Browser:
-- Title: **BuildEco Group**
+- Title / navbar: **BuildEco Group** (not 2Click.in)
 - Footer: buildecogroup.com / sales@buildecogroup.com
 
 ---
@@ -97,5 +101,6 @@ Browser:
 | Git not connected / no Production deploy | DEPLOYMENT_NOT_FOUND |
 | DNS theek, domain project se remove | DEPLOYMENT_NOT_FOUND |
 | Manual upload alag project mein | GitHub `main` sync nahi |
+| Purana API branding DB (`2Click.in`) | Navbar pe 2Click dikhe (frontend sanitize + API redeploy se fix) |
 
-**Fix formula:** GitHub `main` → Vercel project Production Ready → Domains add `www.buildecogroup.com` on **same** project.
+**Fix formula:** GitHub `main` → Vercel project Production Ready → Domains add `www.buildecogroup.com` on **same** project → Emergent backend redeploy.
