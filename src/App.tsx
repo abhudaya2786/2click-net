@@ -60,6 +60,7 @@ import { GeofenceProvider } from './context/GeofenceContext';
 import { GeofenceAutoModeBanner } from './components/geofence/GeofenceAutoModeBanner';
 import { LocationGeofenceSettingsView } from './components/settings/LocationGeofenceSettingsView';
 import { CreditCard, Compass, MapPin, Power, MoreHorizontal, Settings2, X } from 'lucide-react';
+import { MobileInstallBanner } from './components/MobileInstallBanner';
 
 const LOCAL_STORAGE_KEY = 'voice_mom_saved_meetings_v1';
 const SCHEDULED_EVENTS_KEY = 'voice_mom_scheduled_events_v1';
@@ -535,6 +536,7 @@ function AppContent() {
 
   return (
     <div className="app-shell text-slate-800 dark:text-slate-100 font-sans transition-colors">
+      <MobileInstallBanner />
       {/* Compact top bar — fits one viewport row */}
       <header className="app-header shrink-0 z-40 pt-safe">
         <div className="mx-auto max-w-6xl px-3 sm:px-4 h-[var(--app-header-h)] flex items-center gap-2 sm:gap-3">

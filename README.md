@@ -10,6 +10,13 @@ This repository now hosts **Voice MoM** (from [`abhudaya2786/voice-mom`](https:/
 - Speech transcription (Gemini / OpenAI)
 - Structured Minutes of Meeting, decisions, action items
 - Meeting chat copilot, email draft, privacy & schedule tools
+- Mobile-ready PWA + Android APK (`in.twoclick.mom`) — see `docs/MOBILE_APK.md`
+
+```bash
+# Debug APK (loads CAPACITOR_SERVER_URL in WebView)
+export CAPACITOR_SERVER_URL=https://2click.in
+npm run android:apk   # → dist/2click-mom.apk
+```
 
 ## Deploy (Vercel)
 
