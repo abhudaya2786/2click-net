@@ -8,10 +8,14 @@ export const DEFAULT_PRIVACY_SETTINGS: PrivacySettings = {
   ephemeralMode: false,
 };
 
-// Common regex patterns for PII Redaction
+// Common regex patterns for PII Redaction (India + general)
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/gi;
 const PHONE_REGEX = /(\+?\d{1,3}[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4,6}/g;
 const CARD_REGEX = /\b(?:\d[ -]*?){13,16}\b/g;
+const AADHAAR_REGEX = /\b[2-9]\d{3}\s?\d{4}\s?\d{4}\b/g;
+const PAN_REGEX = /\b[A-Z]{5}\d{4}[A-Z]\b/gi;
+const BANK_IFSC_REGEX = /\b[A-Z]{4}0[A-Z0-9]{6}\b/gi;
+const BANK_ACCOUNT_REGEX = /\b(?:a\/?c|account|acct)[\s.:#-]*\d{9,18}\b/gi;
 const SECRET_TOKEN_REGEX = /(?:api[_-]?key|secret|password|bearer|auth[_-]?token|token)[:=\s]+["']?([a-zA-Z0-9_\-]{8,})["']?/gi;
 
 /**
@@ -23,19 +27,24 @@ export function redactPii(text: string): string {
 
   // Mask Secrets & Tokens
   clean = clean.replace(SECRET_TOKEN_REGEX, (match, p1) => {
-    return match.replace(p1, '••••••••[SECRET_KEY]');
+    return match.replace(p1, '[REDACTED]');
   });
 
+  clean = clean.replace(AADHAAR_REGEX, '[REDACTED]');
+  clean = clean.replace(PAN_REGEX, '[REDACTED]');
+  clean = clean.replace(BANK_IFSC_REGEX, '[REDACTED]');
+  clean = clean.replace(BANK_ACCOUNT_REGEX, '[REDACTED]');
+
   // Mask Credit Cards / Account numbers
-  clean = clean.replace(CARD_REGEX, '[CONFIDENTIAL_NUMBER]');
+  clean = clean.replace(CARD_REGEX, '[REDACTED]');
 
   // Mask Emails
-  clean = clean.replace(EMAIL_REGEX, '[REDACTED_EMAIL]');
+  clean = clean.replace(EMAIL_REGEX, '[REDACTED]');
 
   // Mask Phone Numbers (ensure we don't accidentally mask short timestamps like 10:30)
   clean = clean.replace(PHONE_REGEX, (match) => {
     if (match.includes(':') && match.length <= 5) return match; // skip timestamps
-    if (match.trim().length >= 7) return '[REDACTED_PHONE]';
+    if (match.trim().length >= 7) return '[REDACTED]';
     return match;
   });
 

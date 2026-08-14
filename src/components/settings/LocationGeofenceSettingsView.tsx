@@ -30,6 +30,7 @@ import {
 import { useGeofence } from '../../context/GeofenceContext';
 import { GeofenceLocationEntity } from '../../types';
 import { formatDistance } from '../../utils/geofenceManager';
+import { FieldSessionControls } from '../field/FieldSessionControls';
 
 interface LocationGeofenceSettingsViewProps {
   onNavigate: (path: string) => void;
@@ -243,6 +244,14 @@ export const LocationGeofenceSettingsView: React.FC<LocationGeofenceSettingsView
             <span>{isAutoModeEnabled ? 'Auto Mode is ON' : 'Turn Auto Mode ON'}</span>
           </button>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <FieldSessionControls
+          siteName={evaluation?.matchedLocation?.name || evaluation?.nearestLocation?.name}
+          latitude={userCoords?.latitude}
+          longitude={userCoords?.longitude}
+        />
       </div>
 
       {/* 2. LIVE GPS RADAR & STATUS HUD */}

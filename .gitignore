@@ -9,3 +9,5 @@ coverage/
 !.env.example
 .vite/
 *.local
+data/field-pdfs/
+data/field-visits/

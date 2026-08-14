@@ -9,6 +9,10 @@ import { GoogleGenAI } from '@google/genai';
 import { getAIProvider } from './server/ai/index.ts';
 import { getSpeechProvider } from './server/speech/index.ts';
 import { billingManager, SAAS_PLANS } from './server/billing/index.ts';
+import { registerEnterpriseRoutes } from './server/routes/enterpriseRoutes.ts';
+import { preprocessTranscriptForEnterprise } from './server/services/piiFilterService.ts';
+import { stripAudioPayload } from './server/services/audioRetentionService.ts';
+import { enterpriseConfig } from './server/config/env.ts';
 
 const rootDir = process.cwd();
 const isProd = process.env.NODE_ENV === 'production';
@@ -119,8 +123,16 @@ async function createApp() {
       app: '2click-voice-mom',
       gemini: Boolean(process.env.GEMINI_API_KEY),
       openai: Boolean(process.env.OPENAI_API_KEY),
+      enterprise: {
+        whatsapp: enterpriseConfig.whatsapp.enabled ? 'live' : 'mock',
+        zeroAudioRetention: enterpriseConfig.zeroAudioRetention,
+        piiRedaction: enterpriseConfig.piiRedactionEnabled,
+      },
     });
   });
+
+  // Enterprise field-workforce modules (additive — does not replace MoM routes)
+  registerEnterpriseRoutes(app);
 
   // Core: generate MoM from audio and/or transcript text
   app.post('/api/generate-mom', async (req, res) => {
@@ -151,6 +163,15 @@ async function createApp() {
         return res.status(400).json({ error: 'Provide audioBase64 or transcriptText with enough content.' });
       }
 
+      // Privacy layer (non-destructive add): redact PII + discard small-talk before MoM
+      const privacy = preprocessTranscriptForEnterprise(transcript, {
+        redactPii: enterpriseConfig.piiRedactionEnabled,
+        discardChatter: enterpriseConfig.discardSmallTalk,
+      });
+      if (privacy.cleanedText.length >= 8) {
+        transcript = privacy.cleanedText;
+      }
+
       const ai = getAIProvider(process.env.AI_PROVIDER);
       const participants =
         typeof context?.participants === 'string'
@@ -170,11 +191,22 @@ async function createApp() {
         transcriptText: transcript,
         segments,
         context,
-        audioUrl: audioBase64 || undefined,
+        audioUrl: enterpriseConfig.zeroAudioRetention ? undefined : audioBase64 || undefined,
         languageDetected,
       });
 
-      res.json({ success: true, meeting, minutes });
+      res.json(
+        stripAudioPayload({
+          success: true,
+          meeting,
+          minutes,
+          privacy: {
+            redactions: privacy.redactions,
+            discardedLines: privacy.discardedLines,
+            retainedLines: privacy.retainedLines,
+          },
+        }),
+      );
     } catch (e: any) {
       console.error('[generate-mom]', e);
       res.status(e.status || 500).json({ error: e.message || 'Failed to generate MoM' });

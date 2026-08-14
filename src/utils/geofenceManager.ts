@@ -67,7 +67,7 @@ export const SEED_GEOFENCE_LOCATIONS: GeofenceLocationEntity[] = [
     address: 'Bandra Kurla Complex (BKC), Mumbai',
     latitude: 19.0688,
     longitude: 72.8697,
-    radiusMeters: 120,
+    radiusMeters: 50, // Field workforce default: 50m client-site geofence
     enabled: true,
     autoRecordOnArrival: true,
     autoGenerateMoMOnCompletion: true,
