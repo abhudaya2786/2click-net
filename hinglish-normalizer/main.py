@@ -19,8 +19,11 @@ ai_client = genai.Client(api_key=api_key)
 # FastAPI ऐप सेटअप
 app = FastAPI(
     title="Hinglish Linguistic Normalizer API",
-    description="बिखरी हुई हिंग्लिश बोली को शुद्ध देवनागरी हिंदी और फॉर्मल इंग्लिश में बदलने वाली API",
-    version="1.0.0",
+    description=(
+        "भारत की क्षेत्रीय बोलियाँ (भोजपुरी, अवधी, पूर्वांचली), शहरी स्लैंग "
+        "और हिंग्लिश को 100% शुद्ध औपचारिक हिंदी व अंग्रेजी JSON में बदलने वाली API"
+    ),
+    version="1.1.0",
 )
 
 # CORS Middleware (Frontend/Mobile App से कनेक्ट करने के लिए)
@@ -39,28 +42,46 @@ class NormalizationRequest(BaseModel):
     raw_text: str = Field(
         ...,
         min_length=2,
-        description="कच्ची हिंग्लिश या टूटी-फूटी ट्रांसक्रिप्ट",
-        examples=["are bhaiya kl site pe cement kb tk phuchega kuch fix h kya?"],
+        description="कच्ची क्षेत्रीय बोली / हिंग्लिश / स्लैंग ट्रांसक्रिप्ट",
+        examples=[
+            "are bhaiya kl site pe cement kb tk phuchega kuch fix h kya?",
+            "का हो भैया, कल सीमेंट के बैग कब तक पहुँच जाई?",
+            "का करत हौ? पेमेंट अभी तक क्लियर नइखे।",
+            "scene set h, apun ko kal 11 baje site pe mil.",
+        ],
     )
 
 
 class NormalizationResponse(BaseModel):
-    detected_intent: str = Field(description="बातचीत का मुख्य भाव और संदर्भ")
-    pure_hindi: str = Field(description="शुद्ध मानक देवनागरी हिंदी रूपांतरण")
+    detected_intent: str = Field(description="बातचीत का मुख्य भाव, संदर्भ और संक्षिप्त सार")
+    detected_dialect: str = Field(
+        description="पहचानी गई बोली/लहज़ा (जैसे: भोजपुरी, अवधी, हिंग्लिश, मुंबईया, औपचारिक हिंदी)"
+    )
+    pure_hindi: str = Field(description="100% शुद्ध मानक देवनागरी हिंदी रूपांतरण")
     pure_english: str = Field(description="व्याकरणिक रूप से शुद्ध औपचारिक अंग्रेजी वाक्य")
 
 
 # --- System Prompt Instructions ---
 
 SYSTEM_INSTRUCTION = """
-आप एक विशेषज्ञ भाषाविद् (Linguistic Expert) और ट्रांसक्रिप्ट एडिटर हैं।
-आपका कार्य उपयोगकर्ताओं द्वारा बोली गई कच्ची, बिखरी हुई हिंग्लिश (रोमन या टूटी-फूटी देवनागरी) को शुद्ध, औपचारिक और स्पष्ट भाषा में बदलना है।
+आप एक मास्टर बहुभाषी भाषाविद् (Multi-Dialect Linguistic Specialist) और एग्जीक्यूटिव ट्रांसक्रिप्ट एडिटर हैं।
 
-नियम:
-1. मूल संदर्भ, तकनीकी शब्द (जैसे: Cement, Server, API, Quotation) और संख्याओं को न बदलें।
-2. 'उम्म', 'अरे', 'मतलब', दोहराए गए शब्दों और अनावश्यक स्लैंग्स को पूरी तरह हटा दें।
-3. शुद्ध हिंदी हमेशा मानक देवनागरी लिपि में ही होनी चाहिए।
-4. अंग्रेजी वाक्य पूरी तरह व्याकरण-शुद्ध और प्रोफेशनल होना चाहिए।
+आपका कार्य भारत की विभिन्न क्षेत्रीय बोलियों (भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल), शहरी स्लैंग्स (मुंबईया, दिल्ली टपोरी), हिंग्लिश और अत्यधिक विनम्र/औपचारिक बोलियों में बोली गई किसी भी कच्ची ऑडियो बातचीत को समझना, उसका सही अर्थ निकालना और उसे 100% शुद्ध, त्रुटिहीन और औपचारिक (Formal) हिंदी और अंग्रेजी में बदलना है।
+
+### सख्त नियम:
+1. बोली/लहज़ा पहचानें (Dialect Recognition): चाहे इनपुट भोजपुरी ("का हो भैया"), अवधी ("का करत हौ"), हिंग्लिश ("scene set h") या फॉर्मल हो—मूल भाव और संदर्भ को 100% सुरक्षित रखें। पहचानी गई बोली `detected_dialect` में लिखें।
+2. अनावश्यक शब्द हटाएँ: "अरे", "मतलब", "उम्म", "काहे की", "बाबू", "भैया", "यार", "अपुन", "तबे" जैसे गैर-ज़रूरी और बार-बार दोहराए गए शब्दों को हटा दें।
+3. नंबर्स और टेक्निकल टर्म्स: सीमेंट बैग्स, वर्ग फुट, API, सर्वर, पेमेंट, तारीख और समय को बिल्कुल सटीक रखें। अर्थ न बदलें, मात्रा/इकाई/नाम न गढ़ें।
+4. `pure_hindi` हमेशा मानक देवनागरी में हो; `pure_english` पूरी तरह व्याकरण-शुद्ध, प्रोफेशनल और औपचारिक हो।
+5. आउटपुट केवल और केवल मान्य JSON में होना चाहिए—कोई प्रस्तावना, मार्कडाउन या अतिरिक्त टेक्स्ट नहीं।
+
+### JSON स्कीमा:
+{
+  "detected_intent": "उपयोगकर्ता क्या कहना चाह रहा है (संक्षिप्त सारांश)",
+  "detected_dialect": "पहचानी गई बोली/लहज़ा",
+  "pure_hindi": "शुद्ध मानक देवनागरी हिंदी वाक्य",
+  "pure_english": "Clean, grammatically correct formal English sentence"
+}
 """
 
 # --- API Endpoints ---
@@ -79,16 +100,19 @@ async def health_check():
 )
 async def normalize_hinglish(payload: NormalizationRequest):
     """
-    कच्ची हिंग्लिश स्ट्रिंग को लेकर स्ट्रक्चर्ड शुद्ध हिंदी और इंग्लिश JSON देता है।
+    क्षेत्रीय बोली / हिंग्लिश / स्लैंग को शुद्ध औपचारिक हिंदी व अंग्रेजी JSON में बदलता है।
     """
     try:
-        # Gemini 2.5 Flash मॉडल का उपयोग करके स्ट्रक्चर्ड JSON प्राप्त करना
+        # Gemini 2.5 Flash — multi-dialect structured JSON
         response = ai_client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=payload.raw_text,
+            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+            contents=(
+                "निम्नलिखित कच्ची ट्रांसक्रिप्ट को नियमों के अनुसार केवल मान्य JSON में सामान्यीकृत करें:\n\n"
+                f"{payload.raw_text}"
+            ),
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTION,
-                temperature=0.1,  # न्यूनतम विचलन और अधिकतम सटीकता के लिए
+                temperature=0.1,
                 response_mime_type="application/json",
                 response_schema=NormalizationResponse,
             ),

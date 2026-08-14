@@ -60,11 +60,13 @@ Response:
 ```json
 {
   "detected_intent": "...",
+  "detected_dialect": "भोजपुरी | अवधी | हिंग्लिश | मुंबईया | ...",
   "pure_hindi": "...",
   "pure_english": "..."
 }
 ```
 
+Supports: भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल, मुंबईया/दिल्ली स्लैंग, Hinglish, formal Hindi.
 ## Dependencies
 
 ```
