@@ -873,7 +873,7 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
             {/* Quick Test Chips */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-slate-400 font-medium text-[11px]">Quick Tests:</span>
-              {['2Click Start', 'Meeting shuru karo', 'Start recording', 'Meeting khatam', '2Click Stop', 'Save note', 'Cancel recording', 'मीटिंग शुरू करो'].map((txt) => (
+              {['2Click Start', 'Meeting shuru karo', 'Start recording', 'Cement delivery kal subah 10 baje', 'Meeting khatam', '2Click Stop', 'Save note', 'Cancel recording', 'मीटिंग शुरू करो'].map((txt) => (
                 <button
                   key={txt}
                   type="button"
