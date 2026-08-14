@@ -1,37 +1,45 @@
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 from typing import Literal, Optional
 from uuid import UUID
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from google import genai
-from google.genai import types
 from pydantic import BaseModel, Field
 
-import db
+import store as db
+from classification import classify_conversation_type
+from linguistics import (
+    LinguisticResult,
+    build_mom_summary,
+    normalize_text,
+    transcribe_audio,
+)
 
-# .env फ़ाइल से वेरिएबल्स लोड करें
 load_dotenv()
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 _raw_key = (os.getenv("GEMINI_API_KEY") or "").strip()
 GEMINI_API_KEY = "" if _raw_key in {"", "your_actual_gemini_api_key_here"} else _raw_key
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
 ai_client = None
 
 
-def get_ai_client():
+def get_ai_client(required: bool = True):
     global ai_client
     if not GEMINI_API_KEY:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="GEMINI_API_KEY वातावरण चर में सेट नहीं है।",
-        )
+        if required:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="GEMINI_API_KEY वातावरण चर में सेट नहीं है।",
+            )
+        return None
     if ai_client is None:
         ai_client = genai.Client(api_key=GEMINI_API_KEY)
     return ai_client
@@ -39,26 +47,23 @@ def get_ai_client():
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    if db.db_configured():
-        await db.init_pool()
+    await db.init_pool()
     try:
         yield
     finally:
         await db.close_pool()
 
 
-# FastAPI ऐप सेटअप
 app = FastAPI(
     title="Hinglish Linguistic Normalizer API",
     description=(
-        "भारत की क्षेत्रीय बोलियाँ (भोजपुरी, अवधी, पूर्वांचली), शहरी स्लैंग "
-        "और हिंग्लिश को 100% शुद्ध औपचारिक हिंदी व अंग्रेजी JSON में बदलने वाली API"
+        "User-based Instant Save + multi-dialect normalize/transcribe. "
+        "POST/GET /api/v1/conversations for realtime persistence."
     ),
-    version="1.3.0",
+    version="1.4.0",
     lifespan=lifespan,
 )
 
-# CORS Middleware (Frontend/Mobile App से कनेक्ट करने के लिए)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -71,48 +76,21 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-# --- Pydantic Data Models ---
+# --- Models ---
 
 
 class NormalizationRequest(BaseModel):
-    raw_text: str = Field(
-        ...,
-        min_length=2,
-        description="कच्ची क्षेत्रीय बोली / हिंग्लिश / स्लैंग ट्रांसक्रिप्ट",
-        examples=[
-            "are bhaiya kl site pe cement kb tk phuchega kuch fix h kya?",
-            "का हो भैया, कल सीमेंट के बैग कब तक पहुँच जाई?",
-            "का करत हौ? पेमेंट अभी तक क्लियर नइखे।",
-            "scene set h, apun ko kal 11 baje site pe mil.",
-        ],
-    )
-    # Instant Save (optional — requires DATABASE_URL)
-    save: bool = Field(default=False, description="Normalize के बाद conversations में Instant Save")
-    user_id: Optional[UUID] = Field(default=None, description="users.id for Instant Save")
-    conversation_type: Optional[Literal["phone_call", "in_person_meeting", "voice_note"]] = (
-        "voice_note"
-    )
+    raw_text: str = Field(..., min_length=2)
+    save: bool = False
+    user_id: Optional[UUID] = None
+    conversation_type: Optional[Literal["phone_call", "in_person_meeting", "voice_note"]] = None
     contact_name: Optional[str] = None
     contact_phone: Optional[str] = None
-    summary: Optional[str] = Field(default=None, description="3-लाइन समरी (optional override)")
+    summary: Optional[str] = None
 
 
-class NormalizationResponse(BaseModel):
-    detected_dialect: str = Field(
-        description="पहचानी गई बोली (जैसे: भोजपुरी, अवधी, हिंग्लिश, टपोरी, शिष्ट)"
-    )
-    detected_intent: str = Field(
-        description="बातचीत का मुख्य बिज़नेस उद्देश्य और संदर्भ"
-    )
-    pure_hindi: str = Field(
-        description="शुद्ध मानक देवनागरी हिंदी रूपांतरण"
-    )
-    pure_english: str = Field(
-        description="व्याकरणिक रूप से शुद्ध औपचारिक अंग्रेजी वाक्य"
-    )
-    conversation_id: Optional[UUID] = Field(
-        default=None, description="Instant Save होने पर conversations.id"
-    )
+class NormalizationResponse(LinguisticResult):
+    conversation_id: Optional[UUID] = None
 
 
 class UserCreate(BaseModel):
@@ -127,70 +105,44 @@ class TaskCreate(BaseModel):
     due_date: Optional[datetime] = None
 
 
-# --- System Prompt Instructions ---
+class ConversationCreateRequest(BaseModel):
+    """User-context Instant Save — audio and/or text."""
 
-SYSTEM_INSTRUCTION = """
-आप एक मास्टर बहुभाषी भाषाविद् (Multi-Dialect Linguistic Specialist) और एग्जीक्यूटिव ट्रांसक्रिप्ट एडिटर हैं।
-
-आपका कार्य भारत की विभिन्न क्षेत्रीय बोलियों (भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल), शहरी स्लैंग्स (मुंबईया, दिल्ली टपोरी), हिंग्लिश और अत्यधिक विनम्र/औपचारिक बोलियों में बोली गई किसी भी कच्ची ऑडियो बातचीत को समझना, उसका सही अर्थ निकालना और उसे 100% शुद्ध, त्रुटिहीन और औपचारिक (Formal) हिंदी और अंग्रेजी में बदलना है।
-
-### सख्त नियम:
-1. बोली/लहज़ा पहचानें (Dialect Recognition): चाहे इनपुट भोजपुरी ("का हो भैया"), अवधी ("का करत हौ"), हिंग्लिश ("scene set h") या फॉर्मल हो—मूल भाव और संदर्भ को 100% सुरक्षित रखें। पहचानी गई बोली `detected_dialect` में लिखें।
-2. अनावश्यक शब्द हटाएँ: "अरे", "मतलब", "उम्म", "काहे की", "बाबू", "भैया", "यार", "अपुन", "तबे" जैसे गैर-ज़रूरी और बार-बार दोहराए गए शब्दों को हटा दें।
-3. नंबर्स और टेक्निकल टर्म्स: सीमेंट बैग्स, वर्ग फुट, API, सर्वर, पेमेंट, तारीख और समय को बिल्कुल सटीक रखें। अर्थ न बदलें, मात्रा/इकाई/नाम न गढ़ें।
-4. `pure_hindi` हमेशा मानक देवनागरी में हो; `pure_english` पूरी तरह व्याकरण-शुद्ध, प्रोफेशनल और औपचारिक हो।
-5. आउटपुट केवल और केवल मान्य JSON में होना चाहिए—कोई प्रस्तावना, मार्कडाउन या अतिरिक्त टेक्स्ट नहीं।
-
-### JSON स्कीमा (फ़ील्ड क्रम अनिवार्य):
-{
-  "detected_dialect": "पहचानी गई बोली/लहज़ा",
-  "detected_intent": "उपयोगकर्ता क्या कहना चाह रहा है (संक्षिप्त सारांश)",
-  "pure_hindi": "शुद्ध मानक देवनागरी हिंदी वाक्य",
-  "pure_english": "Clean, grammatically correct formal English sentence"
-}
-
-### उदाहरण (Few-Shot):
-
-उदाहरण 1
-इनपुट: "भैया पेमेंट पूरा हो गइल बा, साइट पे माल कब तक पहुँचे? काम रुकै ना चाही।"
-आउटपुट:
-{
-  "detected_dialect": "भोजपुरी / पूर्वांचली",
-  "detected_intent": "भुगतान पूरा होने के बाद साइट पर सामग्री की डिलीवरी समय पर सुनिश्चित करना",
-  "pure_hindi": "कृपया स्पष्ट करें कि साइट पर निर्माण सामग्री कब तक पहुंचेगी। भुगतान पूर्ण कर दिया गया है, अतः कार्य में कोई रुकावट नहीं आनी चाहिए।",
-  "pure_english": "Please confirm when the materials will be delivered to the site. The full payment has been made, so there should be no disruption in work."
-}
-
-उदाहरण 2
-इनपुट: "yaar client bol rha h 10% discount de do to aaj hi token de dega scene set h"
-आउटपुट:
-{
-  "detected_dialect": "हिंग्लिश / कैजुअल स्लैंग",
-  "detected_intent": "क्लाइंट द्वारा तत्काल टोकन राशि देने की शर्त पर 10% छूट की मांग",
-  "pure_hindi": "क्लाइंट 10% छूट की मांग कर रहा है और मूल्य कम करने की स्थिति में आज ही टोकन राशि देने को तैयार है।",
-  "pure_english": "The client is requesting a 10% discount and is willing to pay the token amount today if the price is reduced."
-}
-
-उदाहरण 3
-इनपुट: "ठेकेदार कहत है कल 5 और मिस्त्री अउर 10 मजदूर चाही, तबे परसों तक छत के ढलाई पूरा होई"
-आउटपुट:
-{
-  "detected_dialect": "ग्रामीण अवधी / लेबर वर्कफोर्स",
-  "detected_intent": "छत की ढलाई हेतु अतिरिक्त जनशक्ति (मैनपावर) की आवश्यकता",
-  "pure_hindi": "ठेकेदार के अनुसार कल 5 अतिरिक्त राजमिस्त्री और 10 श्रमिकों की आवश्यकता होगी, जिससे परसों तक छत की ढलाई पूर्ण की जा सके।",
-  "pure_english": "According to the contractor, 5 additional masons and 10 laborers will be required tomorrow to complete the slab casting by day after tomorrow."
-}
-"""
-
-# --- API Endpoints ---
+    user_id: UUID = Field(..., description="Required user context for Instant Save")
+    raw_text: Optional[str] = Field(default=None, description="कच्ची ट्रांसक्रिप्ट (अगर ऑडियो नहीं)")
+    audio_base64: Optional[str] = Field(default=None, description="Call/meeting recording (base64 or data-URL)")
+    mime_type: str = Field(default="audio/webm")
+    type: Optional[Literal["phone_call", "in_person_meeting", "voice_note"]] = Field(
+        default=None,
+        description="Optional explicit type; otherwise auto-classified",
+    )
+    source: Optional[str] = Field(
+        default=None,
+        description="Hint: phone | meeting | voice_note | call_recorder | geofence",
+    )
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    duration_seconds: Optional[float] = None
+    create_task: Optional[str] = Field(default=None, description="Optional auto-task description")
+    task_due_date: Optional[datetime] = None
 
 
-def _require_db():
-    if not db.db_configured():
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="DATABASE_URL सेट नहीं है। schema.sql लागू करें और DATABASE_URL जोड़ें।",
-        )
+class ConversationCreateResponse(BaseModel):
+    success: bool = True
+    conversation_id: UUID
+    user_id: UUID
+    type: str
+    raw_transcript: str
+    detected_dialect: str
+    detected_intent: str
+    pure_hindi: str
+    pure_english: str
+    summary: str
+    persistence: str
+    task_id: Optional[UUID] = None
+
+
+# --- Helpers ---
 
 
 def _serialize_row(row: dict) -> dict:
@@ -200,9 +152,81 @@ def _serialize_row(row: dict) -> dict:
             out[k] = str(v)
         elif isinstance(v, datetime):
             out[k] = v.isoformat()
+        elif isinstance(v, date):
+            out[k] = v.isoformat()
         else:
             out[k] = v
     return out
+
+
+async def _process_and_save_conversation(payload: ConversationCreateRequest) -> ConversationCreateResponse:
+    raw_text = (payload.raw_text or "").strip()
+
+    client = get_ai_client(required=False)
+    if not raw_text and payload.audio_base64:
+        raw_text = await transcribe_audio(
+            client,
+            GEMINI_MODEL,
+            audio_base64=payload.audio_base64,
+            mime_type=payload.mime_type,
+        )
+    if not raw_text or len(raw_text) < 2:
+        raise HTTPException(status_code=400, detail="raw_text या audio_base64 आवश्यक है।")
+
+    # Call & meeting classification
+    conv_type = classify_conversation_type(
+        explicit_type=payload.type,
+        transcript=raw_text,
+        contact_phone=payload.contact_phone,
+        duration_seconds=payload.duration_seconds,
+        source=payload.source,
+    )
+
+    # Linguistic normalize (Gemini if key present, else heuristic)
+    ling = await normalize_text(client, GEMINI_MODEL, raw_text)
+    summary = build_mom_summary(ling)
+
+    # Realtime persistence — always Instant Save with user_id
+    saved = await db.save_conversation(
+        user_id=payload.user_id,
+        type=conv_type,
+        contact_name=payload.contact_name,
+        contact_phone=payload.contact_phone,
+        raw_transcript=raw_text,
+        pure_hindi_text=ling.pure_hindi,
+        pure_english_text=ling.pure_english,
+        summary=summary,
+        detected_dialect=ling.detected_dialect,
+        detected_intent=ling.detected_intent,
+        duration_seconds=payload.duration_seconds,
+    )
+
+    task_id = None
+    if payload.create_task:
+        task = await db.create_task(
+            conversation_id=saved["id"],
+            user_id=payload.user_id,
+            task_description=payload.create_task,
+            due_date=payload.task_due_date,
+        )
+        task_id = task["id"]
+
+    return ConversationCreateResponse(
+        conversation_id=saved["id"],
+        user_id=payload.user_id,
+        type=conv_type,
+        raw_transcript=raw_text,
+        detected_dialect=ling.detected_dialect,
+        detected_intent=ling.detected_intent,
+        pure_hindi=ling.pure_hindi,
+        pure_english=ling.pure_english,
+        summary=summary,
+        persistence=db.persistence_mode(),
+        task_id=task_id,
+    )
+
+
+# --- Routes ---
 
 
 @app.get("/", tags=["Health Check"])
@@ -210,9 +234,10 @@ async def health_check():
     return {
         "status": "active",
         "service": "Hinglish Normalizer Service",
-        "database": db.db_configured(),
+        "persistence": db.persistence_mode(),
         "gemini": bool(GEMINI_API_KEY),
         "ui": "/conversations",
+        "conversations_api": "/api/v1/conversations",
     }
 
 
@@ -224,6 +249,75 @@ async def conversations_ui():
     return FileResponse(index)
 
 
+@app.post(
+    "/api/v1/conversations",
+    response_model=ConversationCreateResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Conversations"],
+)
+async def create_conversation(payload: ConversationCreateRequest):
+    """
+    Audio/Text → classify → normalize → Instant Save under user_id → immediate response.
+    Dashboard GET will see this record right away.
+    """
+    try:
+        return await _process_and_save_conversation(payload)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Conversation save failed: {e}") from e
+
+
+@app.get("/api/v1/conversations", tags=["Conversations"])
+async def list_conversations(
+    user_id: UUID = Query(..., description="Required user context"),
+    q: Optional[str] = Query(None, description="Keyword search (name, transcript, summary)"),
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
+    type: Optional[Literal["phone_call", "in_person_meeting", "voice_note"]] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+    group_by_date: bool = Query(True, description="Date-wise buckets for dashboard"),
+):
+    """
+    Retrieve the user's conversations with date filters + keyword search.
+    """
+    rows = await db.list_conversations(
+        user_id,
+        limit=limit,
+        q=q,
+        date_from=date_from,
+        date_to=date_to,
+        conversation_type=type,
+    )
+    serialized = [_serialize_row(r) for r in rows]
+    if group_by_date:
+        # group on already-filtered rows
+        from store import group_by_date as _group
+
+        grouped = _group(rows)
+        return {
+            "success": True,
+            "user_id": str(user_id),
+            "count": len(serialized),
+            "persistence": db.persistence_mode(),
+            "groups": [
+                {
+                    "date": g["date"],
+                    "count": g["count"],
+                    "conversations": [_serialize_row(c) for c in g["conversations"]],
+                }
+                for g in grouped
+            ],
+            "conversations": serialized,
+        }
+    return {
+        "success": True,
+        "user_id": str(user_id),
+        "count": len(serialized),
+        "persistence": db.persistence_mode(),
+        "conversations": serialized,
+    }
+
 
 @app.post(
     "/api/v1/normalize",
@@ -232,95 +326,70 @@ async def conversations_ui():
     tags=["Linguistics"],
 )
 async def normalize_hinglish(payload: NormalizationRequest):
-    """
-    क्षेत्रीय बोली / हिंग्लिश / स्लैंग को शुद्ध औपचारिक हिंदी व अंग्रेजी JSON में बदलता है।
-    `save=true` + `user_id` पर Instant Save → conversations टेबल।
-    """
+    """Dialect normalize; optional Instant Save when save=true + user_id."""
     try:
-        response = get_ai_client().models.generate_content(
-            model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
-            contents=(
-                "निम्नलिखित कच्ची ट्रांसक्रिप्ट को नियमों के अनुसार केवल मान्य JSON में सामान्यीकृत करें:\n\n"
-                f"{payload.raw_text}"
-            ),
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION,
-                temperature=0.1,
-                response_mime_type="application/json",
-                response_schema=NormalizationResponse,
-            ),
-        )
-
-        if not response.text:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="AI मॉडल से कोई वैध उत्तर प्राप्त नहीं हुआ।",
-            )
-
-        validated_output = NormalizationResponse.model_validate_json(response.text)
+        client = get_ai_client(required=False)
+        ling = await normalize_text(client, GEMINI_MODEL, payload.raw_text)
+        out = NormalizationResponse(**ling.model_dump())
 
         if payload.save:
-            _require_db()
             if not payload.user_id:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Instant Save के लिए user_id आवश्यक है।",
-                )
-            summary = payload.summary or validated_output.detected_intent
+                raise HTTPException(status_code=400, detail="Instant Save के लिए user_id आवश्यक है।")
+            conv_type = classify_conversation_type(
+                explicit_type=payload.conversation_type,
+                transcript=payload.raw_text,
+                contact_phone=payload.contact_phone,
+            )
             saved = await db.save_conversation(
                 user_id=payload.user_id,
-                type=payload.conversation_type or "voice_note",
+                type=conv_type,
                 contact_name=payload.contact_name,
                 contact_phone=payload.contact_phone,
                 raw_transcript=payload.raw_text,
-                pure_hindi_text=validated_output.pure_hindi,
-                pure_english_text=validated_output.pure_english,
-                summary=summary,
-                detected_dialect=validated_output.detected_dialect,
-                detected_intent=validated_output.detected_intent,
+                pure_hindi_text=ling.pure_hindi,
+                pure_english_text=ling.pure_english,
+                summary=payload.summary or build_mom_summary(ling),
+                detected_dialect=ling.detected_dialect,
+                detected_intent=ling.detected_intent,
             )
-            validated_output.conversation_id = saved["id"]
-
-        return validated_output
-
+            out.conversation_id = saved["id"]
+        return out
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"प्रोसेसिंग में त्रुटि: {str(e)}",
-        )
+        raise HTTPException(status_code=500, detail=f"प्रोसेसिंग में त्रुटि: {e}") from e
 
 
 @app.post("/api/v1/users", tags=["Users"])
 async def create_user(payload: UserCreate):
-    _require_db()
     try:
         row = await db.create_user(payload.name, payload.phone_number)
-        return {"success": True, "user": _serialize_row(row)}
+        return {"success": True, "user": _serialize_row(row), "persistence": db.persistence_mode()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/v1/users/{user_id}", tags=["Users"])
 async def get_user(user_id: UUID):
-    _require_db()
     row = await db.get_user(user_id)
     if not row:
-        raise HTTPException(status_code=404, detail="User not found")
+        # ensure soft presence for memory mode dashboards
+        row = await db.ensure_user(user_id)
     return {"success": True, "user": _serialize_row(row)}
 
 
 @app.get("/api/v1/users/{user_id}/conversations", tags=["Conversations"])
-async def list_user_conversations(user_id: UUID, limit: int = 50):
-    _require_db()
-    rows = await db.list_conversations(user_id, limit=min(limit, 200))
-    return {"success": True, "conversations": [_serialize_row(r) for r in rows]}
+async def list_user_conversations_alias(
+    user_id: UUID,
+    q: Optional[str] = None,
+    limit: int = 50,
+):
+    """Alias → GET /api/v1/conversations?user_id=..."""
+    return await list_conversations(user_id=user_id, q=q, limit=limit, group_by_date=True)
 
 
 @app.post("/api/v1/tasks", tags=["Tasks"])
 async def create_scheduled_task(payload: TaskCreate):
-    _require_db()
     try:
         row = await db.create_task(
             conversation_id=payload.conversation_id,
@@ -335,14 +404,12 @@ async def create_scheduled_task(payload: TaskCreate):
 
 @app.get("/api/v1/users/{user_id}/tasks/pending", tags=["Tasks"])
 async def list_pending_tasks(user_id: UUID):
-    _require_db()
     rows = await db.list_pending_tasks(user_id)
     return {"success": True, "tasks": [_serialize_row(r) for r in rows]}
 
 
 @app.post("/api/v1/tasks/{task_id}/complete", tags=["Tasks"])
 async def complete_task(task_id: UUID):
-    _require_db()
     row = await db.complete_task(task_id)
     if not row:
         raise HTTPException(status_code=404, detail="Task not found")

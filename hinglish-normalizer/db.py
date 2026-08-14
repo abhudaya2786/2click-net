@@ -79,29 +79,55 @@ async def save_conversation(
     summary: Optional[str],
     detected_dialect: Optional[str] = None,
     detected_intent: Optional[str] = None,
+    duration_seconds: Optional[float] = None,
 ) -> dict:
     async with acquire() as conn:
-        row = await conn.fetchrow(
-            """
-            INSERT INTO conversations (
-                user_id, type, contact_name, contact_phone,
-                raw_transcript, pure_hindi_text, pure_english_text, summary,
-                detected_dialect, detected_intent
+        # Prefer extended insert; fall back if duration column missing on older DBs
+        try:
+            row = await conn.fetchrow(
+                """
+                INSERT INTO conversations (
+                    user_id, type, contact_name, contact_phone,
+                    raw_transcript, pure_hindi_text, pure_english_text, summary,
+                    detected_dialect, detected_intent, duration_seconds
+                )
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+                RETURNING *
+                """,
+                user_id,
+                type,
+                contact_name,
+                contact_phone,
+                raw_transcript,
+                pure_hindi_text,
+                pure_english_text,
+                summary,
+                detected_dialect,
+                detected_intent,
+                duration_seconds,
             )
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-            RETURNING *
-            """,
-            user_id,
-            type,
-            contact_name,
-            contact_phone,
-            raw_transcript,
-            pure_hindi_text,
-            pure_english_text,
-            summary,
-            detected_dialect,
-            detected_intent,
-        )
+        except Exception:
+            row = await conn.fetchrow(
+                """
+                INSERT INTO conversations (
+                    user_id, type, contact_name, contact_phone,
+                    raw_transcript, pure_hindi_text, pure_english_text, summary,
+                    detected_dialect, detected_intent
+                )
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                RETURNING *
+                """,
+                user_id,
+                type,
+                contact_name,
+                contact_phone,
+                raw_transcript,
+                pure_hindi_text,
+                pure_english_text,
+                summary,
+                detected_dialect,
+                detected_intent,
+            )
         return dict(row)
 
 

@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS conversations (
     summary TEXT,                       -- 3-लाइन समरी
     detected_dialect VARCHAR(100),      -- AI द्वारा पहचानी गई बोली
     detected_intent TEXT,               -- बिज़नेस उद्देश्य
+    duration_seconds DOUBLE PRECISION,  -- कॉल/मीटिंग अवधि
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -42,5 +43,6 @@ CREATE TABLE IF NOT EXISTS scheduled_tasks (
 -- Indexes for common lookups
 CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_created_at ON conversations(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_conversations_type ON conversations(type);
 CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_user_due ON scheduled_tasks(user_id, due_date);
 CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_status ON scheduled_tasks(status);

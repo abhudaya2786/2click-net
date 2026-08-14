@@ -32,7 +32,7 @@ GEMINI_API_KEY=your_actual_gemini_api_key_here
 PORT=8000
 ```
 
-`GEMINI_API_KEY` is **required**. Replace the placeholder with a real key or the app will refuse to start.
+`GEMINI_API_KEY` enables Gemini normalize/transcribe. Without it, text Instant Save still works via heuristic normalize + memory/Postgres persistence.
 
 ## Run
 
@@ -89,16 +89,36 @@ Rural Awadhi / labor workforce example:
 ```
 
 Supports: भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल, मुंबईया/दिल्ली स्लैंग, Hinglish, formal Hindi.
-## Conversation Feed UI
+## User-Based Instant Save (`/api/v1/conversations`)
 
-Open after starting the server:
+Every conversation is stored with **`user_id`** immediately after process.
 
-- http://127.0.0.1:8000/conversations
+### POST — process + Instant Save
+```bash
+curl -s http://127.0.0.1:8000/api/v1/conversations \
+  -H 'content-type: application/json' \
+  -d '{
+    "user_id": "11111111-1111-1111-1111-111111111111",
+    "raw_text": "yaar client phone pe bol rha h 100 bag cement kal bhejna",
+    "contact_name": "राजेश जी",
+    "contact_phone": "9876543210",
+    "source": "phone",
+    "duration_seconds": 160,
+    "create_task": "कल सुबह चेक तैयार रखना"
+  }'
+```
 
-Shows searchable cards for phone calls / meetings with pure Hindi transcript,
-auto-tasks, PDF download, WhatsApp share, and audio actions.
+- Accepts `raw_text` and/or `audio_base64`
+- Auto-classifies `phone_call` | `in_person_meeting` | `voice_note`
+- Saves pure Hindi/English + MoM summary under `user_id`
+- Works with Postgres (`DATABASE_URL`) or in-memory persistence
 
-Optional live data: `/conversations?user_id=<uuid>` (needs `DATABASE_URL`).
+### GET — date-wise + keyword search
+```bash
+curl -s "http://127.0.0.1:8000/api/v1/conversations?user_id=11111111-1111-1111-1111-111111111111&q=सीमेंट&group_by_date=true"
+```
+
+Dashboard UI: `/conversations?user_id=<uuid>`
 
 
 Schema: `schema.sql` — tables `users`, `conversations`, `scheduled_tasks`.

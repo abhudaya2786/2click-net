@@ -172,7 +172,11 @@ async function loadFromApi() {
   const userId = params.get("user_id");
   if (!userId) return;
   try {
-    const res = await fetch(`/api/v1/users/${userId}/conversations`);
+    const kw = params.get("q") || "";
+    const url =
+      `/api/v1/conversations?user_id=${encodeURIComponent(userId)}&group_by_date=false` +
+      (kw ? `&q=${encodeURIComponent(kw)}` : "");
+    const res = await fetch(url);
     if (!res.ok) return;
     const data = await res.json();
     const rows = data.conversations || [];
@@ -187,7 +191,7 @@ async function loadFromApi() {
             ? `मीटिंग — ${r.contact_name || "बैठक"}`
             : `वॉइस नोट — ${r.contact_name || "नोट"}`,
       when: r.created_at ? new Date(r.created_at).toLocaleString("hi-IN") : "",
-      duration: "—",
+      duration: r.duration_seconds ? `${Math.round(r.duration_seconds)} सेकंड` : "—",
       dialect: r.detected_dialect || "",
       pure_hindi: r.pure_hindi_text || "",
       pure_english: r.pure_english_text || "",
