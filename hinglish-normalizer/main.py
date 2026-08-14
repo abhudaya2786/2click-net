@@ -1,10 +1,17 @@
 import os
+from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Literal, Optional
+from uuid import UUID
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
-from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+from pydantic import BaseModel, Field
+
+import db
 
 # .env फ़ाइल से वेरिएबल्स लोड करें
 load_dotenv()
@@ -16,6 +23,17 @@ if not api_key or api_key.strip() in {"", "your_actual_gemini_api_key_here"}:
 
 ai_client = genai.Client(api_key=api_key)
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    if db.db_configured():
+        await db.init_pool()
+    try:
+        yield
+    finally:
+        await db.close_pool()
+
+
 # FastAPI ऐप सेटअप
 app = FastAPI(
     title="Hinglish Linguistic Normalizer API",
@@ -23,7 +41,8 @@ app = FastAPI(
         "भारत की क्षेत्रीय बोलियाँ (भोजपुरी, अवधी, पूर्वांचली), शहरी स्लैंग "
         "और हिंग्लिश को 100% शुद्ध औपचारिक हिंदी व अंग्रेजी JSON में बदलने वाली API"
     ),
-    version="1.1.0",
+    version="1.2.0",
+    lifespan=lifespan,
 )
 
 # CORS Middleware (Frontend/Mobile App से कनेक्ट करने के लिए)
@@ -50,6 +69,15 @@ class NormalizationRequest(BaseModel):
             "scene set h, apun ko kal 11 baje site pe mil.",
         ],
     )
+    # Instant Save (optional — requires DATABASE_URL)
+    save: bool = Field(default=False, description="Normalize के बाद conversations में Instant Save")
+    user_id: Optional[UUID] = Field(default=None, description="users.id for Instant Save")
+    conversation_type: Optional[Literal["phone_call", "in_person_meeting", "voice_note"]] = (
+        "voice_note"
+    )
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    summary: Optional[str] = Field(default=None, description="3-लाइन समरी (optional override)")
 
 
 class NormalizationResponse(BaseModel):
@@ -65,6 +93,21 @@ class NormalizationResponse(BaseModel):
     pure_english: str = Field(
         description="व्याकरणिक रूप से शुद्ध औपचारिक अंग्रेजी वाक्य"
     )
+    conversation_id: Optional[UUID] = Field(
+        default=None, description="Instant Save होने पर conversations.id"
+    )
+
+
+class UserCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    phone_number: str = Field(..., min_length=8, max_length=15)
+
+
+class TaskCreate(BaseModel):
+    conversation_id: UUID
+    user_id: UUID
+    task_description: str = Field(..., min_length=2)
+    due_date: Optional[datetime] = None
 
 
 # --- System Prompt Instructions ---
@@ -125,9 +168,33 @@ SYSTEM_INSTRUCTION = """
 # --- API Endpoints ---
 
 
+def _require_db():
+    if not db.db_configured():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="DATABASE_URL सेट नहीं है। schema.sql लागू करें और DATABASE_URL जोड़ें।",
+        )
+
+
+def _serialize_row(row: dict) -> dict:
+    out = {}
+    for k, v in row.items():
+        if isinstance(v, UUID):
+            out[k] = str(v)
+        elif isinstance(v, datetime):
+            out[k] = v.isoformat()
+        else:
+            out[k] = v
+    return out
+
+
 @app.get("/", tags=["Health Check"])
 async def health_check():
-    return {"status": "active", "service": "Hinglish Normalizer Service"}
+    return {
+        "status": "active",
+        "service": "Hinglish Normalizer Service",
+        "database": db.db_configured(),
+    }
 
 
 @app.post(
@@ -139,9 +206,9 @@ async def health_check():
 async def normalize_hinglish(payload: NormalizationRequest):
     """
     क्षेत्रीय बोली / हिंग्लिश / स्लैंग को शुद्ध औपचारिक हिंदी व अंग्रेजी JSON में बदलता है।
+    `save=true` + `user_id` पर Instant Save → conversations टेबल।
     """
     try:
-        # Gemini 2.5 Flash — multi-dialect structured JSON
         response = ai_client.models.generate_content(
             model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
             contents=(
@@ -162,8 +229,30 @@ async def normalize_hinglish(payload: NormalizationRequest):
                 detail="AI मॉडल से कोई वैध उत्तर प्राप्त नहीं हुआ।",
             )
 
-        # JSON पार्सिंग और स्कीमा वैलिडेशन
         validated_output = NormalizationResponse.model_validate_json(response.text)
+
+        if payload.save:
+            _require_db()
+            if not payload.user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Instant Save के लिए user_id आवश्यक है।",
+                )
+            summary = payload.summary or validated_output.detected_intent
+            saved = await db.save_conversation(
+                user_id=payload.user_id,
+                type=payload.conversation_type or "voice_note",
+                contact_name=payload.contact_name,
+                contact_phone=payload.contact_phone,
+                raw_transcript=payload.raw_text,
+                pure_hindi_text=validated_output.pure_hindi,
+                pure_english_text=validated_output.pure_english,
+                summary=summary,
+                detected_dialect=validated_output.detected_dialect,
+                detected_intent=validated_output.detected_intent,
+            )
+            validated_output.conversation_id = saved["id"]
+
         return validated_output
 
     except HTTPException:
@@ -173,6 +262,63 @@ async def normalize_hinglish(payload: NormalizationRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"प्रोसेसिंग में त्रुटि: {str(e)}",
         )
+
+
+@app.post("/api/v1/users", tags=["Users"])
+async def create_user(payload: UserCreate):
+    _require_db()
+    try:
+        row = await db.create_user(payload.name, payload.phone_number)
+        return {"success": True, "user": _serialize_row(row)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/users/{user_id}", tags=["Users"])
+async def get_user(user_id: UUID):
+    _require_db()
+    row = await db.get_user(user_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"success": True, "user": _serialize_row(row)}
+
+
+@app.get("/api/v1/users/{user_id}/conversations", tags=["Conversations"])
+async def list_user_conversations(user_id: UUID, limit: int = 50):
+    _require_db()
+    rows = await db.list_conversations(user_id, limit=min(limit, 200))
+    return {"success": True, "conversations": [_serialize_row(r) for r in rows]}
+
+
+@app.post("/api/v1/tasks", tags=["Tasks"])
+async def create_scheduled_task(payload: TaskCreate):
+    _require_db()
+    try:
+        row = await db.create_task(
+            conversation_id=payload.conversation_id,
+            user_id=payload.user_id,
+            task_description=payload.task_description,
+            due_date=payload.due_date,
+        )
+        return {"success": True, "task": _serialize_row(row)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/v1/users/{user_id}/tasks/pending", tags=["Tasks"])
+async def list_pending_tasks(user_id: UUID):
+    _require_db()
+    rows = await db.list_pending_tasks(user_id)
+    return {"success": True, "tasks": [_serialize_row(r) for r in rows]}
+
+
+@app.post("/api/v1/tasks/{task_id}/complete", tags=["Tasks"])
+async def complete_task(task_id: UUID):
+    _require_db()
+    row = await db.complete_task(task_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"success": True, "task": _serialize_row(row)}
 
 
 if __name__ == "__main__":

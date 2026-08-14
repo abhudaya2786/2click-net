@@ -89,12 +89,37 @@ Rural Awadhi / labor workforce example:
 ```
 
 Supports: भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल, मुंबईया/दिल्ली स्लैंग, Hinglish, formal Hindi.
-## Dependencies
+## Database (PostgreSQL)
+
+Schema: `schema.sql` — tables `users`, `conversations`, `scheduled_tasks`.
+
+```bash
+# create DB then apply schema
+psql "$DATABASE_URL" -f schema.sql
+```
+
+Set in `.env`:
 
 ```
-fastapi>=0.110.0
-uvicorn[standard]>=0.28.0
-pydantic>=2.6.0
-python-dotenv>=1.0.0
-google-genai>=0.1.1
+DATABASE_URL=postgresql://USER:PASS@HOST:5432/hinglish_normalizer
 ```
+
+### Instant Save
+`POST /api/v1/normalize` with:
+```json
+{
+  "raw_text": "...",
+  "save": true,
+  "user_id": "<uuid>",
+  "conversation_type": "phone_call",
+  "contact_name": "Client",
+  "contact_phone": "98XXXXXXXX"
+}
+```
+
+### Extra endpoints
+- `POST /api/v1/users`
+- `GET /api/v1/users/{id}/conversations`
+- `POST /api/v1/tasks`
+- `GET /api/v1/users/{id}/tasks/pending`
+- `POST /api/v1/tasks/{id}/complete`
