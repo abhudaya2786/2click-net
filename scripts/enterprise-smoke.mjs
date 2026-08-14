@@ -121,50 +121,37 @@ try {
   ok('phone redacted', String(preview.cleanedText).includes('[REDACTED]'));
   ok('small-talk discarded', preview.discardedLines >= 1);
 
-  // Domain MoM requires API key — skip live call if missing, still test PDF path via mock minutes fallback may 503
-  const hasKey = Boolean(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY);
-  if (hasKey) {
-    const proc = await fetch(`${BASE}/api/field/process`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        transcriptText:
-          'Site engineer: foundation pour complete. Next material delivery kal subah 11 baje. Phone 9988776655.',
-        siteName: 'Client Site',
-        title: 'Smoke Field Visit',
-        notifyWhatsApp: true,
-        generatePdf: true,
-        latitude: 19.06,
-        longitude: 72.86,
-      }),
-    });
-    const pj = await proc.json();
-    ok('field process 200', proc.status === 200 && pj.success === true);
-    ok('pdf path returned', Boolean(pj.visit?.pdfDownloadPath));
-    if (pj.visit?.pdfDownloadPath) {
-      const pdfRes = await fetch(`${BASE}${pj.visit.pdfDownloadPath}`);
-      ok('pdf downloadable', pdfRes.status === 200);
-    }
-    ok('no audio echoed', !pj.audioBase64 && !pj.meeting?.audioUrl);
-  } else {
-    // Unit-level PDF generation still covered by privacy + webhook above.
-    // Process without key should 503 from AI provider — acceptable.
-    const proc = await fetch(`${BASE}/api/field/process`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        transcriptText: 'Construction site: BOQ approved for slab. Delivery kal subah 11 baje.',
-        siteName: 'Client Site',
-        notifyWhatsApp: false,
-        generatePdf: false,
-      }),
-    });
-    ok(
-      'field process without key fails gracefully',
-      proc.status === 500 || proc.status === 503 || proc.status === 200,
-    );
-    console.log('  · skipped live Gemini PDF path (no API key in env)');
+  // Domain MoM works with live keys OR demo heuristic fallback (no keys)
+  const proc = await fetch(`${BASE}/api/field/process`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      transcriptText:
+        'Site engineer: foundation pour complete. Next material delivery kal subah 11 baje. Phone 9988776655. PAN ABCDE1234F.',
+      siteName: 'Client Site',
+      title: 'Smoke Field Visit',
+      notifyWhatsApp: true,
+      generatePdf: true,
+      latitude: 19.06,
+      longitude: 72.86,
+    }),
+  });
+  const pj = await proc.json();
+  ok('field process 200', proc.status === 200 && pj.success === true);
+  ok('domain classified', Boolean(pj.minutes?.domain || pj.visit?.domain));
+  ok('pdf path returned', Boolean(pj.visit?.pdfDownloadPath));
+  ok('pii redacted in visit transcript', String(pj.visit?.cleanedTranscript || '').includes('[REDACTED]'));
+  if (pj.visit?.pdfDownloadPath) {
+    const pdfRes = await fetch(`${BASE}${pj.visit.pdfDownloadPath}`);
+    const buf = Buffer.from(await pdfRes.arrayBuffer());
+    ok('pdf downloadable', pdfRes.status === 200 && buf.slice(0, 4).toString() === '%PDF');
+    fs.writeFileSync('/opt/cursor/artifacts/smoke_field_visit.pdf', buf);
   }
+  ok('no audio echoed', !pj.audioBase64 && !pj.meeting?.audioUrl);
+  ok('whatsapp mock notify id', Boolean(pj.visit?.whatsappMessageId));
+
+  const hasKey = Boolean(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY);
+  console.log(hasKey ? '  · live AI key detected' : '  · demo heuristic MoM (no API key)');
 
   const analytics = await (await fetch(`${BASE}/api/field/analytics`)).json();
   ok('analytics endpoint', analytics.success === true);
