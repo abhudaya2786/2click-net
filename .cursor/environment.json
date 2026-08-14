@@ -1,36 +1,19 @@
 {
-  "name": "buildecogroup",
+  "name": "2click-voice-mom",
   "user": "ubuntu",
   "build": {
     "dockerfile": "Dockerfile",
     "context": "."
   },
-  "install": "./scripts/cloud-agent-install.sh",
+  "install": "npm install --no-audit --no-fund",
   "ports": [
-    {
-      "name": "frontend",
-      "port": 3000
-    },
-    {
-      "name": "backend",
-      "port": 8001
-    }
+    { "name": "app", "port": 3000 }
   ],
   "terminals": [
     {
-      "name": "mongodb",
-      "command": "./scripts/cloud-agent-start.sh && tail -f /var/log/mongodb/mongod.log",
-      "description": "MongoDB database on port 27017"
-    },
-    {
-      "name": "backend",
-      "command": "cd backend && source .venv/bin/activate && uvicorn server:app --host 0.0.0.0 --port 8001 --reload",
-      "description": "FastAPI backend on port 8001"
-    },
-    {
-      "name": "frontend",
-      "command": "cd frontend && npm start",
-      "description": "React dev server on port 3000"
+      "name": "mom-dev",
+      "command": "npm run dev",
+      "description": "Voice MoM Vite+Express dev server on port 3000"
     }
   ]
 }

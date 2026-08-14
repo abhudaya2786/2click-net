@@ -1,0 +1,256 @@
+import React from 'react';
+import {
+  Mic,
+  MicOff,
+  Sparkles,
+  Radio,
+  CheckCircle2,
+  AlertTriangle,
+  ChevronRight,
+  Sliders,
+  X,
+  Play,
+  Square,
+  ShieldCheck,
+  Languages,
+} from 'lucide-react';
+import { useVoice } from '../../context/VoiceContext';
+
+interface VoiceWakeWordBannerProps {
+  onNavigateToSettings?: () => void;
+  onNavigate?: (path: string) => void;
+}
+
+export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
+  onNavigateToSettings,
+  onNavigate,
+}) => {
+  const {
+    status,
+    isListening,
+    isSupported,
+    statusError,
+    activeWakeWordAlert,
+    activeCommandAlert,
+    pendingActionConfirmation,
+    interimTranscript,
+    startListening,
+    stopListening,
+    toggleListening,
+    dismissWakeWordAlert,
+    confirmPendingAction,
+    cancelPendingAction,
+    config,
+  } = useVoice();
+
+  return (
+    <div id="voice-assistant-overlay" className="relative z-40">
+      {/* 1. TOP FLOATING STATUS BAR / LISTENER PILL */}
+      <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 max-w-sm w-full pointer-events-none">
+        {/* Active Speech Transcription Bubble if currently talking */}
+        {isListening && interimTranscript && (
+          <div className="pointer-events-auto max-w-xs px-3.5 py-2 rounded-2xl bg-slate-900/90 text-white text-xs backdrop-blur-md border border-slate-700/60 shadow-lg animate-in fade-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-1.5 text-[10px] text-indigo-400 font-bold uppercase mb-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
+              <span>Speech Stream</span>
+            </div>
+            <p className="line-clamp-2 text-slate-200 italic font-mono text-[11px]">
+              "{interimTranscript}"
+            </p>
+          </div>
+        )}
+
+        {/* Global Voice Assistant Pill */}
+        <div className="pointer-events-auto flex items-center gap-2 p-1.5 pl-3 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md">
+          {/* Status Indicator */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex items-center justify-center">
+              {isListening ? (
+                <>
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 relative" />
+                </>
+              ) : status === 'permission_needed' ? (
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+              ) : (
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200">
+                  {isListening ? 'Voice Assistant Active' : 'Voice Assistant Idle'}
+                </span>
+              </div>
+              <span className="text-[9px] text-slate-400 dark:text-slate-500">
+                {isListening ? 'Say "Namaskar" or "Meeting Start"' : 'Mic paused (No background tracking)'}
+              </span>
+            </div>
+          </div>
+
+          {/* Toggle Mic Button */}
+          <button
+            onClick={toggleListening}
+            className={`p-2 rounded-full font-bold text-xs transition cursor-pointer ${
+              isListening
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-600 hover:text-white'
+            }`}
+            title={isListening ? 'Stop Voice Listening' : 'Start Voice Listening'}
+          >
+            {isListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Settings Shortcut Button */}
+          {onNavigateToSettings && (
+            <button
+              onClick={onNavigateToSettings}
+              className="p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              title="Open Voice & Wake Word Settings"
+            >
+              <Sliders className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 2. PROMINENT "WAKE WORD DETECTED" BANNER / MODAL OVERLAY */}
+      {activeWakeWordAlert && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92vw] animate-in fade-in zoom-in-95 duration-200 shadow-2xl">
+          <div className="p-4 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white border-2 border-indigo-400/50 shadow-indigo-500/20 shadow-2xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-extrabold shadow-md flex-shrink-0 animate-bounce">
+                  <Sparkles className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-amber-300">
+                      Wake Word Detected
+                    </span>
+                    <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-white/20 text-white">
+                      "{activeWakeWordAlert.wakeWord.word}"
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-bold text-white mt-0.5">
+                    Ready for your voice command
+                  </h3>
+                  <p className="text-[11px] text-indigo-200 mt-0.5">
+                    Say "Meeting Start", "Meeting Stop", "Generate Minutes", or tap below.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={dismissWakeWordAlert}
+                className="text-white/60 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+                title="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Quick Action Shortcuts inside Wake Word Alert */}
+            <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-white/15">
+              <button
+                onClick={() => {
+                  dismissWakeWordAlert();
+                  if (onNavigate) onNavigate('/meetings/new');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Play className="w-3 h-3 text-emerald-300" />
+                <span>New Meeting</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  dismissWakeWordAlert();
+                  if (onNavigateToSettings) onNavigateToSettings();
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer ml-auto"
+              >
+                <Sliders className="w-3 h-3" />
+                <span>Voice Settings</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. EXPLICIT RECORDING / COMMAND ACTION CONFIRMATION MODAL (No Silent Recording) */}
+      {pendingActionConfirmation && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
+                  pendingActionConfirmation.action === 'START_RECORDING'
+                    ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
+                    : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                }`}
+              >
+                {pendingActionConfirmation.action === 'START_RECORDING' ? (
+                  <Radio className="w-6 h-6 animate-pulse" />
+                ) : (
+                  <CheckCircle2 className="w-6 h-6" />
+                )}
+              </div>
+              <div>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  {pendingActionConfirmation.title}
+                </h3>
+                <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                  Voice Command Triggered
+                </span>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              {pendingActionConfirmation.description}
+            </p>
+
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+              <span>Visible consent check: Session will display active recording badge and audio level visualizer.</span>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                onClick={cancelPendingAction}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmPendingAction}
+                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition cursor-pointer flex items-center gap-1.5"
+              >
+                <span>Confirm & Execute</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. EXECUTED COMMAND TOAST */}
+      {activeCommandAlert && !pendingActionConfirmation && (
+        <div className="fixed top-20 right-5 z-50 max-w-xs animate-in fade-in slide-in-from-top-3">
+          <div className="p-3.5 rounded-2xl bg-emerald-600 text-white shadow-xl flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            <div>
+              <div className="text-[10px] uppercase font-extrabold text-emerald-200">
+                Command Executed
+              </div>
+              <div className="text-xs font-bold">
+                "{activeCommandAlert.command.phrase}" → {activeCommandAlert.action}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

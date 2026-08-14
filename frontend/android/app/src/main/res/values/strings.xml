@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">BuildEco Group</string>
-    <string name="title_activity_main">BuildEco Group</string>
-    <string name="package_name">com.buildecogroup.app</string>
-    <string name="custom_url_scheme">com.buildecogroup.app</string>
-</resources>
