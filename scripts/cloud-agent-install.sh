@@ -45,6 +45,12 @@ install_backend() {
 
 install_frontend() {
   cd "${ROOT_DIR}/frontend"
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm is required but was not found on PATH. Ensure Node.js (>=20) is installed in the environment Dockerfile." >&2
+    exit 1
+  fi
+  node -v
+  npm -v
   if [[ -f package-lock.json ]]; then
     npm ci --no-audit --no-fund
   else
