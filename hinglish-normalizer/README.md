@@ -59,10 +59,10 @@ Response:
 
 ```json
 {
-  "detected_intent": "...",
-  "detected_dialect": "भोजपुरी | अवधी | हिंग्लिश | मुंबईया | ...",
-  "pure_hindi": "...",
-  "pure_english": "..."
+  "detected_dialect": "भोजपुरी / पूर्वांचली",
+  "detected_intent": "भुगतान पूरा होने के बाद साइट पर सामग्री की डिलीवरी समय पर सुनिश्चित करना",
+  "pure_hindi": "कृपया स्पष्ट करें कि साइट पर निर्माण सामग्री कब तक पहुंचेगी। भुगतान पूर्ण कर दिया गया है, अतः कार्य में कोई रुकावट नहीं आनी चाहिए।",
+  "pure_english": "Please confirm when the materials will be delivered to the site. The full payment has been made, so there should be no disruption in work."
 }
 ```
 

@@ -53,10 +53,10 @@ class NormalizationRequest(BaseModel):
 
 
 class NormalizationResponse(BaseModel):
-    detected_intent: str = Field(description="बातचीत का मुख्य भाव, संदर्भ और संक्षिप्त सार")
     detected_dialect: str = Field(
-        description="पहचानी गई बोली/लहज़ा (जैसे: भोजपुरी, अवधी, हिंग्लिश, मुंबईया, औपचारिक हिंदी)"
+        description="पहचानी गई बोली/लहज़ा (जैसे: भोजपुरी / पूर्वांचली, अवधी, हिंग्लिश, मुंबईया)"
     )
+    detected_intent: str = Field(description="बातचीत का मुख्य भाव, संदर्भ और संक्षिप्त सार")
     pure_hindi: str = Field(description="100% शुद्ध मानक देवनागरी हिंदी रूपांतरण")
     pure_english: str = Field(description="व्याकरणिक रूप से शुद्ध औपचारिक अंग्रेजी वाक्य")
 
@@ -75,12 +75,22 @@ SYSTEM_INSTRUCTION = """
 4. `pure_hindi` हमेशा मानक देवनागरी में हो; `pure_english` पूरी तरह व्याकरण-शुद्ध, प्रोफेशनल और औपचारिक हो।
 5. आउटपुट केवल और केवल मान्य JSON में होना चाहिए—कोई प्रस्तावना, मार्कडाउन या अतिरिक्त टेक्स्ट नहीं।
 
-### JSON स्कीमा:
+### JSON स्कीमा (फ़ील्ड क्रम अनिवार्य):
 {
-  "detected_intent": "उपयोगकर्ता क्या कहना चाह रहा है (संक्षिप्त सारांश)",
   "detected_dialect": "पहचानी गई बोली/लहज़ा",
+  "detected_intent": "उपयोगकर्ता क्या कहना चाह रहा है (संक्षिप्त सारांश)",
   "pure_hindi": "शुद्ध मानक देवनागरी हिंदी वाक्य",
   "pure_english": "Clean, grammatically correct formal English sentence"
+}
+
+### उदाहरण (Few-Shot):
+इनपुट: "भैया पेमेंट पूरा हो गइल बा, साइट पे माल कब तक पहुँचे? काम रुकै ना चाही।"
+आउटपुट:
+{
+  "detected_dialect": "भोजपुरी / पूर्वांचली",
+  "detected_intent": "भुगतान पूरा होने के बाद साइट पर सामग्री की डिलीवरी समय पर सुनिश्चित करना",
+  "pure_hindi": "कृपया स्पष्ट करें कि साइट पर निर्माण सामग्री कब तक पहुंचेगी। भुगतान पूर्ण कर दिया गया है, अतः कार्य में कोई रुकावट नहीं आनी चाहिए।",
+  "pure_english": "Please confirm when the materials will be delivered to the site. The full payment has been made, so there should be no disruption in work."
 }
 """
 
