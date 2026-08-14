@@ -1,47 +1,49 @@
 # Mobile app & APK — 2Click Voice MoM
 
+## Why you saw a blank white screen on 2click.in
+
+Hostinger was serving the **Vite source** `index.html` (`<script src="/src/main.tsx">`).  
+Browsers refuse that module (wrong MIME / no bundler) → **empty white page**.
+
+**Fix:** upload the **built** files from `npm run pack:hostinger` into `public_html`  
+(or point the domain to Vercel). Never upload the repo root / `src/` as the website.
+
 ## Mobile website (PWA)
 
-The web app is phone-ready:
-
-- Bottom navigation on small screens
-- Safe-area padding for notches
+- Bottom navigation on phones
+- Safe-area padding
 - Installable PWA (`manifest.webmanifest` + service worker)
-
-**Install without APK:** open the live site in Chrome → **Install app** / **Add to Home screen**.
 
 ## Android APK (Capacitor)
 
 Package ID: `in.twoclick.mom`
 
-The APK is a native WebView shell. **Live URL mode** (default) loads your deployed MoM site so `/api` works.
-
-### Option A — GitHub Actions
-
-1. Merge to `main` or run **Actions → Build Android APK → Run workflow**
-2. Download artifact `2click-mom-android-apk` (`app-debug.apk`)
-3. Optional workflow input: `server_url` (defaults to `https://2click.in`)
-
-### Option B — Local
-
-Requirements: Node 20+, Java **21**+, Android SDK.
+**Default mode = bundled UI** (assets inside the APK) so the app is not white when Hostinger is broken.  
+`/api` calls are rewritten to `VITE_API_BASE_URL`.
 
 ```bash
-export CAPACITOR_SERVER_URL=https://your-deployed-mom.example
+export VITE_API_BASE_URL=https://your-working-mom-host.example
+npm run android:apk
+# → dist/2click-mom.apk
+```
+
+Optional live WebView wrapper (only if that URL already shows the UI, not white):
+
+```bash
+export CAPACITOR_SERVER_URL=https://your-working-mom-host.example
 npm run android:apk
 ```
 
-Output: `dist/2click-mom.apk`
+### GitHub Actions
 
-### Open Android Studio
+**Actions → Build Android APK → Run workflow**
+
+## Hostinger static upload
 
 ```bash
-npm run cap:sync
-npm run cap:open
+export VITE_API_BASE_URL=https://your-vercel-mom.example
+npm run pack:hostinger
+# upload dist/hostinger-upload/* → public_html
 ```
 
-## Notes
-
-- Microphone permission is declared for in-app recording.
-- Point `CAPACITOR_SERVER_URL` at a working Vercel/VPS deploy (not Hostinger shared `public_html` source).
-- For Play Store release signing, configure `android/app/build.gradle` and run `assembleRelease`.
+Shared Hostinger still cannot run Node APIs — use Vercel/VPS for the backend, or point DNS fully to Vercel.

@@ -1,11 +1,13 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * Mobile shell for 2Click Voice MoM.
+ * Bundled WebView by default so the APK never depends on a broken Hostinger
+ * deploy (white screen from raw /src/main.tsx).
  *
- * - Bundled mode: loads dist/client (set CAPACITOR_SERVER_URL empty)
- * - Live mode (recommended): WebView loads the deployed site so /api works
- *   CAPACITOR_SERVER_URL=https://your-mom-host.example
+ * Optional live wrapper:
+ *   CAPACITOR_SERVER_URL=https://your-working-mom-host npm run android:apk
+ *
+ * When bundled, set VITE_API_BASE_URL so /api calls reach the backend.
  */
 const liveUrl = (process.env.CAPACITOR_SERVER_URL || '').trim();
 
@@ -15,13 +17,14 @@ const config: CapacitorConfig = {
   webDir: 'dist/client',
   android: {
     allowMixedContent: false,
-    backgroundColor: '#0B4BD5',
+    backgroundColor: '#FFFFFF',
   },
   plugins: {
     SplashScreen: {
       launchAutoHide: true,
       backgroundColor: '#0B4BD5',
       showSpinner: false,
+      showDuration: 400,
     },
     StatusBar: {
       style: 'DARK',

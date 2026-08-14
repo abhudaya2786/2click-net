@@ -18,7 +18,8 @@
     "icons": "node scripts/generate-pwa-icons.mjs",
     "cap:sync": "npm run build:client && npx cap sync android",
     "cap:open": "npx cap open android",
-    "android:apk": "bash scripts/build-apk.sh"
+    "android:apk": "bash scripts/build-apk.sh",
+    "pack:hostinger": "bash scripts/pack-hostinger.sh"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.0",
