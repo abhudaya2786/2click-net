@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
-import { getAIProvider } from './server/ai/index.ts';
+import { getAIProvider, hasAiApiKey } from './server/ai/index.ts';
 import { getSpeechProvider } from './server/speech/index.ts';
 import { billingManager, SAAS_PLANS } from './server/billing/index.ts';
 
@@ -15,8 +15,8 @@ const isProd = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
 
-function requireGemini() {
-  if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+function requireLiveAi() {
+  if (!hasAiApiKey()) {
     const err = new Error('Set GEMINI_API_KEY or OPENAI_API_KEY in .env / .env.local');
     (err as any).status = 503;
     throw err;
@@ -119,19 +119,26 @@ async function createApp() {
       app: '2click-voice-mom',
       gemini: Boolean(process.env.GEMINI_API_KEY),
       openai: Boolean(process.env.OPENAI_API_KEY),
+      demoMode: !hasAiApiKey(),
     });
   });
 
   // Core: generate MoM from audio and/or transcript text
   app.post('/api/generate-mom', async (req, res) => {
     try {
-      requireGemini();
       const { audioBase64, mimeType, transcriptText, context } = req.body || {};
       let transcript = typeof transcriptText === 'string' ? transcriptText.trim() : '';
       let segments: any[] = [];
       let languageDetected = context?.language || 'auto';
 
       if (!transcript && audioBase64) {
+        if (!hasAiApiKey()) {
+          return res.status(503).json({
+            error:
+              'Audio transcription requires GEMINI_API_KEY or OPENAI_API_KEY. Paste a transcript text, or set a key in .env.local.',
+            demoMode: true,
+          });
+        }
         const speech = getSpeechProvider(process.env.AI_PROVIDER);
         const speechResult = await speech.transcribe({
           audioBase64,
@@ -183,7 +190,7 @@ async function createApp() {
 
   app.post('/api/transcribe', async (req, res) => {
     try {
-      requireGemini();
+      requireLiveAi();
       const speech = getSpeechProvider(req.body?.provider || process.env.AI_PROVIDER);
       const result = await speech.transcribe({
         audioBase64: req.body.audioBase64,
@@ -218,7 +225,9 @@ async function createApp() {
 
   app.post('/api/minutes/generate', async (req, res) => {
     try {
-      requireGemini();
+      if (!req.body?.transcript || String(req.body.transcript).trim().length < 10) {
+        return res.status(400).json({ error: 'transcript is required (min 10 characters).' });
+      }
       const ai = getAIProvider(req.body?.provider || process.env.AI_PROVIDER);
       const minutes = await ai.generateMinutes({
         transcript: req.body.transcript,
@@ -262,8 +271,21 @@ async function createApp() {
 
   app.post('/api/chat-meeting', async (req, res) => {
     try {
-      requireGemini();
       const { meetingData, currentPrompt } = req.body || {};
+      if (!hasAiApiKey()) {
+        const title = meetingData?.title || 'the meeting';
+        const summary = meetingData?.executiveSummary || meetingData?.summary || '';
+        return res.json({
+          success: true,
+          reply: `Demo reply (no AI key): Regarding “${title}” — ${
+            summary
+              ? summary.slice(0, 280)
+              : 'set GEMINI_API_KEY for live answers grounded in the full MoM.'
+          }${currentPrompt ? ` (Q: ${String(currentPrompt).slice(0, 120)})` : ''}`,
+          demoMode: true,
+        });
+      }
+      requireLiveAi();
       const ai = geminiClient();
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -283,8 +305,23 @@ QUESTION: ${currentPrompt}`,
 
   app.post('/api/generate-email', async (req, res) => {
     try {
-      requireGemini();
       const { meetingData, emailStyle, recipient } = req.body || {};
+      if (!hasAiApiKey()) {
+        const who = recipient || 'team';
+        const title = meetingData?.title || 'our meeting';
+        const actions = Array.isArray(meetingData?.actionItems)
+          ? meetingData.actionItems
+              .slice(0, 3)
+              .map((a: any) => `- ${a.task || a} (${a.owner || a.responsible_person || 'TBD'})`)
+              .join('\n')
+          : '- (none listed)';
+        return res.json({
+          success: true,
+          demoMode: true,
+          emailText: `Hi ${who},\n\nFollowing up on ${title} (${emailStyle || 'professional'} demo draft).\n\nKey actions:\n${actions}\n\nBest regards`,
+        });
+      }
+      requireLiveAi();
       const ai = geminiClient();
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
