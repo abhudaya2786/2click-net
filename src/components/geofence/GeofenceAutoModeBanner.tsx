@@ -46,7 +46,7 @@ export const GeofenceAutoModeBanner: React.FC<GeofenceAutoModeBannerProps> = ({
     <div className="w-full bg-slate-900 border-b border-slate-800 text-white relative z-20 shadow-md">
       {/* Top Countdown Overlay Alert (When Arrived Inside Geofence) */}
       {countdownSeconds !== null && matched && (
-        <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 px-4 py-2.5 text-white shadow-lg animate-in slide-in-from-top-2 duration-300">
+        <div className="bg-gradient-to-r from-emerald-600 via-hs-600 to-indigo-600 px-4 py-2.5 text-white shadow-lg animate-in slide-in-from-top-2 duration-300">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center font-black text-lg animate-pulse">

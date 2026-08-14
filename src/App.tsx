@@ -536,26 +536,26 @@ function AppContent() {
   return (
     <div className="app-shell text-slate-800 dark:text-slate-100 font-sans transition-colors">
       {/* Compact top bar — fits one viewport row */}
-      <header className="shrink-0 z-40 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md pt-safe">
+      <header className="app-header shrink-0 z-40 pt-safe">
         <div className="mx-auto max-w-6xl px-3 sm:px-4 h-[var(--app-header-h)] flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => go('/meetings')}
-            className="flex items-center gap-2 min-w-0 cursor-pointer text-left group"
+            className="flex items-center gap-2.5 min-w-0 cursor-pointer text-left group"
           >
-            <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center shadow-sm group-hover:bg-teal-700 transition-colors">
+            <div className="w-8 h-8 rounded-lg bg-hs-600 text-white flex items-center justify-center shadow-sm group-hover:bg-hs-700 transition-colors">
               <Mic className="w-4 h-4" />
             </div>
             <div className="min-w-0 leading-tight">
-              <div className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
-                2Click <span className="text-teal-700 dark:text-teal-400">MoM</span>
+              <div className="text-[15px] font-extrabold tracking-tight text-slate-950 dark:text-white truncate">
+                2Click<span className="hs-accent">MoM</span>
               </div>
-              <div className="hidden sm:block text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                Voice minutes
+              <div className="hidden sm:block text-[10px] font-semibold text-slate-500">
+                AI notetaker for meetings
               </div>
             </div>
           </button>
 
-          <nav className="hidden sm:flex items-center ml-1 bg-slate-100/90 dark:bg-slate-900 p-0.5 rounded-lg text-xs font-bold">
+          <nav className="hidden sm:flex items-center ml-2 bg-slate-100/80 dark:bg-slate-900/80 p-0.5 rounded-lg text-xs font-bold">
             {primaryNav.map((item) => {
               const Icon = item.icon;
               const active = item.match(currentRoute);
@@ -565,7 +565,7 @@ function AppContent() {
                   onClick={() => go(item.path)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition cursor-pointer ${
                     active
-                      ? 'bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-300 shadow-sm'
+                      ? 'bg-white dark:bg-slate-800 text-hs-700 dark:text-hs-300 shadow-sm'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                   }`}
                 >
@@ -576,27 +576,26 @@ function AppContent() {
             })}
           </nav>
 
-          <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => go('/meetings/new')}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition cursor-pointer"
+              className="btn-hs"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">New</span>
+              <span className="hidden sm:inline">Try for free</span>
+              <span className="sm:hidden">New</span>
             </button>
 
             <button
               id="open-history-btn"
               onClick={() => setIsHistoryOpen(true)}
-              className="relative p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="btn-hs-secondary relative !px-2.5"
               title="History"
             >
-              <span className="flex items-center gap-1">
-                <History className="w-3.5 h-3.5 text-slate-500" />
-                <span className="hidden md:inline">History</span>
-              </span>
+              <History className="w-3.5 h-3.5 text-slate-500" />
+              <span className="hidden md:inline">History</span>
               {savedMeetings.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center justify-center">
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-hs-600 text-white text-[9px] font-bold flex items-center justify-center">
                   {savedMeetings.length}
                 </span>
               )}
@@ -605,7 +604,7 @@ function AppContent() {
             <button
               id="theme-toggle-btn"
               onClick={toggleTheme}
-              className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="btn-hs-secondary !px-2"
               title="Toggle theme"
             >
               {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
@@ -615,10 +614,10 @@ function AppContent() {
               <button
                 id="open-more-btn"
                 onClick={() => setIsMoreOpen((v) => !v)}
-                className={`p-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                className={`btn-hs-secondary !px-2 ${
                   isMoreOpen || currentRoute.startsWith('/settings')
-                    ? 'border-teal-300 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? '!border-hs-300 !bg-hs-50 dark:!bg-hs-900/40 !text-hs-800 dark:!text-hs-300'
+                    : ''
                 }`}
                 title="More settings"
               >
@@ -646,7 +645,7 @@ function AppContent() {
                           onClick={() => go(item.path)}
                           className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold transition cursor-pointer ${
                             active
-                              ? 'bg-teal-50 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300'
+                              ? 'bg-hs-50 dark:bg-hs-900/50 text-hs-800 dark:text-hs-300'
                               : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                           }`}
                         >
@@ -763,14 +762,14 @@ function AppContent() {
 
         {/* Processing Indicator Banner */}
         {isProcessing && (
-          <div className="p-4 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 flex flex-col sm:flex-row items-center justify-center gap-3 text-center sm:text-left">
-            <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
+          <div className="p-4 rounded-xl bg-hs-50/70 dark:bg-hs-900/40 border border-hs-200 dark:border-hs-800 flex flex-col sm:flex-row items-center justify-center gap-3 text-center sm:text-left">
+            <div className="w-9 h-9 rounded-lg bg-hs-600 text-white flex items-center justify-center shadow-xs flex-shrink-0">
               <Loader2 className="w-5 h-5 animate-spin" />
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center justify-center sm:justify-start gap-1.5">
                 Generating Minutes of Meeting
-                <Sparkles className="w-3.5 h-3.5 text-blue-500 animate-pulse" />
+                <Sparkles className="w-3.5 h-3.5 text-hs-500 animate-pulse" />
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
                 {processingStatus}
@@ -803,7 +802,7 @@ function AppContent() {
                 onClick={() => setActiveInputTab('record')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition cursor-pointer ${
                   activeInputTab === 'record'
-                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-2xs font-semibold'
+                    ? 'bg-white dark:bg-slate-900 text-hs-600 dark:text-hs-400 shadow-2xs font-semibold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
@@ -816,7 +815,7 @@ function AppContent() {
                 onClick={() => setActiveInputTab('upload')}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-md transition cursor-pointer ${
                   activeInputTab === 'upload'
-                    ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-2xs font-semibold'
+                    ? 'bg-white dark:bg-slate-900 text-hs-600 dark:text-hs-400 shadow-2xs font-semibold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
@@ -900,7 +899,7 @@ function AppContent() {
                     onClick={() => setActiveSectionTab(tab.id as any)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition whitespace-nowrap cursor-pointer ${
                       isActive
-                        ? 'bg-blue-600 text-white font-semibold shadow-2xs'
+                        ? 'bg-hs-600 text-white font-semibold shadow-2xs'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -1006,7 +1005,7 @@ function AppContent() {
           </section>
         ) : (
           <div className="text-center py-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-            <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-3">
+            <div className="w-12 h-12 rounded-xl bg-hs-50 dark:bg-hs-900 text-hs-600 dark:text-hs-400 flex items-center justify-center mx-auto mb-3">
               <FileSpreadsheet className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
@@ -1017,7 +1016,7 @@ function AppContent() {
             </p>
             <button
               onClick={() => setIsSampleModalOpen(true)}
-              className="mt-3 px-3.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition cursor-pointer"
+              className="mt-3 px-3.5 py-1.5 bg-hs-600 text-white rounded-lg text-xs font-semibold hover:bg-hs-700 transition cursor-pointer"
             >
               Load Sample Meeting
             </button>
@@ -1046,7 +1045,7 @@ function AppContent() {
                 key={item.path}
                 onClick={() => go(item.path)}
                 className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-bold cursor-pointer ${
-                  item.active ? 'text-teal-700 dark:text-teal-300' : 'text-slate-500 dark:text-slate-400'
+                  item.active ? 'text-hs-700 dark:text-hs-300' : 'text-slate-500 dark:text-slate-400'
                 }`}
               >
                 <Icon className="w-5 h-5" />

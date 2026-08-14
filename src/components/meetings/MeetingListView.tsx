@@ -79,29 +79,47 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
 
   return (
     <div className="w-full animate-in fade-in duration-200">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <div className="flex items-center gap-2 text-[11px] font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider mb-1">
-            <Layers className="w-3.5 h-3.5" />
-            Meeting Hub
+      {/* HappyScribe-like hero strip */}
+      <section className="mb-6 rounded-2xl border border-[#e8ecf1] dark:border-slate-800 bg-white dark:bg-slate-950 px-4 sm:px-6 py-6 sm:py-8 relative overflow-hidden">
+        <div className="absolute -right-10 -top-16 w-56 h-56 rounded-full bg-hs-100/70 dark:bg-hs-900/30 blur-2xl pointer-events-none" />
+        <div className="absolute right-16 bottom-0 w-40 h-40 rounded-[2rem] rotate-12 bg-hs-50 dark:bg-hs-900/20 pointer-events-none" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold text-hs-600 mb-2">AI transcription &amp; meeting notes</p>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-950 dark:text-white tracking-tight leading-[1.1]">
+              The AI notetaker for{' '}
+              <span className="hs-accent">conversational intelligence</span>
+            </h1>
+            <p className="mt-3 text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
+              Record or upload meetings. Get accurate transcripts, decisions, and action items — in Hindi, English, and Hinglish.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              <button onClick={() => onNavigate('/meetings/new')} className="btn-hs">
+                <Plus className="w-4 h-4" />
+                Try for free
+              </button>
+              <button onClick={() => onNavigate('/mom')} className="btn-hs-secondary">
+                <Sparkles className="w-4 h-4 text-hs-600" />
+                Open MoM AI
+              </button>
+            </div>
           </div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-            Meetings & Live Studio
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5 max-w-xl">
-            Organize sessions, manage participants, and launch recording — fitted for desktop and mobile.
-          </p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 min-w-[240px]">
+            <div className="hs-card p-3 text-center">
+              <div className="text-lg font-black text-slate-950 dark:text-white">{totalMeetings}</div>
+              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Meetings</div>
+            </div>
+            <div className="hs-card p-3 text-center">
+              <div className="text-lg font-black text-hs-600">{readyCount}</div>
+              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Ready</div>
+            </div>
+            <div className="hs-card p-3 text-center">
+              <div className="text-lg font-black text-emerald-600">{completedCount}</div>
+              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">Done</div>
+            </div>
+          </div>
         </div>
-
-        <button
-          onClick={() => onNavigate('/meetings/new')}
-          className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Meeting</span>
-        </button>
-      </div>
+      </section>
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-5">
@@ -110,12 +128,12 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
           <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">{totalMeetings}</div>
         </div>
 
-        <div className="p-3 sm:p-4 rounded-xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800/70 shadow-sm">
-          <div className="text-[11px] font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="p-3 sm:p-4 rounded-xl bg-hs-50/80 dark:bg-hs-900/40 border border-hs-200/70 dark:border-hs-800/70 shadow-sm">
+          <div className="text-[11px] font-bold text-hs-700 dark:text-hs-300 uppercase tracking-wider flex items-center gap-1.5">
             <Play className="w-3 h-3" />
             Armed & Ready
           </div>
-          <div className="text-xl sm:text-2xl font-black text-sky-900 dark:text-sky-200 mt-1">{readyCount}</div>
+          <div className="text-xl sm:text-2xl font-black text-hs-900 dark:text-hs-200 mt-1">{readyCount}</div>
         </div>
 
         <div className="p-4 rounded-xl bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-800/70 shadow-2xs">
@@ -146,7 +164,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search meetings by title, organizer, project..."
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+              className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-hs-500 transition"
             />
           </div>
 
@@ -177,7 +195,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
               onClick={() => setSelectedDept(dept)}
               className={`px-3 py-1 rounded-lg text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                 selectedDept === dept
-                  ? 'bg-teal-600 text-white shadow-2xs'
+                  ? 'bg-hs-600 text-white shadow-2xs'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
@@ -190,7 +208,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
       {/* Meetings List / Cards */}
       {loading ? (
         <div className="py-16 text-center text-slate-500">
-          <div className="w-8 h-8 border-3 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <div className="w-8 h-8 border-3 border-hs-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
           <p className="text-xs font-semibold">Loading meetings database...</p>
         </div>
       ) : meetings.length > 0 ? (
@@ -202,14 +220,14 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
                 if (onSelectMeeting) onSelectMeeting(m.id);
                 onNavigate(`/meetings/${m.id}`);
               }}
-              className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-5 sm:p-6 hover:border-teal-400 dark:hover:border-teal-600 shadow-2xs hover:shadow-md transition-all cursor-pointer"
+              className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800/80 p-5 sm:p-6 hover:border-hs-400 dark:hover:border-hs-600 shadow-2xs hover:shadow-md transition-all cursor-pointer"
             >
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 {/* Left meta & title */}
                 <div className="space-y-2 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <MeetingStateBadge status={m.status} size="sm" />
-                    <span className="px-2.5 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 text-[11px] font-bold">
+                    <span className="px-2.5 py-0.5 rounded-md bg-hs-50 dark:bg-hs-900 text-hs-700 dark:text-hs-300 text-[11px] font-bold">
                       {m.department}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[11px] font-bold">
@@ -217,14 +235,14 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
                     </span>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition">
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white group-hover:text-hs-600 dark:group-hover:text-hs-400 transition">
                     {m.title}
                   </h3>
 
                   {/* Organizer, Schedule, Duration */}
                   <div className="flex flex-wrap items-center gap-y-1.5 gap-x-4 text-xs font-medium text-slate-500 dark:text-slate-400">
                     <span className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
-                      <div className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[9px]">
+                      <div className="w-5 h-5 rounded-full bg-hs-600 text-white flex items-center justify-center text-[9px]">
                         {m.organizer.slice(0, 2).toUpperCase()}
                       </div>
                       {m.organizer}
@@ -263,7 +281,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
                   {/* Recordings badge if any */}
                   {m.recordings && m.recordings.length > 0 && (
                     <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                      <FileAudio className="w-3 h-3 text-teal-500" />
+                      <FileAudio className="w-3 h-3 text-hs-500" />
                       {m.recordings.length}
                     </span>
                   )}
@@ -277,7 +295,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
                     className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs transition cursor-pointer ${
                       m.status === 'RECORDING'
                         ? 'bg-rose-600 text-white animate-pulse'
-                        : 'bg-teal-600 hover:bg-teal-700 text-white'
+                        : 'bg-hs-600 hover:bg-hs-700 text-white'
                     }`}
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
@@ -298,7 +316,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
         </div>
       ) : (
         <div className="py-16 text-center bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8">
-          <div className="w-12 h-12 rounded-xl bg-teal-50 dark:bg-teal-950 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 rounded-xl bg-hs-50 dark:bg-hs-900 text-hs-600 dark:text-hs-400 flex items-center justify-center mx-auto mb-3">
             <Calendar className="w-6 h-6" />
           </div>
           <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
@@ -309,7 +327,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
           </p>
           <button
             onClick={() => onNavigate('/meetings/new')}
-            className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer"
+            className="px-5 py-2.5 bg-hs-600 hover:bg-hs-700 text-white text-xs font-bold rounded-xl shadow-xs inline-flex items-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Create New Meeting</span>

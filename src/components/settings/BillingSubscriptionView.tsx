@@ -129,7 +129,7 @@ export function BillingSubscriptionView({ onNavigate }: BillingSubscriptionViewP
       case 'BUSINESS':
         return 'from-indigo-600 to-blue-600 text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800';
       case 'STARTER':
-        return 'from-emerald-600 to-teal-600 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800';
+        return 'from-emerald-600 to-hs-600 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800';
       case 'FREE':
       default:
         return 'from-slate-600 to-gray-600 text-slate-600 bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800';
@@ -473,7 +473,7 @@ export function BillingSubscriptionView({ onNavigate }: BillingSubscriptionViewP
                   {/* Top Badges */}
                   {plan.badge && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs">
+                      <span className="px-3 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-gradient-to-r from-emerald-600 to-hs-600 text-white shadow-xs">
                         {plan.badge}
                       </span>
                     </div>
@@ -746,7 +746,7 @@ export function BillingSubscriptionView({ onNavigate }: BillingSubscriptionViewP
             <div className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-hs-50 dark:bg-hs-900/60 text-hs-600 dark:text-hs-400 flex items-center justify-center">
                     <FileText className="w-4 h-4" />
                   </div>
                   <div>
@@ -766,7 +766,7 @@ export function BillingSubscriptionView({ onNavigate }: BillingSubscriptionViewP
                 </div>
                 <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-teal-500 transition-all duration-500"
+                    className="h-full rounded-full bg-hs-500 transition-all duration-500"
                     style={{ width: `${Math.min(100, usage?.metrics?.transcriptionMinutes?.percent || 40)}%` }}
                   />
                 </div>
