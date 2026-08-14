@@ -77,6 +77,17 @@ Hinglish slang example:
 }
 ```
 
+Rural Awadhi / labor workforce example:
+
+```json
+{
+  "detected_dialect": "ग्रामीण अवधी / लेबर वर्कफोर्स",
+  "detected_intent": "छत की ढलाई हेतु अतिरिक्त जनशक्ति (मैनपावर) की आवश्यकता",
+  "pure_hindi": "ठेकेदार के अनुसार कल 5 अतिरिक्त राजमिस्त्री और 10 श्रमिकों की आवश्यकता होगी, जिससे परसों तक छत की ढलाई पूर्ण की जा सके।",
+  "pure_english": "According to the contractor, 5 additional masons and 10 laborers will be required tomorrow to complete the slab casting by day after tomorrow."
+}
+```
+
 Supports: भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल, मुंबईया/दिल्ली स्लैंग, Hinglish, formal Hindi.
 ## Dependencies
 

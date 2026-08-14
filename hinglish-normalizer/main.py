@@ -104,6 +104,16 @@ SYSTEM_INSTRUCTION = """
   "pure_hindi": "क्लाइंट 10% छूट की मांग कर रहा है और मूल्य कम करने की स्थिति में आज ही टोकन राशि देने को तैयार है।",
   "pure_english": "The client is requesting a 10% discount and is willing to pay the token amount today if the price is reduced."
 }
+
+उदाहरण 3
+इनपुट: "ठेकेदार कहत है कल 5 और मिस्त्री अउर 10 मजदूर चाही, तबे परसों तक छत के ढलाई पूरा होई"
+आउटपुट:
+{
+  "detected_dialect": "ग्रामीण अवधी / लेबर वर्कफोर्स",
+  "detected_intent": "छत की ढलाई हेतु अतिरिक्त जनशक्ति (मैनपावर) की आवश्यकता",
+  "pure_hindi": "ठेकेदार के अनुसार कल 5 अतिरिक्त राजमिस्त्री और 10 श्रमिकों की आवश्यकता होगी, जिससे परसों तक छत की ढलाई पूर्ण की जा सके।",
+  "pure_english": "According to the contractor, 5 additional masons and 10 laborers will be required tomorrow to complete the slab casting by day after tomorrow."
+}
 """
 
 # --- API Endpoints ---
