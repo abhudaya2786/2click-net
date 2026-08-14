@@ -1,191 +1,46 @@
-# BuildEco Group (buildecogroup.com) — Complete Website Source Code
+# 2Click.in — Voice Minutes of Meeting AI
 
-Construction super-app: Store, Super Mart, Full BOQ, Interior BOQ, Tenders, Solar, Consultants, Upcoming Projects, Property Advisory, Enrollment, Mera Ghar ERP, and more.
+This repository now hosts **Voice MoM** (from [`abhudaya2786/voice-mom`](https://github.com/abhudaya2786/voice-mom)).
 
-**Live site:** https://www.buildecogroup.com  
-**Brand:** BuildEco Group · **Domain:** https://www.buildecogroup.com  
-**Owner control (off Emergent):** see [`docs/OWNER_CONTROL.md`](docs/OWNER_CONTROL.md)
+> **BuildEco Group (`buildecogroup.com`) is a separate product/repo and is not affected by this app.**
 
----
+## Features
 
-## Get the full source code
+- Record or upload meeting audio
+- Speech transcription (Gemini / OpenAI)
+- Structured Minutes of Meeting, decisions, action items
+- Meeting chat copilot, email draft, privacy & schedule tools
 
-### Option 1 — GitHub (recommended)
+## Run locally
 
-```bash
-# Latest branch (all recent features)
-git clone https://github.com/abhudaya2786/2click-net.git buildecogroup
-cd buildecogroup
-git checkout cursor/upcoming-projects-4cd6
-```
-
-**ZIP download (no git):**
-
-https://github.com/abhudaya2786/buildecogroup/archive/refs/heads/cursor/upcoming-projects-4cd6.zip
-
-**Stable `main` branch:**
-
-https://github.com/abhudaya2786/buildecogroup/archive/refs/heads/main.zip
-
-**Open PR (merge for latest on main):** https://github.com/abhudaya2786/buildecogroup/pull/29
-
-### Option 2 — GitHub Releases
-
-After merging PR #29, download the latest zip from the repository page → **Code** → **Download ZIP**.
-
----
-
-## Project structure
-
-```
-buildecogroup/
-├── backend/                 # FastAPI + MongoDB API
-│   ├── server.py            # Main app entry
-│   ├── mart.py              # Super Mart, Store, BOQ builder, fabrication
-│   ├── upcoming_projects.py # Upcoming land/projects by location
-│   ├── property_advisory.py   # Expert guidance by property type
-│   ├── consultants.py       # Architect, vastu, real estate advisors
-│   ├── enrollment.py        # User/shop enrollment + agreements
-│   ├── home_build.py        # Mera Ghar lifecycle
-│   ├── phase3.py / phase3a.py / phase3c.py  # Tenders, freelancers
-│   ├── solar_epc.py         # Solar calculator + KYC
-│   ├── wallet.py            # Wallet & billing
-│   ├── site_config.py       # Geo, branding, locales
-│   ├── rbac.py              # Roles & permissions
-│   └── requirements.txt
-├── frontend/                # React (CRA + Craco + Tailwind)
-│   ├── src/
-│   │   ├── App.js           # All routes
-│   │   ├── pages/           # Home, Store, BOQ, Tenders, Dashboard…
-│   │   ├── components/      # UI, marketing, dashboard, demo
-│   │   └── lib/             # api.js, demoData.js, homeCopy.js
-│   ├── public/              # sitemap, manifest, index.html
-│   └── package.json
-├── vercel.json              # Frontend deploy (Vercel)
-├── scripts/                 # Utility scripts
-└── docs/                    # Extra documentation
-```
-
----
-
-## Tech stack
-
-| Layer | Stack |
-|-------|--------|
-| Frontend | React 18, React Router, Tailwind, Framer Motion, Capacitor (Android APK) |
-| Backend | Python 3.12, FastAPI, Motor (MongoDB) |
-| Database | MongoDB |
-| Deploy | Vercel (frontend), backend on your server / Emergent host |
-
----
-
-## Local setup
-
-### Prerequisites
-
-- Node.js 20+
-- Python 3.12+
-- MongoDB running locally (or Mongo Atlas URL)
-
-### 1. Backend
+**Prerequisites:** Node.js 20+
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env        # edit MONGO_URL, JWT_SECRET, ADMIN_EMAIL, ADMIN_PASSWORD
-uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+npm install
+cp .env.example .env.local
+# set GEMINI_API_KEY=...
+npm run dev
 ```
 
-API docs: http://localhost:8001/docs
+Open http://localhost:3000
 
-### 2. Frontend
+## Production
 
 ```bash
-cd frontend
-npm install --legacy-peer-deps
-cp .env.example .env        # REACT_APP_BACKEND_URL=http://localhost:8001
+npm run build
 npm start
 ```
 
-Open: http://localhost:3000
+## Environment
 
-### 3. Production build (frontend)
+| Variable | Required | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | Recommended | Transcription + MoM |
+| `OPENAI_API_KEY` | Optional | Prefer OpenAI when set |
+| `PORT` | Optional | Default `3000` |
 
-```bash
-cd frontend
-npm run build
-# Output: frontend/build/
-```
+## Source
 
----
-
-## Main pages (routes)
-
-| Path | Feature |
-|------|---------|
-| `/` | Home, regional landing, upcoming projects |
-| `/store` | Construction store (Myntra-style) |
-| `/mart` | Super Mart + brand rates |
-| `/boq-builder` | Full home BOQ (kitchen, bath, plumber…) |
-| `/interior-boq` | Interior / fabrication / tiles calculators |
-| `/interior-boq/fabrication` | Fabrication work types + materials |
-| `/upcoming-projects` | Projects by location & BHK |
-| `/property-advisory` | Expert guidance + consultant match |
-| `/equipment-rental` | JCB, crane, tipper, logistics rental |
-| `/tenders` | Tender hub + reverse auction |
-| `/consultants` | Architects, vastu, real estate |
-| `/solar` | Solar EPC calculator |
-| `/enroll` | Enrollment forms |
-| `/dashboard` | Customer / vendor / contractor ERP |
-| `/register`, `/login` | Auth |
-
----
-
-## Environment variables
-
-See `backend/.env.example` and `frontend/.env.example`.
-
-**Required for backend:** `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
-
----
-
-## Deploy
-
-- **Frontend:** Connect repo to Vercel; uses `vercel.json` (builds `frontend/`).
-- **Backend:** Deploy `backend/` with `uvicorn server:app`; set env vars; point `REACT_APP_BACKEND_URL` on Vercel to your API URL.
-
----
-
-## Demo accounts (seeded on backend startup)
-
-| Role | Email | Password |
-|------|-------|----------|
-| Customer | customer@buildecogroup.com | Demo@12345 |
-| Vendor | vendor@buildecogroup.com | Demo@12345 |
-| Contractor | contractor@buildecogroup.com | Demo@12345 |
-
----
-
-## Owner / Super Admin login
-
-**Do not use** the regular `/login` page for the site owner — super admin is blocked there.
-
-| Step | Detail |
-|------|--------|
-| **URL** | https://www.buildecogroup.com/sys/console (local: http://localhost:3000/sys/console) |
-| **Email** | Value of `ADMIN_EMAIL` in backend `.env` (production default: `abbhuadaya@gmail.com`) |
-| **Password** | Value of `ADMIN_PASSWORD` in backend `.env` |
-| **Access PIN** | Optional — `ADMIN_ACCESS_PIN` in backend `.env` if enabled |
-| **OTP** | After password, a 6-digit code is emailed to the admin email |
-
-After login you reach **Dashboard** with full Super Admin controls (users, RBAC, site customization, pincodes, backup, analytics).
-
-**Regular users** (customer, vendor, contractor): `/login` with demo emails above or registered accounts.
-
----
-
-## License
-
-Private project — buildecogroup.com / repository owner.
+Application UI: `src/`  
+AI / speech / billing adapters: `server/`  
+HTTP entry: `server.ts`
