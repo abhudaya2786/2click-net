@@ -241,47 +241,56 @@ export class CommandSessionController {
       let meetingId: string | undefined;
 
       if (processMom && (redacted || audioBase64)) {
-        const momRes = await fetch('/api/generate-mom', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            audioBase64: audioBase64 || undefined,
-            mimeType: this.mimeType,
-            transcriptText: redacted || undefined,
-            context: {
-              title: 'Command Session Note',
-              meetingType: 'Voice Command',
-              duration: `${Math.floor(this.durationSeconds / 60)}:${String(this.durationSeconds % 60).padStart(2, '0')}`,
-            },
-          }),
-        });
-        const momData = await momRes.json().catch(() => ({}));
-        if (momRes.ok && momData?.meeting) {
-          const meeting = momData.meeting;
-          // Redact triggers from generated MoM fields
-          if (typeof meeting.summary === 'string') {
-            meeting.summary = redactCommandTriggers(meeting.summary, this.extraPhrases);
+        // Gemini MoM is optional — Instant Save still runs if generate-mom is unavailable (503)
+        try {
+          const momRes = await fetch('/api/generate-mom', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              audioBase64: audioBase64 || undefined,
+              mimeType: this.mimeType,
+              transcriptText: redacted || undefined,
+              context: {
+                title: 'Command Session Note',
+                meetingType: 'Voice Command',
+                duration: `${Math.floor(this.durationSeconds / 60)}:${String(this.durationSeconds % 60).padStart(2, '0')}`,
+              },
+            }),
+          });
+          const momData = await momRes.json().catch(() => ({}));
+          if (momRes.ok && momData?.meeting) {
+            const meeting = momData.meeting;
+            // Redact triggers from generated MoM fields
+            if (typeof meeting.summary === 'string') {
+              meeting.summary = redactCommandTriggers(meeting.summary, this.extraPhrases);
+            }
+            if (typeof meeting.transcript === 'string') {
+              meeting.transcript = redactCommandTriggers(meeting.transcript, this.extraPhrases);
+            }
+            if (Array.isArray(meeting.discussions)) {
+              meeting.discussions = meeting.discussions.map((d: string) =>
+                redactCommandTriggers(String(d), this.extraPhrases),
+              );
+            }
+            momSummary = meeting.summary || '';
+            meetingId = meeting.id;
+            try {
+              const key = 'voice_mom_saved_meetings_v1';
+              const prev = JSON.parse(localStorage.getItem(key) || '[]');
+              const list = Array.isArray(prev) ? prev : [];
+              localStorage.setItem(key, JSON.stringify([meeting, ...list.filter((m: any) => m.id !== meeting.id)]));
+            } catch {
+              /* ignore */
+            }
+          } else if (!redacted && !audioBase64) {
+            throw new Error(momData?.error || 'Empty session — nothing to save');
           }
-          if (typeof meeting.transcript === 'string') {
-            meeting.transcript = redactCommandTriggers(meeting.transcript, this.extraPhrases);
+        } catch (momErr: any) {
+          // No API key / network — fall through to Instant Save with transcript only
+          if (!redacted && !audioBase64) {
+            throw momErr;
           }
-          if (Array.isArray(meeting.discussions)) {
-            meeting.discussions = meeting.discussions.map((d: string) =>
-              redactCommandTriggers(String(d), this.extraPhrases),
-            );
-          }
-          momSummary = meeting.summary || '';
-          meetingId = meeting.id;
-          try {
-            const key = 'voice_mom_saved_meetings_v1';
-            const prev = JSON.parse(localStorage.getItem(key) || '[]');
-            const list = Array.isArray(prev) ? prev : [];
-            localStorage.setItem(key, JSON.stringify([meeting, ...list.filter((m: any) => m.id !== meeting.id)]));
-          } catch {
-            /* ignore */
-          }
-        } else if (!redacted && !audioBase64) {
-          throw new Error(momData?.error || 'Empty session — nothing to save');
+          momSummary = redacted.slice(0, 240);
         }
       }
 
