@@ -59,8 +59,9 @@ import { BillingSubscriptionView } from './components/settings/BillingSubscripti
 import { GeofenceProvider } from './context/GeofenceContext';
 import { GeofenceAutoModeBanner } from './components/geofence/GeofenceAutoModeBanner';
 import { LocationGeofenceSettingsView } from './components/settings/LocationGeofenceSettingsView';
-import { CreditCard, Compass, MapPin, Power, MoreHorizontal, Settings2, X } from 'lucide-react';
+import { CreditCard, Compass, MapPin, Power, MoreHorizontal, Settings2, X, FileAudio } from 'lucide-react';
 import { MobileInstallBanner } from './components/MobileInstallBanner';
+import { RecordingsLibraryView } from './components/recordings/RecordingsLibraryView';
 
 const LOCAL_STORAGE_KEY = 'voice_mom_saved_meetings_v1';
 const SCHEDULED_EVENTS_KEY = 'voice_mom_scheduled_events_v1';
@@ -71,7 +72,13 @@ function AppContent() {
   // Navigation / Routing State for /meetings, /meetings/new, /meetings/[id], /settings/voice
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
     const p = window.location.pathname;
-    if (p.startsWith('/meetings') || p.startsWith('/settings') || p === '/mom') return p;
+    if (
+      p.startsWith('/meetings') ||
+      p.startsWith('/settings') ||
+      p.startsWith('/recordings') ||
+      p === '/mom'
+    )
+      return p;
     return '/meetings';
   });
 
@@ -273,10 +280,38 @@ function AppContent() {
   const handleAudioRecorded = async (audioBlob: Blob, durationFormatted: string) => {
     setIsProcessing(true);
     setErrorMessage(null);
-    setProcessingStatus('Uploading & analyzing voice recording with Gemini 3.7 Flash...');
+    setProcessingStatus('Saving voice file to your recordings library...');
 
     try {
       const base64Audio = await blobToBase64(audioBlob);
+      const durationParts = durationFormatted.split(':').map((x) => Number(x) || 0);
+      const durationSeconds =
+        durationParts.length === 3
+          ? durationParts[0] * 3600 + durationParts[1] * 60 + durationParts[2]
+          : durationParts.length === 2
+            ? durationParts[0] * 60 + durationParts[1]
+            : durationParts[0] || 0;
+
+      // Always persist a user-visible copy (Downloads / Documents/2ClickMoM/Recordings)
+      const meetingIdForRec = currentMeeting?.id || `standalone-${Date.now()}`;
+      try {
+        const savedRec = await meetingDb.saveRecording(meetingIdForRec, {
+          mimeType: audioBlob.type || 'audio/webm',
+          durationSeconds,
+          fileSizeBytes: audioBlob.size,
+          audioData: base64Audio,
+          blob: audioBlob,
+          saveToDevice: true,
+          status: 'Saved',
+        });
+        setProcessingStatus(
+          savedRec.localPath
+            ? `Saved: ${savedRec.localPath}`
+            : 'Recording saved to library. Generating MoM...',
+        );
+      } catch (saveErr) {
+        console.warn('Recording library save failed', saveErr);
+      }
 
       setProcessingStatus('Transcribing speech, identifying speakers, and structuring decisions...');
 
@@ -316,6 +351,8 @@ function AppContent() {
       setCurrentMeeting(generatedMeeting);
       const updatedList = [generatedMeeting, ...savedMeetings.filter((m) => m.id !== generatedMeeting.id)];
       persistMeetings(updatedList);
+      // Jump to recordings library so user can see the file path
+      navigate('/recordings');
     } catch (err: any) {
       console.error('Error generating MoM from audio:', err);
       setErrorMessage(err.message || 'An error occurred during audio processing. Please verify microphone audio.');
@@ -519,9 +556,11 @@ function AppContent() {
   const primaryNav = [
     { path: '/meetings', match: (r: string) => r.startsWith('/meetings'), label: 'Meetings', icon: Layers },
     { path: '/mom', match: (r: string) => r === '/mom' || r === '/', label: 'MoM AI', icon: Sparkles },
+    { path: '/recordings', match: (r: string) => r.startsWith('/recordings'), label: 'Files', icon: FileAudio },
   ];
 
   const moreNav = [
+    { path: '/recordings', label: 'Voice Files & Location', icon: FileAudio, id: 'recordings-library-nav-btn' },
     { path: '/settings/voice', label: 'Voice & Wake Words', icon: Mic, id: 'voice-settings-nav-btn' },
     { path: '/settings/schedule', label: 'Recording Schedule', icon: Calendar, id: 'schedule-settings-nav-btn' },
     { path: '/settings/privacy', label: 'Privacy & Security', icon: ShieldCheck, id: 'privacy-settings-nav-btn' },
@@ -717,6 +756,12 @@ function AppContent() {
       ) : currentRoute === '/settings/voice' ? (
         <main>
           <VoiceSettingsView onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/recordings' || currentRoute === '/files' ? (
+        <main className="px-3 sm:px-4 py-4">
+          <RecordingsLibraryView
+            onOpenMeeting={(id) => navigate(`/meetings/${id}`)}
+          />
         </main>
       ) : currentRoute === '/meetings' ? (
         <main>
@@ -1038,7 +1083,7 @@ function AppContent() {
           {[
             { path: '/meetings', label: 'Meetings', icon: Layers, active: currentRoute.startsWith('/meetings') && currentRoute !== '/meetings/new' },
             { path: '/mom', label: 'MoM', icon: Sparkles, active: currentRoute === '/mom' || currentRoute === '/' },
-            { path: '/meetings/new', label: 'Record', icon: Mic, active: currentRoute === '/meetings/new' },
+            { path: '/recordings', label: 'Files', icon: FileAudio, active: currentRoute.startsWith('/recordings') || currentRoute === '/files' },
             { path: '/settings/voice', label: 'More', icon: Settings2, active: currentRoute.startsWith('/settings') },
           ].map((item) => {
             const Icon = item.icon;
