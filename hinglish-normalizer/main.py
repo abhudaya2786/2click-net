@@ -1,12 +1,15 @@
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Literal, Optional
 from uuid import UUID
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field
@@ -16,12 +19,22 @@ import db
 # .env फ़ाइल से वेरिएबल्स लोड करें
 load_dotenv()
 
-# Gemini API Client इनिशियलाइज़ करें
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key or api_key.strip() in {"", "your_actual_gemini_api_key_here"}:
-    raise RuntimeError("GEMINI_API_KEY वातावरण चर में सेट नहीं है।")
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+_raw_key = (os.getenv("GEMINI_API_KEY") or "").strip()
+GEMINI_API_KEY = "" if _raw_key in {"", "your_actual_gemini_api_key_here"} else _raw_key
+ai_client = None
 
-ai_client = genai.Client(api_key=api_key)
+
+def get_ai_client():
+    global ai_client
+    if not GEMINI_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="GEMINI_API_KEY वातावरण चर में सेट नहीं है।",
+        )
+    if ai_client is None:
+        ai_client = genai.Client(api_key=GEMINI_API_KEY)
+    return ai_client
 
 
 @asynccontextmanager
@@ -41,7 +54,7 @@ app = FastAPI(
         "भारत की क्षेत्रीय बोलियाँ (भोजपुरी, अवधी, पूर्वांचली), शहरी स्लैंग "
         "और हिंग्लिश को 100% शुद्ध औपचारिक हिंदी व अंग्रेजी JSON में बदलने वाली API"
     ),
-    version="1.2.0",
+    version="1.3.0",
     lifespan=lifespan,
 )
 
@@ -53,6 +66,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
 
 # --- Pydantic Data Models ---
 
@@ -194,7 +211,18 @@ async def health_check():
         "status": "active",
         "service": "Hinglish Normalizer Service",
         "database": db.db_configured(),
+        "gemini": bool(GEMINI_API_KEY),
+        "ui": "/conversations",
     }
+
+
+@app.get("/conversations", tags=["UI"], include_in_schema=False)
+async def conversations_ui():
+    index = STATIC_DIR / "index.html"
+    if not index.exists():
+        raise HTTPException(status_code=404, detail="UI not found")
+    return FileResponse(index)
+
 
 
 @app.post(
@@ -209,7 +237,7 @@ async def normalize_hinglish(payload: NormalizationRequest):
     `save=true` + `user_id` पर Instant Save → conversations टेबल।
     """
     try:
-        response = ai_client.models.generate_content(
+        response = get_ai_client().models.generate_content(
             model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
             contents=(
                 "निम्नलिखित कच्ची ट्रांसक्रिप्ट को नियमों के अनुसार केवल मान्य JSON में सामान्यीकृत करें:\n\n"

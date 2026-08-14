@@ -89,7 +89,17 @@ Rural Awadhi / labor workforce example:
 ```
 
 Supports: भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल, मुंबईया/दिल्ली स्लैंग, Hinglish, formal Hindi.
-## Database (PostgreSQL)
+## Conversation Feed UI
+
+Open after starting the server:
+
+- http://127.0.0.1:8000/conversations
+
+Shows searchable cards for phone calls / meetings with pure Hindi transcript,
+auto-tasks, PDF download, WhatsApp share, and audio actions.
+
+Optional live data: `/conversations?user_id=<uuid>` (needs `DATABASE_URL`).
+
 
 Schema: `schema.sql` — tables `users`, `conversations`, `scheduled_tasks`.
 
