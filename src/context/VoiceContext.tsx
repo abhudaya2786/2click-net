@@ -520,6 +520,9 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         setActiveCommandAlert(cmd);
         setCommands(voiceCommandProviderRef.current.getCommands());
+      } else if (commandSessionController.isRecording() && phrase.trim()) {
+        // Feed free-form spoken content into the active command session buffer
+        commandSessionController.appendSpeech(phrase.trim(), true);
       }
 
       return {
