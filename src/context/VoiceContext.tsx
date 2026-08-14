@@ -243,6 +243,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       emitFeedback('stop');
+      commandSessionController.flushPendingInterim();
       void commandSessionController.stopAndSave();
     });
     const unsubSave = provider.registerActionHandler('SAVE_NOTE', () => {
@@ -264,6 +265,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       emitFeedback('stop');
+      commandSessionController.flushPendingInterim();
       void commandSessionController.stopAndSave();
     });
     const unsubCancel = provider.registerActionHandler('CANCEL_RECORDING', () => {

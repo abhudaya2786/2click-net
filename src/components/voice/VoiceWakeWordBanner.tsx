@@ -117,10 +117,26 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                 recording” discards.
               </p>
             )}
-            {commandSession.status === 'saved' && commandSession.lastSavedId && (
-              <p className="mt-1 text-[11px] text-emerald-100/90 truncate">
-                Instant Save · {commandSession.lastSavedId}
-              </p>
+            {commandSession.status === 'saved' && (
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-[11px] text-emerald-100/90 truncate min-w-0">
+                  {commandSession.lastMomSummary
+                    ? commandSession.lastMomSummary
+                    : commandSession.lastSavedId
+                      ? `Saved · ${commandSession.lastSavedId}`
+                      : 'Note saved to MoM document'}
+                </p>
+                {onNavigate && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('/mom')}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-100 cursor-pointer"
+                  >
+                    Open note
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
             )}
             {commandSession.status === 'error' && commandSession.lastError && (
               <p className="mt-1 text-[11px] text-rose-100/90 line-clamp-2">{commandSession.lastError}</p>

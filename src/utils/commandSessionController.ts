@@ -69,6 +69,7 @@ export class CommandSessionController {
   private status: CommandSessionStatus = 'idle';
   private startedAtMs: number | null = null;
   private transcriptParts: string[] = [];
+  private pendingInterim = '';
   private chunks: Blob[] = [];
   private mediaRecorder: MediaRecorder | null = null;
   private mediaStream: MediaStream | null = null;
@@ -131,14 +132,29 @@ export class CommandSessionController {
   /** Append spoken text while session is active (triggers are redacted later). */
   public appendSpeech(text: string, isFinal: boolean) {
     if (this.status !== 'recording' || !text?.trim()) return;
+    const cleaned = text.trim();
+    if (!cleaned) return;
     if (!isFinal) {
+      this.pendingInterim = cleaned;
       this.emit();
       return;
     }
-    const cleaned = text.trim();
+    this.pendingInterim = '';
+    const last = this.transcriptParts[this.transcriptParts.length - 1];
+    if (last && last === cleaned) return;
+    this.transcriptParts.push(cleaned);
+    this.emit();
+  }
+
+  /** Flush last interim utterance into the buffer before stop/save. */
+  public flushPendingInterim() {
+    if (this.status !== 'recording' || !this.pendingInterim) return;
+    const cleaned = this.pendingInterim.trim();
+    this.pendingInterim = '';
     if (!cleaned) return;
     const last = this.transcriptParts[this.transcriptParts.length - 1];
     if (last && last === cleaned) return;
+    // Avoid double-storing if interim already contained only the stop command
     this.transcriptParts.push(cleaned);
     this.emit();
   }
@@ -155,6 +171,7 @@ export class CommandSessionController {
     this.lastSavedId = undefined;
     this.lastMomSummary = undefined;
     this.transcriptParts = [];
+    this.pendingInterim = '';
     this.chunks = [];
     this.durationSeconds = 0;
     this.startedAtMs = Date.now();
@@ -199,6 +216,7 @@ export class CommandSessionController {
     await this.teardownRecorder();
     this.chunks = [];
     this.transcriptParts = [];
+    this.pendingInterim = '';
     this.startedAtMs = null;
     this.durationSeconds = 0;
     this.lastError = undefined;
@@ -220,28 +238,38 @@ export class CommandSessionController {
     const processMom = opts?.processMom !== false;
     const instantSave = opts?.instantSave !== false;
 
+    // Capture last interim words before leaving recording state
+    this.flushPendingInterim();
     this.setStatus('processing');
     await this.teardownRecorder();
 
     const raw = this.transcriptParts.join(' ').trim();
     const redacted = redactCommandTriggers(raw, this.extraPhrases);
     let audioBase64 = '';
-    let audioBlob: Blob | null = null;
+    let audioDataUrl = '';
     if (this.chunks.length > 0) {
-      audioBlob = new Blob(this.chunks, { type: this.mimeType });
+      const audioBlob = new Blob(this.chunks, { type: this.mimeType });
       try {
         audioBase64 = await blobToBase64(audioBlob);
+        audioDataUrl = `data:${this.mimeType};base64,${audioBase64}`;
       } catch {
         /* ignore */
       }
     }
 
+    // Always create a visible MoM note document (even without Gemini)
+    const {
+      buildMeetingNoteFromSession,
+      persistMeetingNote,
+      normalizeMeetingData,
+    } = await import('./buildCommandSessionMeeting');
+
     try {
       let momSummary = '';
       let meetingId: string | undefined;
+      let geminiMeeting: any = null;
 
       if (processMom && (redacted || audioBase64)) {
-        // Gemini MoM is optional — Instant Save still runs if generate-mom is unavailable (503)
         try {
           const momRes = await fetch('/api/generate-mom', {
             method: 'POST',
@@ -259,55 +287,65 @@ export class CommandSessionController {
           });
           const momData = await momRes.json().catch(() => ({}));
           if (momRes.ok && momData?.meeting) {
-            const meeting = momData.meeting;
-            // Redact triggers from generated MoM fields
-            if (typeof meeting.summary === 'string') {
-              meeting.summary = redactCommandTriggers(meeting.summary, this.extraPhrases);
+            geminiMeeting = momData.meeting;
+            if (typeof geminiMeeting.summary === 'string') {
+              geminiMeeting.summary = redactCommandTriggers(geminiMeeting.summary, this.extraPhrases);
             }
-            if (typeof meeting.transcript === 'string') {
-              meeting.transcript = redactCommandTriggers(meeting.transcript, this.extraPhrases);
-            }
-            if (Array.isArray(meeting.discussions)) {
-              meeting.discussions = meeting.discussions.map((d: string) =>
-                redactCommandTriggers(String(d), this.extraPhrases),
+            if (typeof geminiMeeting.executiveSummary === 'string') {
+              geminiMeeting.executiveSummary = redactCommandTriggers(
+                geminiMeeting.executiveSummary,
+                this.extraPhrases,
               );
             }
-            momSummary = meeting.summary || '';
-            meetingId = meeting.id;
-            try {
-              const key = 'voice_mom_saved_meetings_v1';
-              const prev = JSON.parse(localStorage.getItem(key) || '[]');
-              const list = Array.isArray(prev) ? prev : [];
-              localStorage.setItem(key, JSON.stringify([meeting, ...list.filter((m: any) => m.id !== meeting.id)]));
-            } catch {
-              /* ignore */
+            const normalized = normalizeMeetingData(geminiMeeting, {
+              executiveSummary: redacted.slice(0, 280),
+              audioUrl: audioDataUrl || undefined,
+            });
+            if (audioDataUrl && !normalized.audioUrl) normalized.audioUrl = audioDataUrl;
+            if (!normalized.duration && this.durationSeconds > 0) {
+              const mins = Math.floor(this.durationSeconds / 60);
+              const secs = this.durationSeconds % 60;
+              normalized.duration = `${mins}:${String(secs).padStart(2, '0')}`;
             }
-          } else if (!redacted && !audioBase64) {
-            throw new Error(momData?.error || 'Empty session — nothing to save');
+            momSummary = normalized.executiveSummary;
+            meetingId = normalized.id;
+            persistMeetingNote(normalized);
+            geminiMeeting = normalized;
           }
-        } catch (momErr: any) {
-          // No API key / network — fall through to Instant Save with transcript only
-          if (!redacted && !audioBase64) {
-            throw momErr;
-          }
-          momSummary = redacted.slice(0, 240);
+        } catch {
+          /* fall through to local note */
         }
+      }
+
+      if (!geminiMeeting) {
+        const localMeeting = buildMeetingNoteFromSession({
+          transcript: redacted,
+          summary: momSummary || redacted.slice(0, 280),
+          durationSeconds: this.durationSeconds,
+          audioDataUrl: audioDataUrl || undefined,
+        });
+        persistMeetingNote(localMeeting);
+        meetingId = localMeeting.id;
+        momSummary = localMeeting.executiveSummary;
       }
 
       let conversationId: string | undefined;
       let persistence: string | undefined;
 
-      if (instantSave && (redacted || audioBase64)) {
+      if (instantSave) {
         const userId = ensureDemoUserId();
         const endpoint = this.saveUrl || '/api/v1/conversations';
-        // Prefer hinglish Instant Save when URL configured; also try relative proxy
+        const bodyText =
+          redacted ||
+          momSummary ||
+          `Voice command session (${this.durationSeconds}s)`;
         try {
           const saveRes = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               user_id: userId,
-              raw_text: redacted || undefined,
+              raw_text: bodyText,
               audio_base64: !redacted && audioBase64 ? audioBase64 : undefined,
               mime_type: this.mimeType,
               type: 'voice_note',
@@ -324,32 +362,32 @@ export class CommandSessionController {
               momSummary = redactCommandTriggers(String(saved.summary), this.extraPhrases);
             }
           } else {
-            // Fallback: local Instant Save mirror
-            conversationId = await this.localInstantSave(userId, redacted, momSummary);
+            conversationId = await this.localInstantSave(userId, bodyText, momSummary);
             persistence = 'localStorage';
           }
         } catch {
-          conversationId = await this.localInstantSave(userId, redacted, momSummary);
+          conversationId = await this.localInstantSave(userId, bodyText, momSummary);
           persistence = 'localStorage';
         }
       }
 
-      this.lastSavedId = conversationId || meetingId;
+      this.lastSavedId = meetingId || conversationId;
       this.lastMomSummary = momSummary;
       this.chunks = [];
       this.transcriptParts = [];
+      this.pendingInterim = '';
       this.startedAtMs = null;
       this.setStatus('saved');
       setTimeout(() => {
         if (this.status === 'saved') this.setStatus('idle');
-      }, 2200);
+      }, 2800);
 
       return {
         conversationId,
         meetingId,
         redactedTranscript: redacted,
         momSummary,
-        persistence,
+        persistence: persistence || 'localStorage',
       };
     } catch (e: any) {
       this.lastError = e?.message || 'Save failed';
@@ -415,6 +453,7 @@ export class CommandSessionController {
     this.listeners.clear();
     this.chunks = [];
     this.transcriptParts = [];
+    this.pendingInterim = '';
     this.status = 'idle';
   }
 }
