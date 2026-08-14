@@ -66,6 +66,17 @@ Response:
 }
 ```
 
+Hinglish slang example:
+
+```json
+{
+  "detected_dialect": "हिंग्लिश / कैजुअल स्लैंग",
+  "detected_intent": "क्लाइंट द्वारा तत्काल टोकन राशि देने की शर्त पर 10% छूट की मांग",
+  "pure_hindi": "क्लाइंट 10% छूट की मांग कर रहा है और मूल्य कम करने की स्थिति में आज ही टोकन राशि देने को तैयार है।",
+  "pure_english": "The client is requesting a 10% discount and is willing to pay the token amount today if the price is reduced."
+}
+```
+
 Supports: भोजपुरी, अवधी, पूर्वांचली, देहाती बोलचाल, मुंबईया/दिल्ली स्लैंग, Hinglish, formal Hindi.
 ## Dependencies
 

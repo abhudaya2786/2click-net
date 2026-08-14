@@ -84,6 +84,8 @@ SYSTEM_INSTRUCTION = """
 }
 
 ### उदाहरण (Few-Shot):
+
+उदाहरण 1
 इनपुट: "भैया पेमेंट पूरा हो गइल बा, साइट पे माल कब तक पहुँचे? काम रुकै ना चाही।"
 आउटपुट:
 {
@@ -91,6 +93,16 @@ SYSTEM_INSTRUCTION = """
   "detected_intent": "भुगतान पूरा होने के बाद साइट पर सामग्री की डिलीवरी समय पर सुनिश्चित करना",
   "pure_hindi": "कृपया स्पष्ट करें कि साइट पर निर्माण सामग्री कब तक पहुंचेगी। भुगतान पूर्ण कर दिया गया है, अतः कार्य में कोई रुकावट नहीं आनी चाहिए।",
   "pure_english": "Please confirm when the materials will be delivered to the site. The full payment has been made, so there should be no disruption in work."
+}
+
+उदाहरण 2
+इनपुट: "yaar client bol rha h 10% discount de do to aaj hi token de dega scene set h"
+आउटपुट:
+{
+  "detected_dialect": "हिंग्लिश / कैजुअल स्लैंग",
+  "detected_intent": "क्लाइंट द्वारा तत्काल टोकन राशि देने की शर्त पर 10% छूट की मांग",
+  "pure_hindi": "क्लाइंट 10% छूट की मांग कर रहा है और मूल्य कम करने की स्थिति में आज ही टोकन राशि देने को तैयार है।",
+  "pure_english": "The client is requesting a 10% discount and is willing to pay the token amount today if the price is reduced."
 }
 """
 
