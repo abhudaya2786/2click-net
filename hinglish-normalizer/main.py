@@ -54,11 +54,17 @@ class NormalizationRequest(BaseModel):
 
 class NormalizationResponse(BaseModel):
     detected_dialect: str = Field(
-        description="पहचानी गई बोली/लहज़ा (जैसे: भोजपुरी / पूर्वांचली, अवधी, हिंग्लिश, मुंबईया)"
+        description="पहचानी गई बोली (जैसे: भोजपुरी, अवधी, हिंग्लिश, टपोरी, शिष्ट)"
     )
-    detected_intent: str = Field(description="बातचीत का मुख्य भाव, संदर्भ और संक्षिप्त सार")
-    pure_hindi: str = Field(description="100% शुद्ध मानक देवनागरी हिंदी रूपांतरण")
-    pure_english: str = Field(description="व्याकरणिक रूप से शुद्ध औपचारिक अंग्रेजी वाक्य")
+    detected_intent: str = Field(
+        description="बातचीत का मुख्य बिज़नेस उद्देश्य और संदर्भ"
+    )
+    pure_hindi: str = Field(
+        description="शुद्ध मानक देवनागरी हिंदी रूपांतरण"
+    )
+    pure_english: str = Field(
+        description="व्याकरणिक रूप से शुद्ध औपचारिक अंग्रेजी वाक्य"
+    )
 
 
 # --- System Prompt Instructions ---
