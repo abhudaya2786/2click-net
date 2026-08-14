@@ -1,6 +1,7 @@
-# Hinglish Normalizer
+# Hinglish Linguistic Normalizer API
 
-Bikhre Hinglish / slang / व्याकरण-रहित बोलचाल को **शुद्ध हिंदी** और **clean English** JSON में बदलने वाला FastAPI microservice.
+Gemini-powered service that converts raw Hinglish / slang transcripts into
+structured **pure Hindi** + **formal English** JSON.
 
 ## Structure
 
@@ -9,7 +10,7 @@ hinglish-normalizer/
 ├── main.py
 ├── requirements.txt
 ├── .env.example
-├── .env          # local only (gitignored) — copy from .env.example
+├── .env          # local only (gitignored)
 └── README.md
 ```
 
@@ -21,8 +22,17 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# Optional: set GEMINI_API_KEY in .env for LLM mode
+# Edit .env — set a real GEMINI_API_KEY (required)
 ```
+
+## Environment
+
+```
+GEMINI_API_KEY=your_actual_gemini_api_key_here
+PORT=8000
+```
+
+`GEMINI_API_KEY` is **required**. Replace the placeholder with a real key or the app will refuse to start.
 
 ## Run
 
@@ -32,40 +42,27 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # or: python main.py
 ```
 
-- API docs: http://127.0.0.1:8000/docs  
-- Health: http://127.0.0.1:8000/health  
-
-Without a real `GEMINI_API_KEY` the service uses a **heuristic engine** (works offline). With a valid key it uses **google-genai** + the linguistic expert prompt.
+- Docs: http://127.0.0.1:8000/docs  
+- Health: http://127.0.0.1:8000/
 
 ## API
 
-### `POST /normalize`
+### `POST /api/v1/normalize`
 
 ```bash
-curl -s http://127.0.0.1:8000/normalize \
+curl -s http://127.0.0.1:8000/api/v1/normalize \
   -H 'content-type: application/json' \
-  -d '{"text":"bhai kl meeting kitne bje hogi kuch fix h kya ya cancel h?"}'
+  -d '{"raw_text":"are bhaiya kl site pe cement kb tk phuchega kuch fix h kya?"}'
 ```
 
 Response:
 
 ```json
 {
-  "detected_intent": "कल की मीटिंग के समय या स्थिति के बारे में पूछताछ",
-  "pure_hindi": "क्या कल की बैठक का समय तय हो गया है या इसे रद्द कर दिया गया है?",
-  "pure_english": "Is the timing for tomorrow's meeting finalized, or has it been cancelled?",
-  "engine_used": "heuristic"
+  "detected_intent": "...",
+  "pure_hindi": "...",
+  "pure_english": "..."
 }
-```
-
-Optional body field: `"engine": "auto" | "llm" | "heuristic"`.
-
-### `POST /normalize/batch`
-
-```bash
-curl -s http://127.0.0.1:8000/normalize/batch \
-  -H 'content-type: application/json' \
-  -d '{"texts":["kuch smjh ni ara","kr rhe h"]}'
 ```
 
 ## Dependencies
@@ -77,11 +74,3 @@ pydantic>=2.6.0
 python-dotenv>=1.0.0
 google-genai>=0.1.1
 ```
-
-## Environment
-
-| Variable | Purpose |
-| --- | --- |
-| `GEMINI_API_KEY` | Your Gemini API key (`your_actual_gemini_api_key_here` → replace) |
-| `GEMINI_MODEL` | Default `gemini-2.0-flash` |
-| `HOST` / `PORT` | Bind address (default `0.0.0.0:8000`) |
