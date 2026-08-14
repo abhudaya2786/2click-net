@@ -839,6 +839,15 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
               </button>
             </div>
 
+
+            {!isListening && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                Mic band hai — pehle <span className="font-extrabold">Start Listening</span> / <span className="font-extrabold">Start Mic Test</span> dabao, phir bolo: “2Click Start”, “Meeting khatam”, “Save note”, ya “Cancel recording”.
+                {!isSupported && ' Is browser me Web Speech API support nahi (Chrome/Edge use karo).'}
+                {statusError ? ` (${statusError})` : ''}
+              </div>
+            )}
+
             {/* Text Simulator Form */}
             <form onSubmit={handleRunSimulation} className="space-y-3">
               <label className="block text-[11px] font-bold uppercase text-slate-500">
@@ -849,7 +858,7 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
                   type="text"
                   value={simText}
                   onChange={(e) => setSimText(e.target.value)}
-                  placeholder="Type e.g. 'Namaskar', 'Meeting Start', 'मीटिंग शुरू करो', 'minutes banao'"
+                  placeholder="Type e.g. '2Click Start', 'Meeting khatam', 'Save note', 'Cancel recording'"
                   className="flex-1 text-xs px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                 />
                 <button
@@ -864,7 +873,7 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
             {/* Quick Test Chips */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-slate-400 font-medium text-[11px]">Quick Tests:</span>
-              {['Namaskar', 'Hello', 'Meeting Start', 'Meeting Stop', 'Generate Minutes', 'मीटिंग शुरू करो', 'minutes banao'].map((txt) => (
+              {['2Click Start', 'Meeting shuru karo', 'Start recording', 'Meeting khatam', '2Click Stop', 'Save note', 'Cancel recording', 'मीटिंग शुरू करो'].map((txt) => (
                 <button
                   key={txt}
                   type="button"

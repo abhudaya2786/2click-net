@@ -14,7 +14,8 @@ export class VoiceCommandProvider {
   private commandListeners: Set<VoiceCommandListener> = new Set();
   private actionHandlers: Map<VoiceCommandAction, Set<ActionExecutionHandler>> = new Map();
   private lastExecutedTime: number = 0;
-  private executionCooldownMs: number = 1500;
+  private lastExecutedAction: VoiceCommandAction | null = null;
+  private executionCooldownMs: number = 900;
 
   constructor(initialCommands: VoiceCommandItem[] = [], enabled: boolean = true) {
     this.commands = [...initialCommands];
@@ -105,19 +106,24 @@ export class VoiceCommandProvider {
 
   public processTranscript(
     rawTranscript: string,
-    opts: { executeHandlers?: boolean } = {},
+    opts: { executeHandlers?: boolean; bypassCooldown?: boolean } = {},
   ): VoiceCommandExecutionEvent | null {
     if (!this.isEnabled) return null;
-
-    const now = Date.now();
-    if (now - this.lastExecutedTime < this.executionCooldownMs) {
-      return null;
-    }
 
     const matchedCmd = this.findMatchingCommand(rawTranscript);
     if (!matchedCmd) return null;
 
+    const now = Date.now();
+    if (!opts.bypassCooldown) {
+      const withinCooldown = now - this.lastExecutedTime < this.executionCooldownMs;
+      // Same action within cooldown → ignore; different action (e.g. start→stop) allowed
+      if (withinCooldown && this.lastExecutedAction === matchedCmd.action) {
+        return null;
+      }
+    }
+
     this.lastExecutedTime = now;
+    this.lastExecutedAction = matchedCmd.action;
     matchedCmd.executionCount = (matchedCmd.executionCount || 0) + 1;
     matchedCmd.lastExecutedAt = new Date().toISOString();
 

@@ -180,7 +180,7 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                   ? 'Recording until stop/save/cancel'
                   : isListening
                     ? 'Say “2Click Start” or “Meeting shuru karo”'
-                    : 'Mic paused (No background tracking)'}
+                    : 'Tap mic — phir voice command bolo (Chrome/Edge)'}
               </span>
             </div>
           </div>

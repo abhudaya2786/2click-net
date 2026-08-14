@@ -225,12 +225,44 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       void commandSessionController.start();
     });
     const unsubStop = provider.registerActionHandler('STOP_RECORDING', () => {
-      if (!commandSessionController.isRecording()) return;
+      if (!commandSessionController.isRecording()) {
+        setActiveCommandAlert({
+          command: {
+            id: 'hint',
+            phrase: 'No active session',
+            aliases: [],
+            action: 'STOP_RECORDING',
+            language: 'multilingual',
+            enabled: true,
+            executionCount: 0,
+          },
+          action: 'STOP_RECORDING',
+          rawTranscript: 'Say "2Click Start" first',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
       emitFeedback('stop');
       void commandSessionController.stopAndSave();
     });
     const unsubSave = provider.registerActionHandler('SAVE_NOTE', () => {
-      if (!commandSessionController.isRecording()) return;
+      if (!commandSessionController.isRecording()) {
+        setActiveCommandAlert({
+          command: {
+            id: 'hint',
+            phrase: 'No active session',
+            aliases: [],
+            action: 'SAVE_NOTE',
+            language: 'multilingual',
+            enabled: true,
+            executionCount: 0,
+          },
+          action: 'SAVE_NOTE',
+          rawTranscript: 'Say "2Click Start" first',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
       emitFeedback('stop');
       void commandSessionController.stopAndSave();
     });
@@ -353,7 +385,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       wakeWordProviderRef.current.destroy();
       voiceCommandProviderRef.current.destroy();
-      commandSessionController.destroy();
+      // Keep commandSessionController alive across Strict Mode remounts
     };
   }, []);
 
@@ -366,7 +398,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const toggleListening = useCallback(() => {
-    if (status === 'listening') {
+    if (status === 'listening' || status === 'detected') {
       stopListening();
     } else {
       startListening();
@@ -447,14 +479,39 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const simulateSpokenPhrase = useCallback(
     (phrase: string) => {
+      // Simulator must not be blocked by wake/command cooldowns
       const wake = wakeWordProviderRef.current.checkTextForWakeWord(phrase);
-      if (wake) {
+      // If cooldown blocked wake match, still surface soft match for UI
+      const wakeSoft =
+        wake ||
+        (() => {
+          const normalized = phrase;
+          const ww = wakeWordProviderRef.current.getWakeWords().find((item) => {
+            if (!item.enabled) return false;
+            const candidates = [item.word, ...(item.aliases || [])].map((p) =>
+              p.toLowerCase(),
+            );
+            const n = normalized.toLowerCase();
+            return candidates.some((c) => c && n.includes(c.toLowerCase()));
+          });
+          if (!ww) return null;
+          return {
+            wakeWord: ww,
+            rawTranscript: phrase,
+            confidence: 0.9,
+            timestamp: new Date().toISOString(),
+          } as WakeWordDetectionEvent;
+        })();
+
+      if (wakeSoft) {
         emitFeedback('wake');
-        setActiveWakeWordAlert(wake);
+        setActiveWakeWordAlert(wakeSoft);
         setWakeWords(wakeWordProviderRef.current.getWakeWords());
       }
 
-      const cmd = voiceCommandProviderRef.current.processTranscript(phrase);
+      const cmd = voiceCommandProviderRef.current.processTranscript(phrase, {
+        bypassCooldown: true,
+      });
       if (cmd) {
         if (!SESSION_ACTIONS.includes(cmd.action)) {
           emitFeedback('command');
@@ -464,7 +521,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       return {
-        wakeWordDetected: wake,
+        wakeWordDetected: wakeSoft,
         commandExecuted: cmd,
       };
     },
@@ -476,7 +533,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       value={{
         config,
         status,
-        isListening: status === 'listening',
+        isListening: status === 'listening' || status === 'detected',
         isSupported,
         statusError,
         interimTranscript,
