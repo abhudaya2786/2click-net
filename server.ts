@@ -10,6 +10,7 @@ import { getAIProvider } from './server/ai/index.ts';
 import { getSpeechProvider } from './server/speech/index.ts';
 import { billingManager, SAAS_PLANS } from './server/billing/index.ts';
 import { registerAuthRoutes } from './server/auth/index.ts';
+import { registerCompanyOrgRoutes } from './server/org/index.ts';
 
 const rootDir = process.cwd();
 const isProd = process.env.NODE_ENV === 'production';
@@ -126,6 +127,9 @@ async function createApp() {
 
   // User ID + password signup / signin
   registerAuthRoutes(app);
+
+  // Real-estate marketing: work-talk → owner / report desk
+  registerCompanyOrgRoutes(app);
 
   // Core: generate MoM from audio and/or transcript text
   app.post('/api/generate-mom', async (req, res) => {

@@ -10,7 +10,8 @@
     "start": "NODE_ENV=production node dist/server.cjs",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "test:auth": "tsx scripts/test-auth.mts"
+    "test:auth": "tsx scripts/test-auth.mts",
+    "test:company": "tsx scripts/test-company-reports.mts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

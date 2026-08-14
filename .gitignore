@@ -10,3 +10,4 @@ coverage/
 .vite/
 *.local
 data/auth/
+data/company/
