@@ -9,3 +9,7 @@ coverage/
 !.env.example
 .vite/
 *.local
+
+# Hinglish normalizer
+hinglish-normalizer/.venv/
+hinglish-normalizer/.env
