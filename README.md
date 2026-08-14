@@ -11,6 +11,19 @@ This repository now hosts **Voice MoM** (from [`abhudaya2786/voice-mom`](https:/
 - Structured Minutes of Meeting, decisions, action items
 - Meeting chat copilot, email draft, privacy & schedule tools
 
+## Deploy (Vercel)
+
+1. Import GitHub repo `abhudaya2786/2click-net` in [vercel.com/new](https://vercel.com/new)
+2. Set env `GEMINI_API_KEY` (optional — demo MoM works without it)
+3. Deploy — Express entry is `server.ts` (default export); UI builds into `public/`
+4. Project → Settings → Deployment Protection → **disable** Vercel Authentication for Production (otherwise public users get login wall)
+5. Domains → add `2click.in` + `www` → update Hostinger DNS:
+   - `A` / nameservers as shown by Vercel (remove Hostinger website pointing)
+
+```bash
+npx vercel --prod
+```
+
 ## Run locally
 
 **Prerequisites:** Node.js 20+
@@ -33,7 +46,7 @@ npm test          # typecheck + API smoke suite (spawns its own server)
 npm run test:smoke
 ```
 
-## Production
+## Production (Docker / VPS)
 
 ```bash
 npm run build

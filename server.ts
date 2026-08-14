@@ -109,7 +109,7 @@ function minutesToMeeting(minutes: any, opts: {
   };
 }
 
-async function createApp() {
+function createApp() {
   const app = express();
   app.use(express.json({ limit: '40mb' }));
 
@@ -485,6 +485,13 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
   app.post('/api/billing/webhook/stripe', (_req, res) => res.json({ received: true }));
   app.post('/api/billing/webhook/razorpay', (_req, res) => res.json({ received: true }));
 
+  return app;
+}
+
+async function attachFrontend(app: express.Express) {
+  // On Vercel, static files come from /public via CDN (express.static is ignored).
+  if (process.env.VERCEL) return;
+
   if (!isProd) {
     const vite = await createViteServer({
       root: rootDir,
@@ -495,7 +502,7 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
     app.use('*', async (req, res, next) => {
       try {
         const url = req.originalUrl;
-        let template = await vite.transformIndexHtml(
+        const template = await vite.transformIndexHtml(
           url,
           await fs.readFile(path.join(rootDir, 'index.html'), 'utf-8'),
         );
@@ -505,24 +512,30 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
         next(e);
       }
     });
-  } else {
-    const clientDir = path.join(rootDir, 'dist', 'client');
-    app.use(express.static(clientDir));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(clientDir, 'index.html'));
-    });
+    return;
   }
 
-  return app;
+  const clientDir = path.join(rootDir, 'public');
+  app.use(express.static(clientDir));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientDir, 'index.html'));
+  });
 }
 
-createApp()
-  .then((app) => {
-    app.listen(PORT, HOST, () => {
-      console.log(`2Click Voice MoM listening on http://${HOST}:${PORT}`);
+const app = createApp();
+
+// Vercel Express runtime: default-export the app (do not call listen).
+export default app;
+
+if (!process.env.VERCEL) {
+  attachFrontend(app)
+    .then(() => {
+      app.listen(PORT, HOST, () => {
+        console.log(`2Click Voice MoM listening on http://${HOST}:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to start server', err);
+      process.exit(1);
     });
-  })
-  .catch((err) => {
-    console.error('Failed to start server', err);
-    process.exit(1);
-  });
+}

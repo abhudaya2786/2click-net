@@ -11,7 +11,8 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist/client',
+    // Vercel serves /public from the CDN; local/Docker production uses the same folder.
+    outDir: 'public',
     emptyOutDir: true,
   },
   server: {
