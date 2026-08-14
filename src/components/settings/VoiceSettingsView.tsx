@@ -41,12 +41,22 @@ const AVAILABLE_ACTIONS: { action: VoiceCommandAction; label: string; descriptio
   {
     action: 'START_RECORDING',
     label: 'Start Recording (START_RECORDING)',
-    description: 'Arms or initiates audio recording in the active meeting studio.',
+    description: 'Starts command session record/transcribe (2Click Start / Meeting shuru karo).',
   },
   {
     action: 'STOP_RECORDING',
     label: 'Stop Recording (STOP_RECORDING)',
-    description: 'Safely halts recording and finalizes the audio track.',
+    description: 'Stops session, runs Gemini MoM, Instant Saves to user DB.',
+  },
+  {
+    action: 'SAVE_NOTE',
+    label: 'Save Note (SAVE_NOTE)',
+    description: 'Same as stop: process with Gemini and Instant Save.',
+  },
+  {
+    action: 'CANCEL_RECORDING',
+    label: 'Cancel Recording (CANCEL_RECORDING)',
+    description: 'Clears the session buffer without saving to the database.',
   },
   {
     action: 'GENERATE_MINUTES',
@@ -964,6 +974,26 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
                   Active audio recordings always render live pulsing state badges and visualizers.
                 </p>
               </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Beep + Vibration Feedback on Command Triggers
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  Subtle audio chime and haptic vibration when start / stop / cancel commands fire.
+                </div>
+              </div>
+
+              <input
+                type="checkbox"
+                checked={config.audioFeedback !== false && config.hapticFeedback !== false}
+                onChange={(e) =>
+                  updateConfig({ audioFeedback: e.target.checked, hapticFeedback: e.target.checked })
+                }
+                className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+              />
             </div>
 
             {/* Toggle Confirmation Checkbox */}

@@ -160,6 +160,8 @@ def _serialize_row(row: dict) -> dict:
 
 
 async def _process_and_save_conversation(payload: ConversationCreateRequest) -> ConversationCreateResponse:
+    from redaction import redact_command_triggers
+
     raw_text = (payload.raw_text or "").strip()
 
     client = get_ai_client(required=False)
@@ -173,6 +175,9 @@ async def _process_and_save_conversation(payload: ConversationCreateRequest) -> 
     if not raw_text or len(raw_text) < 2:
         raise HTTPException(status_code=400, detail="raw_text या audio_base64 आवश्यक है।")
 
+    # Wake-word / command-trigger redaction before normalize + Instant Save
+    raw_text = redact_command_triggers(raw_text)
+
     # Call & meeting classification
     conv_type = classify_conversation_type(
         explicit_type=payload.type,
@@ -184,7 +189,9 @@ async def _process_and_save_conversation(payload: ConversationCreateRequest) -> 
 
     # Linguistic normalize (Gemini if key present, else heuristic)
     ling = await normalize_text(client, GEMINI_MODEL, raw_text)
-    summary = build_mom_summary(ling)
+    summary = redact_command_triggers(build_mom_summary(ling))
+    pure_hindi = redact_command_triggers(ling.pure_hindi)
+    pure_english = redact_command_triggers(ling.pure_english)
 
     # Realtime persistence — always Instant Save with user_id
     saved = await db.save_conversation(
@@ -193,11 +200,11 @@ async def _process_and_save_conversation(payload: ConversationCreateRequest) -> 
         contact_name=payload.contact_name,
         contact_phone=payload.contact_phone,
         raw_transcript=raw_text,
-        pure_hindi_text=ling.pure_hindi,
-        pure_english_text=ling.pure_english,
+        pure_hindi_text=pure_hindi,
+        pure_english_text=pure_english,
         summary=summary,
         detected_dialect=ling.detected_dialect,
-        detected_intent=ling.detected_intent,
+        detected_intent=redact_command_triggers(ling.detected_intent),
         duration_seconds=payload.duration_seconds,
     )
 
@@ -217,9 +224,9 @@ async def _process_and_save_conversation(payload: ConversationCreateRequest) -> 
         type=conv_type,
         raw_transcript=raw_text,
         detected_dialect=ling.detected_dialect,
-        detected_intent=ling.detected_intent,
-        pure_hindi=ling.pure_hindi,
-        pure_english=ling.pure_english,
+        detected_intent=redact_command_triggers(ling.detected_intent),
+        pure_hindi=pure_hindi,
+        pure_english=pure_english,
         summary=summary,
         persistence=db.persistence_mode(),
         task_id=task_id,

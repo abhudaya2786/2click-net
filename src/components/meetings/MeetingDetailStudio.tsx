@@ -35,6 +35,7 @@ import {
 import { FullMeetingRecord, MeetingParticipantEntity, MeetingState, RecordingEntity } from '../../types';
 import { meetingDb } from '../../utils/meetingDatabase';
 import { useVoice } from '../../context/VoiceContext';
+import { commandSessionController } from '../../utils/commandSessionController';
 import { useGeofence } from '../../context/GeofenceContext';
 import { MeetingStateBadge } from './MeetingStateBadge';
 import { TranscriptViewer } from './TranscriptViewer';
@@ -612,12 +613,17 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
   const { voiceCommandProvider } = useVoice();
   useEffect(() => {
     const unsubStart = voiceCommandProvider.registerActionHandler('START_RECORDING', () => {
+      // Hands-free CommandSession owns mic buffer; avoid duplicate MediaRecorder
+      if (commandSessionController.isRecording()) return;
       if (meetingState === 'READY' || meetingState === 'IDLE') {
         handleStartRecording();
       }
     });
 
     const unsubStop = voiceCommandProvider.registerActionHandler('STOP_RECORDING', () => {
+      if (commandSessionController.isRecording() || commandSessionController.getStatus() === 'processing') {
+        return;
+      }
       if (meetingState === 'RECORDING' || meetingState === 'PAUSED') {
         handleStopRecording();
       }

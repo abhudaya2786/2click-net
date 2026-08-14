@@ -299,6 +299,8 @@ export type VoiceListeningStatus =
 export type VoiceCommandAction =
   | 'START_RECORDING'
   | 'STOP_RECORDING'
+  | 'CANCEL_RECORDING'
+  | 'SAVE_NOTE'
   | 'GENERATE_MINUTES'
   | 'PAUSE_RECORDING'
   | 'RESUME_RECORDING'
@@ -345,7 +347,10 @@ export interface VoiceSystemConfig {
   continuousListening: boolean;
   audioFeedback: boolean;
   visualFeedback: boolean;
+  hapticFeedback: boolean;
   requireExplicitConfirmationForRecording: boolean;
+  /** Instant-save endpoint for command sessions (optional). */
+  commandSessionSaveUrl?: string;
 }
 
 export interface WakeWordDetectionEvent {

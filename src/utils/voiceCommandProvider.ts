@@ -103,7 +103,10 @@ export class VoiceCommandProvider {
     return null;
   }
 
-  public processTranscript(rawTranscript: string): VoiceCommandExecutionEvent | null {
+  public processTranscript(
+    rawTranscript: string,
+    opts: { executeHandlers?: boolean } = {},
+  ): VoiceCommandExecutionEvent | null {
     if (!this.isEnabled) return null;
 
     const now = Date.now();
@@ -128,9 +131,11 @@ export class VoiceCommandProvider {
     // Notify listeners & handlers
     this.commandListeners.forEach((fn) => fn(event));
 
-    const handlers = this.actionHandlers.get(matchedCmd.action);
-    if (handlers) {
-      handlers.forEach((h) => h(matchedCmd.action, event));
+    if (opts.executeHandlers !== false) {
+      const handlers = this.actionHandlers.get(matchedCmd.action);
+      if (handlers) {
+        handlers.forEach((h) => h(matchedCmd.action, event));
+      }
     }
 
     return event;
