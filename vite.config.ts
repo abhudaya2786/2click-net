@@ -10,9 +10,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
+  // Avoid Vite publicDir === outDir conflict (breaks Vercel/static copy).
+  publicDir: false,
   build: {
-    // Vercel serves /public from the CDN; local/Docker production uses the same folder.
-    outDir: 'public',
+    outDir: 'dist/client',
     emptyOutDir: true,
   },
   server: {

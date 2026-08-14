@@ -4,7 +4,6 @@ dotenv.config();
 import express from 'express';
 import path from 'path';
 import fs from 'fs/promises';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { getAIProvider, hasAiApiKey } from './server/ai/index.ts';
 import { getSpeechProvider } from './server/speech/index.ts';
@@ -493,7 +492,8 @@ async function attachFrontend(app: express.Express) {
   if (process.env.VERCEL) return;
 
   if (!isProd) {
-    const vite = await createViteServer({
+    const viteMod = await import('vite');
+    const vite = await viteMod.createServer({
       root: rootDir,
       server: { middlewareMode: true },
       appType: 'custom',
@@ -515,7 +515,7 @@ async function attachFrontend(app: express.Express) {
     return;
   }
 
-  const clientDir = path.join(rootDir, 'public');
+  const clientDir = path.join(rootDir, 'dist', 'client');
   app.use(express.static(clientDir));
   app.get('*', (_req, res) => {
     res.sendFile(path.join(clientDir, 'index.html'));
@@ -524,8 +524,9 @@ async function attachFrontend(app: express.Express) {
 
 const app = createApp();
 
-// Vercel Express runtime: default-export the app (do not call listen).
+// Vercel Express runtime detects this default export (do not listen on Vercel).
 export default app;
+export { app, attachFrontend, createApp };
 
 if (!process.env.VERCEL) {
   attachFrontend(app)
