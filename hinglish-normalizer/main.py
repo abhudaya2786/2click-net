@@ -24,7 +24,9 @@ app = FastAPI(
     version="1.0.0",
 )
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+# Treat placeholder as unset so heuristic mode still works until a real key is provided
+_raw_key = os.getenv("GEMINI_API_KEY", "").strip()
+GEMINI_API_KEY = "" if _raw_key in {"", "your_actual_gemini_api_key_here"} else _raw_key
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash").strip()
 
 SYSTEM_PROMPT = """आप एक एडवांस लिंग्विस्टिक एक्सपर्ट (Linguistic Expert) हैं। आपका काम बिखरी हुई हिंग्लिश, स्लैंग (Slang), और व्याकरण-रहित बोलचाल की भाषा को शुद्ध, औपचारिक (Formal) और स्पष्ट हिंदी और अंग्रेजी में बदलना है।
@@ -254,5 +256,5 @@ if __name__ == "__main__":
     import uvicorn
 
     host = os.getenv("HOST", "0.0.0.0")
-    port = int(os.getenv("PORT", "8088"))
+    port = int(os.getenv("PORT", "8000"))
     uvicorn.run("main:app", host=host, port=port, reload=True)

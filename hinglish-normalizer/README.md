@@ -28,21 +28,21 @@ cp .env.example .env
 
 ```bash
 source .venv/bin/activate
-uvicorn main:app --host 0.0.0.0 --port 8088 --reload
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 # or: python main.py
 ```
 
-- API docs: http://127.0.0.1:8088/docs  
-- Health: http://127.0.0.1:8088/health  
+- API docs: http://127.0.0.1:8000/docs  
+- Health: http://127.0.0.1:8000/health  
 
-Without `GEMINI_API_KEY` the service uses a **heuristic engine** (works offline). With the key it uses **google-genai** + the linguistic expert prompt.
+Without a real `GEMINI_API_KEY` the service uses a **heuristic engine** (works offline). With a valid key it uses **google-genai** + the linguistic expert prompt.
 
 ## API
 
 ### `POST /normalize`
 
 ```bash
-curl -s http://127.0.0.1:8088/normalize \
+curl -s http://127.0.0.1:8000/normalize \
   -H 'content-type: application/json' \
   -d '{"text":"bhai kl meeting kitne bje hogi kuch fix h kya ya cancel h?"}'
 ```
@@ -63,7 +63,7 @@ Optional body field: `"engine": "auto" | "llm" | "heuristic"`.
 ### `POST /normalize/batch`
 
 ```bash
-curl -s http://127.0.0.1:8088/normalize/batch \
+curl -s http://127.0.0.1:8000/normalize/batch \
   -H 'content-type: application/json' \
   -d '{"texts":["kuch smjh ni ara","kr rhe h"]}'
 ```
@@ -82,6 +82,6 @@ google-genai>=0.1.1
 
 | Variable | Purpose |
 | --- | --- |
-| `GEMINI_API_KEY` | Enables Gemini LLM normalizer (`google-genai`) |
+| `GEMINI_API_KEY` | Your Gemini API key (`your_actual_gemini_api_key_here` → replace) |
 | `GEMINI_MODEL` | Default `gemini-2.0-flash` |
-| `HOST` / `PORT` | Bind address (default `0.0.0.0:8088`) |
+| `HOST` / `PORT` | Bind address (default `0.0.0.0:8000`) |
