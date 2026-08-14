@@ -10,9 +10,10 @@ import os
 import re
 from typing import Literal
 
-import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from google import genai
+from google.genai import types
 from pydantic import BaseModel, Field
 
 load_dotenv()
@@ -25,8 +26,6 @@ app = FastAPI(
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-flash").strip()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
 SYSTEM_PROMPT = """आप एक एडवांस लिंग्विस्टिक एक्सपर्ट (Linguistic Expert) हैं। आपका काम बिखरी हुई हिंग्लिश, स्लैंग (Slang), और व्याकरण-रहित बोलचाल की भाषा को शुद्ध, औपचारिक (Formal) और स्पष्ट हिंदी और अंग्रेजी में बदलना है।
 
@@ -114,60 +113,27 @@ def _extract_json_object(raw: str) -> dict:
 
 
 async def normalize_with_gemini(text: str) -> dict:
-    url = (
-        f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
-    )
-    payload = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [
-                    {
-                        "text": (
-                            f"{SYSTEM_PROMPT}\n\n### इनपुट:\n{text}\n\n"
-                            "केवल JSON ऑब्जेक्ट लौटाएँ।"
-                        )
-                    }
-                ],
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.2,
-            "responseMimeType": "application/json",
-        },
-    }
-    async with httpx.AsyncClient(timeout=45.0) as client:
-        res = await client.post(url, json=payload)
-        if res.status_code >= 400:
-            raise HTTPException(status_code=502, detail=f"Gemini error: {res.text[:400]}")
-        data = res.json()
     try:
-        raw = data["candidates"][0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise HTTPException(status_code=502, detail=f"Unexpected Gemini response: {exc}") from exc
-    return _extract_json_object(raw)
-
-
-async def normalize_with_openai(text: str) -> dict:
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-    payload = {
-        "model": OPENAI_MODEL,
-        "temperature": 0.2,
-        "response_format": {"type": "json_object"},
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": f"इनपुट: {text}"},
-        ],
-    }
-    async with httpx.AsyncClient(timeout=45.0) as client:
-        res = await client.post(url, headers=headers, json=payload)
-        if res.status_code >= 400:
-            raise HTTPException(status_code=502, detail=f"OpenAI error: {res.text[:400]}")
-        data = res.json()
-    raw = data["choices"][0]["message"]["content"]
-    return _extract_json_object(raw)
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        response = client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=(
+                f"{SYSTEM_PROMPT}\n\n### इनपुट:\n{text}\n\n"
+                "केवल JSON ऑब्जेक्ट लौटाएँ।"
+            ),
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+                response_mime_type="application/json",
+            ),
+        )
+        raw = (response.text or "").strip()
+        if not raw:
+            raise HTTPException(status_code=502, detail="Empty Gemini response")
+        return _extract_json_object(raw)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Gemini error: {exc}") from exc
 
 
 def normalize_heuristic(text: str) -> dict:
@@ -222,22 +188,18 @@ async def normalize_text(text: str, engine: str = "auto") -> NormalizeResponse:
     if not text:
         raise HTTPException(status_code=400, detail="text is required")
 
-    use_llm = engine == "llm" or (engine == "auto" and (GEMINI_API_KEY or OPENAI_API_KEY))
+    use_llm = engine == "llm" or (engine == "auto" and bool(GEMINI_API_KEY))
     if engine == "heuristic":
         use_llm = False
 
     if use_llm:
-        if GEMINI_API_KEY:
-            data = await normalize_with_gemini(text)
-            engine_used = "gemini"
-        elif OPENAI_API_KEY:
-            data = await normalize_with_openai(text)
-            engine_used = "openai"
-        else:
+        if not GEMINI_API_KEY:
             raise HTTPException(
                 status_code=503,
-                detail="LLM engine requested but GEMINI_API_KEY / OPENAI_API_KEY not set",
+                detail="LLM engine requested but GEMINI_API_KEY not set",
             )
+        data = await normalize_with_gemini(text)
+        engine_used = "gemini"
     else:
         data = normalize_heuristic(text)
         engine_used = "heuristic"
@@ -260,8 +222,8 @@ async def health():
         "ok": True,
         "service": "hinglish-normalizer",
         "gemini": bool(GEMINI_API_KEY),
-        "openai": bool(OPENAI_API_KEY),
-        "default_engine": "llm" if (GEMINI_API_KEY or OPENAI_API_KEY) else "heuristic",
+        "sdk": "google-genai",
+        "default_engine": "llm" if GEMINI_API_KEY else "heuristic",
     }
 
 

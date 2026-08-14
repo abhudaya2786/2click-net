@@ -21,7 +21,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# Optional: set GEMINI_API_KEY or OPENAI_API_KEY in .env for LLM mode
+# Optional: set GEMINI_API_KEY in .env for LLM mode
 ```
 
 ## Run
@@ -35,7 +35,7 @@ uvicorn main:app --host 0.0.0.0 --port 8088 --reload
 - API docs: http://127.0.0.1:8088/docs  
 - Health: http://127.0.0.1:8088/health  
 
-Without API keys the service uses a **heuristic engine** (works offline). With `GEMINI_API_KEY` / `OPENAI_API_KEY` it uses the LLM linguistic expert prompt.
+Without `GEMINI_API_KEY` the service uses a **heuristic engine** (works offline). With the key it uses **google-genai** + the linguistic expert prompt.
 
 ## API
 
@@ -68,12 +68,20 @@ curl -s http://127.0.0.1:8088/normalize/batch \
   -d '{"texts":["kuch smjh ni ara","kr rhe h"]}'
 ```
 
+## Dependencies
+
+```
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-dotenv>=1.0.0
+google-genai>=0.1.1
+```
+
 ## Environment
 
 | Variable | Purpose |
 | --- | --- |
-| `GEMINI_API_KEY` | Preferred LLM normalizer |
+| `GEMINI_API_KEY` | Enables Gemini LLM normalizer (`google-genai`) |
 | `GEMINI_MODEL` | Default `gemini-2.0-flash` |
-| `OPENAI_API_KEY` | Fallback LLM |
-| `OPENAI_MODEL` | Default `gpt-4o-mini` |
 | `HOST` / `PORT` | Bind address (default `0.0.0.0:8088`) |
