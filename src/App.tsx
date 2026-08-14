@@ -59,7 +59,7 @@ import { BillingSubscriptionView } from './components/settings/BillingSubscripti
 import { GeofenceProvider } from './context/GeofenceContext';
 import { GeofenceAutoModeBanner } from './components/geofence/GeofenceAutoModeBanner';
 import { LocationGeofenceSettingsView } from './components/settings/LocationGeofenceSettingsView';
-import { CreditCard, Compass, MapPin, Power } from 'lucide-react';
+import { CreditCard, Compass, MapPin, Power, MoreHorizontal, Settings2, X } from 'lucide-react';
 
 const LOCAL_STORAGE_KEY = 'voice_mom_saved_meetings_v1';
 const SCHEDULED_EVENTS_KEY = 'voice_mom_scheduled_events_v1';
@@ -133,6 +133,7 @@ function AppContent() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSampleModalOpen, setIsSampleModalOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   // Load saved meetings, schedules, privacy settings and theme on initial load
   useEffect(() => {
@@ -514,204 +515,187 @@ function AppContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const primaryNav = [
+    { path: '/meetings', match: (r: string) => r.startsWith('/meetings'), label: 'Meetings', icon: Layers },
+    { path: '/mom', match: (r: string) => r === '/mom' || r === '/', label: 'MoM AI', icon: Sparkles },
+  ];
+
+  const moreNav = [
+    { path: '/settings/voice', label: 'Voice & Wake Words', icon: Mic, id: 'voice-settings-nav-btn' },
+    { path: '/settings/schedule', label: 'Recording Schedule', icon: Calendar, id: 'schedule-settings-nav-btn' },
+    { path: '/settings/privacy', label: 'Privacy & Security', icon: ShieldCheck, id: 'privacy-settings-nav-btn' },
+    { path: '/settings/billing', label: 'Plans & Usage', icon: CreditCard, id: 'billing-settings-nav-btn' },
+    { path: '/settings/location', label: 'Auto Mode & Geofence', icon: MapPin, id: 'location-settings-nav-btn' },
+  ];
+
+  const go = (path: string) => {
+    setIsMoreOpen(false);
+    navigate(path);
+  };
+
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors">
-      {/* Top Application Navbar */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          {/* Logo and Brand & Primary Navigation Tabs */}
-          <div className="flex items-center gap-4 sm:gap-6">
-            <button
-              onClick={() => navigate('/meetings')}
-              className="flex items-center gap-2.5 cursor-pointer text-left group"
-            >
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-blue-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                <Mic className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
-                    VoiceMoM
-                  </span>
-                  <span className="hidden sm:inline-block text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60">
-                    Studio
-                  </span>
-                </div>
-              </div>
-            </button>
-
-            {/* Navigation Tabs */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-xl text-xs font-bold">
-              <button
-                onClick={() => navigate('/meetings')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                  currentRoute.startsWith('/meetings')
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Meetings Hub</span>
-              </button>
-
-              <button
-                onClick={() => navigate('/mom')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                  currentRoute === '/mom' || currentRoute === '/'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Minutes of Meeting AI</span>
-                <span className="sm:hidden">MoM AI</span>
-              </button>
-
-              <button
-                id="voice-settings-nav-btn"
-                onClick={() => navigate('/settings/voice')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                  currentRoute === '/settings/voice'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <Mic className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Voice & Wake Words</span>
-                <span className="md:hidden">Voice</span>
-              </button>
-
-              <button
-                id="schedule-settings-nav-btn"
-                onClick={() => navigate('/settings/schedule')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                  currentRoute === '/settings/schedule'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Recording Schedule</span>
-                <span className="md:hidden">Schedule</span>
-              </button>
-
-              <button
-                id="privacy-settings-nav-btn"
-                onClick={() => navigate('/settings/privacy')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                  currentRoute === '/settings/privacy'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="hidden md:inline">Privacy & Security</span>
-                <span className="md:hidden">Privacy</span>
-              </button>
-
-              <button
-                id="billing-settings-nav-btn"
-                onClick={() => navigate('/settings/billing')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                  currentRoute === '/settings/billing' || currentRoute === '/billing'
-                    ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <CreditCard className="w-3.5 h-3.5 text-indigo-500" />
-                <span className="hidden md:inline">Subscriptions & Usage</span>
-                <span className="md:hidden">Plans</span>
-              </button>
-
-              <button
-                id="location-settings-nav-btn"
-                onClick={() => navigate('/settings/location')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition cursor-pointer ${
-                  currentRoute === '/settings/location' || currentRoute === '/settings/geofence'
-                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="hidden md:inline">Auto Mode & Geofences</span>
-                <span className="md:hidden">Auto Mode</span>
-              </button>
+    <div className="app-shell text-slate-800 dark:text-slate-100 font-sans transition-colors">
+      {/* Compact top bar — fits one viewport row */}
+      <header className="shrink-0 z-40 border-b border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md pt-safe">
+        <div className="mx-auto max-w-6xl px-3 sm:px-4 h-[var(--app-header-h)] flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={() => go('/meetings')}
+            className="flex items-center gap-2 min-w-0 cursor-pointer text-left group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-teal-600 text-white flex items-center justify-center shadow-sm group-hover:bg-teal-700 transition-colors">
+              <Mic className="w-4 h-4" />
             </div>
-          </div>
+            <div className="min-w-0 leading-tight">
+              <div className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-white truncate">
+                2Click <span className="text-teal-700 dark:text-teal-400">MoM</span>
+              </div>
+              <div className="hidden sm:block text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                Voice minutes
+              </div>
+            </div>
+          </button>
 
-          {/* Right Action Tools */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Quick New Meeting Button */}
+          <nav className="hidden sm:flex items-center ml-1 bg-slate-100/90 dark:bg-slate-900 p-0.5 rounded-lg text-xs font-bold">
+            {primaryNav.map((item) => {
+              const Icon = item.icon;
+              const active = item.match(currentRoute);
+              return (
+                <button
+                  key={item.path}
+                  onClick={() => go(item.path)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition cursor-pointer ${
+                    active
+                      ? 'bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-300 shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
             <button
-              onClick={() => navigate('/meetings/new')}
-              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition cursor-pointer"
+              onClick={() => go('/meetings/new')}
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-sm transition cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">New Meeting</span>
+              <span className="hidden sm:inline">New</span>
             </button>
 
-            {/* Privacy Shield Direct Link Button */}
-            <button
-              id="open-privacy-btn"
-              onClick={() => navigate('/settings/privacy')}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition cursor-pointer"
-              title="Open Privacy, Security & Data Governance"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span className="hidden lg:inline">Privacy Shield</span>
-            </button>
-
-            {/* Auto Schedule Hub Button */}
-            <button
-              id="open-scheduler-btn"
-              onClick={() => setIsScheduleModalOpen(true)}
-              className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/70 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs font-semibold hover:bg-blue-100 transition cursor-pointer"
-              title="View Auto-Scheduled meetings & Calendar Sync"
-            >
-              <Calendar className="w-3.5 h-3.5 text-blue-600" />
-              <span className="hidden lg:inline">Follow-ups</span>
-              {scheduledEvents.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[9px] font-bold flex items-center justify-center ml-0.5">
-                  {scheduledEvents.length}
-                </span>
-              )}
-            </button>
-
-            {/* History */}
             <button
               id="open-history-btn"
               onClick={() => setIsHistoryOpen(true)}
-              className="relative flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-750 transition"
-              title="View saved meetings"
+              className="relative p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+              title="History"
             >
-              <History className="w-3.5 h-3.5 text-slate-500" />
-              <span className="hidden sm:inline">History</span>
+              <span className="flex items-center gap-1">
+                <History className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden md:inline">History</span>
+              </span>
               {savedMeetings.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center ml-0.5">
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center justify-center">
                   {savedMeetings.length}
                 </span>
               )}
             </button>
 
-            {/* Theme */}
             <button
               id="theme-toggle-btn"
               onClick={toggleTheme}
               className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-              title="Toggle Dark / Light mode"
+              title="Toggle theme"
             >
               {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
             </button>
+
+            <div className="relative">
+              <button
+                id="open-more-btn"
+                onClick={() => setIsMoreOpen((v) => !v)}
+                className={`p-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer ${
+                  isMoreOpen || currentRoute.startsWith('/settings')
+                    ? 'border-teal-300 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                }`}
+                title="More settings"
+              >
+                {isMoreOpen ? <X className="w-3.5 h-3.5" /> : <MoreHorizontal className="w-3.5 h-3.5" />}
+              </button>
+
+              {isMoreOpen && (
+                <>
+                  <button
+                    className="fixed inset-0 z-40 cursor-default"
+                    aria-label="Close menu"
+                    onClick={() => setIsMoreOpen(false)}
+                  />
+                  <div className="absolute right-0 top-[calc(100%+0.35rem)] z-50 w-56 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg p-1.5">
+                    <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                      <Settings2 className="w-3 h-3" /> Settings
+                    </div>
+                    {moreNav.map((item) => {
+                      const Icon = item.icon;
+                      const active = currentRoute === item.path || currentRoute.startsWith(item.path);
+                      return (
+                        <button
+                          key={item.path}
+                          id={item.id}
+                          onClick={() => go(item.path)}
+                          className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold transition cursor-pointer ${
+                            active
+                              ? 'bg-teal-50 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300'
+                              : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                    <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                    <button
+                      id="open-scheduler-btn"
+                      onClick={() => {
+                        setIsMoreOpen(false);
+                        setIsScheduleModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-sky-600" />
+                      Follow-ups
+                      {scheduledEvents.length > 0 && (
+                        <span className="ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300">
+                          {scheduledEvents.length}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      id="open-privacy-btn"
+                      onClick={() => go('/settings/privacy')}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      Privacy Shield
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Scheduled READY State Banner (Displays "Meeting recording is ready." when inside scheduled window) */}
+      <div className="app-main">
+      {/* Scheduled READY State Banner */}
       <ScheduledReadyBanner onNavigate={navigate} />
 
       {/* Geofence Location Auto-Mode Status HUD Banner */}
       <GeofenceAutoModeBanner onNavigate={navigate} onOpenSettings={() => navigate('/settings/location')} />
 
+      <div className="app-main-inner">
       {/* Main Container Routed Views */}
       {currentRoute === '/settings/location' || currentRoute === '/settings/geofence' ? (
         <main>
@@ -757,7 +741,7 @@ function AppContent() {
         </main>
       ) : (
       /* Fallback to MoM Generator View */
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
+      <main className="space-y-5">
         {/* Error Alert if any */}
         {errorMessage && (
           <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-300 text-xs flex items-start justify-between gap-3 shadow-xs">
@@ -1041,6 +1025,37 @@ function AppContent() {
         )}
       </main>
       )}
+      </div>
+      </div>
+
+      {/* Mobile bottom nav — primary routes only */}
+      <nav
+        id="mobile-bottom-nav"
+        className="md:hidden shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md pb-safe no-print"
+      >
+        <div className="grid grid-cols-4 h-16">
+          {[
+            { path: '/meetings', label: 'Meetings', icon: Layers, active: currentRoute.startsWith('/meetings') && currentRoute !== '/meetings/new' },
+            { path: '/mom', label: 'MoM', icon: Sparkles, active: currentRoute === '/mom' || currentRoute === '/' },
+            { path: '/meetings/new', label: 'Record', icon: Mic, active: currentRoute === '/meetings/new' },
+            { path: '/settings/voice', label: 'More', icon: Settings2, active: currentRoute.startsWith('/settings') },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.path}
+                onClick={() => go(item.path)}
+                className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-bold cursor-pointer ${
+                  item.active ? 'text-teal-700 dark:text-teal-300' : 'text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
       {/* Auto-Scheduler & Calendar Modal */}
       <AutoScheduleModal
