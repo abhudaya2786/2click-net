@@ -11,3 +11,11 @@ coverage/
 *.local
 data/field-pdfs/
 data/field-visits/
+.vercel/
+android/.gradle/
+android/local.properties
+android/app/src/main/assets/
+android/capacitor-cordova-android-plugins/
+public/
+api/index.js
+full_test_report.md
