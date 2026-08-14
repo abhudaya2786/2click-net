@@ -9,6 +9,7 @@ import { GoogleGenAI } from '@google/genai';
 import { getAIProvider } from './server/ai/index.ts';
 import { getSpeechProvider } from './server/speech/index.ts';
 import { billingManager, SAAS_PLANS } from './server/billing/index.ts';
+import { registerAuthRoutes } from './server/auth/index.ts';
 
 const rootDir = process.cwd();
 const isProd = process.env.NODE_ENV === 'production';
@@ -119,8 +120,12 @@ async function createApp() {
       app: '2click-voice-mom',
       gemini: Boolean(process.env.GEMINI_API_KEY),
       openai: Boolean(process.env.OPENAI_API_KEY),
+      auth: true,
     });
   });
+
+  // User ID + password signup / signin
+  registerAuthRoutes(app);
 
   // Core: generate MoM from audio and/or transcript text
   app.post('/api/generate-mom', async (req, res) => {
