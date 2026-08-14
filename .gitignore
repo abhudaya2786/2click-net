@@ -13,3 +13,7 @@ coverage/
 # Hinglish normalizer
 hinglish-normalizer/.venv/
 hinglish-normalizer/.env
+
+hinglish-normalizer/__pycache__/
+hinglish-normalizer/**/__pycache__/
+*.pyc
