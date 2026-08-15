@@ -1,0 +1,55 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: Live MoM URL loaded inside the APK WebView
+        required: false
+        default: https://2click.in
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "src/**"
+      - "capacitor.config.ts"
+      - "scripts/build-apk.sh"
+      - ".github/workflows/build-android-apk.yml"
+      - "package.json"
+      - "package-lock.json"
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build debug APK
+        env:
+          CAPACITOR_SERVER_URL: ${{ inputs.server_url || 'https://2click.in' }}
+        run: bash scripts/build-apk.sh
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 2click-mom-android-apk
+          path: |
+            dist/2click-mom.apk
+            android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

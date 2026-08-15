@@ -10,8 +10,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
-  // Avoid Vite publicDir === outDir conflict (breaks Vercel/static copy).
-  publicDir: false,
+  // PWA icons/manifest/sw live here; outDir stays dist/client (separate folders).
+  publicDir: 'static-pwa',
   build: {
     outDir: 'dist/client',
     emptyOutDir: true,
