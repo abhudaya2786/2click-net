@@ -2630,7 +2630,9 @@ function registerCompanyOrgRoutes(app2) {
 // src/utils/wakeWordProvider.ts
 function normalizeVoiceText(text) {
   if (!text) return "";
-  return text.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'।]/g, "").replace(/\s+/g, " ");
+  let out = text.toLowerCase().trim().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'।]/g, "").replace(/\s+/g, " ");
+  out = out.replace(/\b(to|too|two|tu|doo|do)\s*click\b/g, "2click").replace(/\btoclick\b/g, "2click").replace(/\b2\s*click\b/g, "2click");
+  return out;
 }
 
 // src/utils/wakeWordRedaction.ts

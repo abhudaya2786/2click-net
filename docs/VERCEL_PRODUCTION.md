@@ -27,13 +27,16 @@ Local verification already green: `npm run build:vercel` produces `public/` + `a
 
 | URL | Result |
 |-----|--------|
-| `https://www.2click.in/api/health` | **Broken:** returns SPA `index.html` (GET 200 HTML). POST `/api/v1/auth/signup` → **405** + `content-disposition: filename="index.html"`. **No Express serverless function on this domain.** |
-| `https://2click.in` | 308 → `www.2click.in` |
-| Working API shape (anonymous temp deploy) | `/api/health` JSON with `"auth":true`; signup reaches Express (needs `/tmp` data dir — fixed in auth store) |
+| `https://www.2click.in/api/health` | **Still broken:** SPA `index.html` (GET 200 HTML). POST signup → **405**. |
+| GitHub → Vercel Production | Recent Production deployments **failed** (e.g. `dpl_53B2iq8V…`) — domain keeps serving an older static build without Express. |
+| Working temp API | Anonymous `vercel deploy --temporary` serves `/api/health` JSON + signup **201**. |
 
-**Root cause of signup 405:** custom domain deployment is **static-only** (or build skipped `api/index.js`). Frontend is fine; `/api/*` never hits Express.
+**Root cause:** code on `main` is fine (`api/index.js` + rewrites). **Production deploy on the Vercel project is failing**, so `www.2click.in` never gets the serverless function.
 
-**Fix:** Redeploy Production from repo with `vercel.json` → `npm run build:vercel` so `public/` **and** `api/index.js` ship. Confirm Build Command in dashboard is not overridden to client-only `vite build`.
+**Fix path:**
+1. Merge deploy-hardening PR (esbuild in `dependencies`, Hobby-safe `maxDuration`, Node `22.x`).
+2. In Vercel dashboard: confirm Build Command = `npm run build:vercel`, then **Redeploy** latest main (or add `VERCEL_TOKEN` for the agent).
+3. Verify: `curl -sS https://www.2click.in/api/health` → JSON `"auth":true`.
 
 ---
 
