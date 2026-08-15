@@ -18,7 +18,7 @@ export interface ActionItemData {
 
 export interface MinutesOutput {
   success: boolean;
-  provider: 'openai' | 'gemini';
+  provider: 'openai' | 'gemini' | 'demo';
   model_used?: string;
   summary: string;
   discussion_points: string[];
@@ -29,6 +29,6 @@ export interface MinutesOutput {
 }
 
 export interface AIProvider {
-  name: 'openai' | 'gemini' | string;
+  name: 'openai' | 'gemini' | 'demo' | string;
   generateMinutes(options: GenerateMinutesOptions): Promise<MinutesOutput>;
 }
