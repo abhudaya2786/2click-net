@@ -10,14 +10,31 @@ Hostinger was serving the **Vite source** `index.html`:
 
 `GET /src/main.tsx` returns `Content-Type: text/plain`, so Chrome blocks the module and the page stays white.
 
-## Current status (2026-08-14)
+## Current status (2026-08-15)
 
-`https://www.2click.in` may still be broken until `public_html` is replaced with a production build.
+`https://2click.in` and `https://www.2click.in` DNS point at **Vercel**, but return `DEPLOYMENT_NOT_FOUND` (no live production deployment for the linked project).
 
 - Working full-stack app (UI + `/api`): https://temporary-flying-cygnus-dou4esu.vercel.app
 - Local: `npm run dev` → http://127.0.0.1:3000
 
-## Fix
+### Restore the custom domain
+
+1. In Vercel: import/link `abhudaya2786/2click-net`, set `GEMINI_API_KEY` (optional), deploy Production
+2. Project → Settings → Domains → ensure `2click.in` + `www.2click.in` are assigned to that project
+3. Disable Deployment Protection (Vercel Authentication) for Production so public users are not blocked
+4. Hard refresh — HTML must load `/assets/index-*.js`, never `/src/main.tsx`
+
+If you prefer Hostinger static hosting instead, use the pack below (API will not run on plain Hostinger).
+
+## Fix (Hostinger static upload)
+
+Hostinger white-screen root cause: `public_html` was serving Vite **dev** HTML:
+
+```html
+<script type="module" src="/src/main.tsx"></script>
+```
+
+`.tsx` is served as `text/plain` → Chrome blocks the module → blank page.
 
 Upload a **production Vite build** (hashed `/assets/*.js` + `/assets/*.css`) — never upload `/src`.
 
