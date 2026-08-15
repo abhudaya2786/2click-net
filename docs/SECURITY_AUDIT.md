@@ -10,7 +10,9 @@
 | Client-bundled API secrets | **Pass** — no GEMINI/OPENAI/WhatsApp secrets in `src/` |
 | AI route abuse | **Mitigated** — rate limits + require auth when live keys present |
 | Company org privilege | **Mitigated** — only owner (or first claim) can PUT |
-| Field visits / PDFs | **Mitigated** — require auth |
+| Field visit list / notify | **Mitigated** — require auth |
+| Field PDF download | **Capability URL** — opaque visit-id filenames + rate limit (shareable after process) |
+| Field analytics | **Mitigated** — require auth when live AI keys present; open in demo |
 | Billing webhooks | **Hardened** — return 501 until signature verification is configured |
 | Multi-tenant isolation | **Open** — single org file; not SaaS-grade yet |
 | Durable auth on Vercel | **Open** — file store ephemeral on serverless |

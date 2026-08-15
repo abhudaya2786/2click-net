@@ -86,6 +86,8 @@ const DEFAULT_ORG: CompanyOrgSettings = {
 };
 
 function dataDir() {
+  const override = String(process.env.COMPANY_DATA_DIR || '').trim();
+  if (override) return path.resolve(override);
   return path.join(process.cwd(), 'data', 'company');
 }
 

@@ -1,14 +1,41 @@
 /**
  * Real-estate marketing work-talk → owner inbox smoke test.
+ * Spawns an isolated server so leftover data/company ownership cannot flake the run.
  */
-const BASE = process.env.AUTH_BASE || 'http://127.0.0.1:3001';
+import { spawn } from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+
+const PORT = Number(process.env.SMOKE_COMPANY_PORT || 3471);
+const BASE = `http://127.0.0.1:${PORT}`;
+const root = process.cwd();
+const companyDir = fs.mkdtempSync(path.join(os.tmpdir(), '2click-company-'));
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
 }
 
-async function json(path: string, init: RequestInit = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+function wait(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function waitForHealth(timeoutMs = 20000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const r = await fetch(`${BASE}/api/health`);
+      if (r.ok) return;
+    } catch {
+      /* retry */
+    }
+    await wait(300);
+  }
+  throw new Error('Server health timeout');
+}
+
+async function json(pathName: string, init: RequestInit = {}) {
+  const res = await fetch(`${BASE}${pathName}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -19,7 +46,26 @@ async function json(path: string, init: RequestInit = {}) {
   return { res, body };
 }
 
+const child = spawn(process.execPath, ['--import', 'tsx', path.join(root, 'server.ts')], {
+  cwd: root,
+  env: {
+    ...process.env,
+    PORT: String(PORT),
+    HOST: '127.0.0.1',
+    COMPANY_DATA_DIR: companyDir,
+  },
+  stdio: ['ignore', 'pipe', 'pipe'],
+});
+
+let stderr = '';
+child.stderr.on('data', (d) => {
+  stderr += d.toString();
+});
+
 async function main() {
+  console.log(`\nCompany reports smoke → ${BASE} (data: ${companyDir})\n`);
+  await waitForHealth();
+
   const stamp = Date.now().toString(36);
   const ownerId = `owner_${stamp}`;
   const empId = `emp_${stamp}`;
@@ -109,7 +155,23 @@ async function main() {
   console.log('ALL real-estate owner-report smoke tests passed');
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main()
+  .catch((e) => {
+    console.error(e);
+    console.error(stderr.slice(-2000));
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    child.kill('SIGTERM');
+    await wait(400);
+    try {
+      child.kill('SIGKILL');
+    } catch {
+      /* ignore */
+    }
+    try {
+      fs.rmSync(companyDir, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+  });

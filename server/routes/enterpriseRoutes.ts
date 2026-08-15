@@ -35,11 +35,14 @@ export function registerEnterpriseRoutes(app: Express) {
   app.get('/api/field/visits/:id', requireAuth, getVisit);
   app.post('/api/field/privacy/preview', privacyPreview);
   app.post('/api/field/visits/:id/notify', requireAuth, resendOwnerSummary);
-  app.get('/api/field/analytics', requireAuth, fieldAnalytics);
+  // Analytics is cheap local aggregate; open in demo, auth-gated when live AI is on
+  app.get('/api/field/analytics', requireAuthWhenLiveAi(), fieldAnalytics);
 
-  // Serve generated PDFs — require auth (no public dump)
+  // Serve generated PDFs — opaque filenames (visit id) act as capability URLs so
+  // field/process → pdfDownloadPath works without a second login hop.
   const pdfDir = path.resolve(process.cwd(), enterpriseConfig.fieldVisit.pdfStorageDir);
-  app.use('/api/field/pdfs', requireAuth, express.static(pdfDir));
+  const pdfRate = createRateLimiter({ windowMs: 60_000, max: 60, keyPrefix: 'pdf' });
+  app.use('/api/field/pdfs', pdfRate, express.static(pdfDir));
 
   // Health extension (additive path — does not replace /api/health)
   app.get('/api/enterprise/health', (_req, res) => {
