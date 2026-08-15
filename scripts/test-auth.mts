@@ -80,6 +80,15 @@ async function main() {
   assert(signup.body.token && signup.body.user?.userId === userId, 'signup returns token+user');
   console.log('signup OK', userId);
 
+  const atUserId = `Anvi@${Date.now().toString(36).slice(-6)}`;
+  const atSignup = await json('/api/v1/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify({ userId: atUserId, password, displayName: 'At User' }),
+  });
+  assert(atSignup.res.status === 201, `@ userId signup status ${atSignup.res.status}`);
+  assert(atSignup.body.user?.userId === atUserId, '@ userId preserved');
+  console.log('signup with @ OK', atUserId);
+
   const dup = await json('/api/v1/auth/signup', {
     method: 'POST',
     body: JSON.stringify({ userId, password }),

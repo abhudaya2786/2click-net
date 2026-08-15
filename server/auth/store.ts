@@ -31,7 +31,8 @@ export interface AuthSession {
   expiresAt: string;
 }
 
-const USER_ID_RE = /^[a-zA-Z0-9_]{3,32}$/;
+/** Letters/numbers plus _, @, ., - (e.g. Anvi@1212). Must include at least one alphanumeric. */
+const USER_ID_RE = /^(?=.*[a-zA-Z0-9])[a-zA-Z0-9_.@-]{3,32}$/;
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
 function dataDir() {
@@ -101,7 +102,7 @@ function normalizeUserId(raw: string) {
 export function validateUserId(userId: string): string | null {
   const id = normalizeUserId(userId);
   if (!USER_ID_RE.test(id)) {
-    return 'User ID must be 3–32 characters (letters, numbers, underscore).';
+    return 'User ID must be 3–32 characters (letters, numbers, _, @, ., -).';
   }
   return null;
 }
