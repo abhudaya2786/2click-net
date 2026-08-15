@@ -2,7 +2,8 @@ node_modules/
 build/
 dist/
 public/
-api/index.js
+# Keep api/index.js tracked so Vercel always ships the Express serverless
+# function even if a dashboard build override skips build:vercel-api.
 api/index.js.map
 coverage/
 .DS_Store
@@ -20,3 +21,4 @@ android/app/build/
 android/build/
 android/local.properties
 android/capacitor-cordova-android-plugins/build/
+.vercel

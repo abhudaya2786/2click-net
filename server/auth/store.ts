@@ -1,10 +1,11 @@
 /**
  * File-backed user store with scrypt password hashing.
- * Persists under data/auth/users.json (gitignored content).
+ * Persists under data/auth/users.json (or /tmp on Vercel — ephemeral until durable DB).
  */
 import fs from 'fs/promises';
 import path from 'path';
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto';
+import { resolveAppDataDir } from '../dataPath.ts';
 
 export interface AuthUserRecord {
   id: string;
@@ -34,7 +35,9 @@ const USER_ID_RE = /^[a-zA-Z0-9_]{3,32}$/;
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
 function dataDir() {
-  return path.join(process.cwd(), 'data', 'auth');
+  const override = String(process.env.AUTH_DATA_DIR || '').trim();
+  if (override) return path.resolve(override);
+  return resolveAppDataDir('auth');
 }
 
 function usersFile() {

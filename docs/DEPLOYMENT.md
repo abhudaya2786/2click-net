@@ -28,8 +28,10 @@ npm test
 
 | Host | Status |
 |------|--------|
-| `2click.in` / `www.2click.in` | DNS → Vercel, but **`DEPLOYMENT_NOT_FOUND`** until Production exists on the linked project |
-| Preview example | `temporary-flying-cygnus-dou4esu.vercel.app` responds 200 (older build) |
+| `www.2click.in` | UI OK; **`/api/*` broken** (SPA HTML → signup **405**) until Production ships `api/index.js` |
+| `2click.in` | Redirects to www |
+
+After merge: Redeploy Production with Build Command `npm run build:vercel`. Verify `curl -sS https://www.2click.in/api/health` is JSON.
 
 ---
 
