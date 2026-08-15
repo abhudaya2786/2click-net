@@ -32,6 +32,18 @@
       content="Speak naturally. Get transcripts, smart Minutes of Meeting and actionable tasks automatically."
     />
     <link rel="canonical" href="https://2click.in/" />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('voice_mom_theme');
+          var dark =
+            t === 'dark' ||
+            (t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+          else document.documentElement.classList.remove('dark');
+        } catch (e) {}
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

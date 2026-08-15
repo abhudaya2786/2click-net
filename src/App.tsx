@@ -178,7 +178,10 @@ function AppContent() {
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSampleModalOpen, setIsSampleModalOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof document === 'undefined') return false;
+    return document.documentElement.classList.contains('dark');
+  });
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
   // Load saved meetings, schedules, privacy settings and theme on initial load
@@ -233,10 +236,14 @@ function AppContent() {
       }
 
       const savedTheme = localStorage.getItem(THEME_KEY);
-      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        setIsDarkMode(true);
-        document.documentElement.classList.add('dark');
-      }
+      const preferDark =
+        savedTheme === 'dark' ||
+        (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      // Explicit light preference must win over system dark
+      const useDark = savedTheme === 'light' ? false : preferDark;
+      setIsDarkMode(useDark);
+      document.documentElement.classList.toggle('dark', useDark);
+      document.documentElement.style.colorScheme = useDark ? 'dark' : 'light';
     } catch (err) {
       console.error('Failed to load local storage data:', err);
     }
@@ -314,13 +321,11 @@ function AppContent() {
   const toggleTheme = () => {
     setIsDarkMode((prev) => {
       const next = !prev;
-      if (next) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem(THEME_KEY, 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem(THEME_KEY, 'light');
-      }
+      document.documentElement.classList.toggle('dark', next);
+      document.documentElement.style.colorScheme = next ? 'dark' : 'light';
+      localStorage.setItem(THEME_KEY, next ? 'dark' : 'light');
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', next ? '#061018' : '#00BAF2');
       return next;
     });
   };
@@ -707,7 +712,9 @@ function AppContent() {
                 <button
                   id="signin-header-btn"
                   onClick={() => go('/signin')}
-                  className="btn-hs-secondary !px-2.5 hidden sm:inline-flex"
+                  className={`btn-hs-secondary !px-2.5 ${
+                    currentRoute === '/signin' || currentRoute === '/signup' ? 'hidden' : 'hidden sm:inline-flex'
+                  }`}
                   title="Sign In"
                 >
                   <LogIn className="w-3.5 h-3.5" />
@@ -716,7 +723,9 @@ function AppContent() {
                 <button
                   id="signup-header-btn"
                   onClick={() => go('/signup')}
-                  className="btn-hs !px-2.5"
+                  className={`btn-hs !px-2.5 ${
+                    currentRoute === '/signin' || currentRoute === '/signup' ? 'hidden' : ''
+                  }`}
                   title="Sign Up"
                 >
                   <span className="hidden sm:inline">Sign Up</span>
@@ -727,10 +736,11 @@ function AppContent() {
 
             <button
               onClick={() => go('/meetings/new')}
-              className="btn-hs hidden sm:inline-flex"
+              className="btn-hs !px-2.5 hidden md:inline-flex"
+              title="New meeting"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Try for free</span>
+              <span>New</span>
             </button>
 
             <button
@@ -750,11 +760,16 @@ function AppContent() {
 
             <button
               id="theme-toggle-btn"
+              type="button"
               onClick={toggleTheme}
-              className="btn-hs-secondary !px-2"
-              title="Toggle theme"
+              className="btn-hs-secondary !px-2.5 inline-flex items-center gap-1.5"
+              title={isDarkMode ? 'Switch to light theme' : 'Switch to dark theme'}
+              aria-pressed={isDarkMode}
             >
               {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5" />}
+              <span className="text-[10px] font-extrabold uppercase tracking-wide hidden sm:inline">
+                {isDarkMode ? 'Light' : 'Dark'}
+              </span>
             </button>
 
             <div className="relative">

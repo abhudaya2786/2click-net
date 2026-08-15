@@ -350,6 +350,8 @@ export interface VoiceSystemConfig {
   isVoiceCommandEnabled: boolean;
   languageMode: VoiceLanguageMode;
   continuousListening: boolean;
+  /** When true, start mic listening automatically when the app opens */
+  autoStartListening: boolean;
   audioFeedback: boolean;
   visualFeedback: boolean;
   hapticFeedback: boolean;

@@ -136,7 +136,9 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
   const wakeWords = wakeWordProvider.getWakeWords();
   const commands = voiceCommandProvider.getCommands();
 
-  const [activeTab, setActiveTab] = useState<'wake_words' | 'commands' | 'sandbox' | 'privacy'>('wake_words');
+  const [activeTab, setActiveTab] = useState<
+    'wake_words' | 'commands' | 'sandbox' | 'privacy' | 'general'
+  >('general');
 
   // Wake Word Form State
   const [showAddWakeWord, setShowAddWakeWord] = useState(false);
@@ -309,6 +311,18 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
       {/* Navigation Sub-Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar">
         <button
+          onClick={() => setActiveTab('general')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+            activeTab === 'general'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Sliders className="w-3.5 h-3.5" />
+          <span>General</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('wake_words')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
             activeTab === 'wake_words'
@@ -365,6 +379,109 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
           <ArrowRight className="w-3 h-3 ml-0.5" />
         </button>
       </div>
+
+      {/* ========================================================= */}
+      {/* TAB: GENERAL — Auto start + language */}
+      {/* ========================================================= */}
+      {activeTab === 'general' && (
+        <div className="space-y-4">
+          <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[#e8f9fe] text-[#002e6e] dark:bg-sky-950 dark:text-sky-300 flex items-center justify-center">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Listening controls</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Auto start aur language — Voice Assistant Idle problem ke liye yahan se on karo.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start justify-between gap-4 py-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="min-w-0">
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  Auto start listening
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  App khulte hi mic sunna shuru — bina Idle pill pe tap kiye. Phone pe mic permission allow
+                  karna zaroori hai.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                aria-label="Auto start listening"
+                checked={Boolean(config.autoStartListening)}
+                onChange={(e) => {
+                  updateConfig({ autoStartListening: e.target.checked });
+                  if (e.target.checked) void startListening();
+                  else stopListening();
+                }}
+                className="mt-1 w-5 h-5 accent-[#00baf2] rounded cursor-pointer shrink-0"
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4 py-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="min-w-0">
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  Wake word detection
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Namaskar / Hello / 2Click Start jaise wake phrases.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={config.isWakeWordEnabled !== false}
+                onChange={(e) => updateConfig({ isWakeWordEnabled: e.target.checked })}
+                className="mt-1 w-5 h-5 accent-[#00baf2] rounded cursor-pointer shrink-0"
+              />
+            </div>
+
+            <div className="flex items-start justify-between gap-4 py-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="min-w-0">
+                <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                  Voice commands
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Start / Stop / Save note phrases execute honge.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={config.isVoiceCommandEnabled !== false}
+                onChange={(e) => updateConfig({ isVoiceCommandEnabled: e.target.checked })}
+                className="mt-1 w-5 h-5 accent-[#00baf2] rounded cursor-pointer shrink-0"
+              />
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <Languages className="w-4 h-4 text-[#00baf2]" />
+                Speech language
+              </div>
+              <select
+                value={config.languageMode}
+                onChange={(e) => setLanguageMode(e.target.value as VoiceLanguageMode)}
+                className="w-full sm:max-w-xs px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm font-semibold text-slate-900 dark:text-slate-100"
+              >
+                <option value="auto">Auto (Hinglish)</option>
+                <option value="hi-IN">Hindi (hi-IN)</option>
+                <option value="en-IN">English India (en-IN)</option>
+                <option value="en-US">English US (en-US)</option>
+              </select>
+            </div>
+
+            {!isSupported && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200">
+                Is browser me Web Speech API nahi hai. Chrome/Edge use karo, ya Voice Assistant pe{' '}
+                <strong>Start</strong> button se session chalao.
+                {statusError ? ` ${statusError}` : ''}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* TAB 1: WAKE WORDS MANAGEMENT */}

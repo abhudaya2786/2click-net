@@ -360,6 +360,7 @@ export const DEFAULT_VOICE_CONFIG: VoiceSystemConfig = {
   isVoiceCommandEnabled: true,
   languageMode: 'auto',
   continuousListening: true,
+  autoStartListening: false,
   audioFeedback: true,
   visualFeedback: true,
   hapticFeedback: true,

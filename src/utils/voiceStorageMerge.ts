@@ -96,10 +96,9 @@ export function mergeWakeWords(
 export function mergeVoiceConfig(
   saved: Partial<VoiceSystemConfig> | null | undefined,
 ): VoiceSystemConfig {
-  return {
+  const merged: VoiceSystemConfig = {
     ...DEFAULT_VOICE_CONFIG,
     ...(saved || {}),
-    // Always ensure voice commands stay on unless user explicitly disabled
     isVoiceCommandEnabled:
       saved?.isVoiceCommandEnabled === undefined
         ? DEFAULT_VOICE_CONFIG.isVoiceCommandEnabled
@@ -108,5 +107,14 @@ export function mergeVoiceConfig(
       saved?.isWakeWordEnabled === undefined
         ? DEFAULT_VOICE_CONFIG.isWakeWordEnabled
         : Boolean(saved.isWakeWordEnabled),
+    autoStartListening:
+      saved?.autoStartListening === undefined
+        ? DEFAULT_VOICE_CONFIG.autoStartListening
+        : Boolean(saved.autoStartListening),
+    continuousListening:
+      saved?.continuousListening === undefined
+        ? DEFAULT_VOICE_CONFIG.continuousListening
+        : Boolean(saved.continuousListening),
   };
+  return merged;
 }

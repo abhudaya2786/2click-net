@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode — moon/sun toggle must control dark: utilities */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* 2Click × Paytm-inspired design system — navy + cyan fintech app */
 @theme {
   --font-sans: "Outfit", "DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -28,7 +31,7 @@
   --color-cyan: #00baf2;
 }
 
-@layer base {
+  @layer base {
   :root {
     color-scheme: light;
     --app-header-h: 3.25rem;
@@ -37,6 +40,10 @@
     --text-meta: 0.875rem;
     --paytm-navy: #002e6e;
     --paytm-cyan: #00baf2;
+  }
+
+  html.dark {
+    color-scheme: dark;
   }
 
   @media (max-width: 767px) {

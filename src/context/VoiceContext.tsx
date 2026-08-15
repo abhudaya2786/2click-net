@@ -411,6 +411,8 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const handleVisibilityChange = () => {
       if (document.hidden) {
         wakeWordProviderRef.current.stopListening();
+      } else if (configRef.current.autoStartListening || configRef.current.continuousListening) {
+        void wakeWordProviderRef.current.startListening();
       }
     };
 
@@ -422,6 +424,20 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       // Keep commandSessionController alive across Strict Mode remounts
     };
   }, []);
+
+  // Auto-start mic listening when enabled (app open / config toggled on)
+  useEffect(() => {
+    if (!config.autoStartListening) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      void wakeWordProviderRef.current.startListening();
+    }, 600);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [config.autoStartListening]);
 
   const startListening = useCallback(async (opts?: { skipMicPrime?: boolean }) => {
     return await wakeWordProviderRef.current.startListening(opts);
