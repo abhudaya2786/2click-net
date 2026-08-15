@@ -30,6 +30,7 @@ import {
 import { useGeofence } from '../../context/GeofenceContext';
 import { GeofenceLocationEntity } from '../../types';
 import { formatDistance } from '../../utils/geofenceManager';
+import { reverseGeocode } from '../../utils/reverseGeocode';
 import { FieldSessionControls } from '../field/FieldSessionControls';
 
 interface LocationGeofenceSettingsViewProps {
@@ -72,6 +73,24 @@ export const LocationGeofenceSettingsView: React.FC<LocationGeofenceSettingsView
   const [formAutoMoM, setFormAutoMoM] = useState(true);
   const [formDefaultTitle, setFormDefaultTitle] = useState('');
   const [formDefaultDept, setFormDefaultDept] = useState('General');
+  const [geoBusy, setGeoBusy] = useState(false);
+  const [geoHint, setGeoHint] = useState<string | null>(null);
+
+  const fillAddressFromCoords = async (lat: number, lng: number) => {
+    setGeoBusy(true);
+    setGeoHint(null);
+    try {
+      const place = await reverseGeocode(lat, lng);
+      setFormAddress(place.displayName);
+      setGeoHint(
+        [place.city, place.state].filter(Boolean).join(', ') || place.displayName.slice(0, 80),
+      );
+    } catch (err: any) {
+      setGeoHint(err?.message || 'Address lookup failed');
+    } finally {
+      setGeoBusy(false);
+    }
+  };
 
   const openAddModal = () => {
     setEditingLocId(null);
@@ -111,9 +130,16 @@ export const LocationGeofenceSettingsView: React.FC<LocationGeofenceSettingsView
   const handleUseCurrentGps = async () => {
     const granted = await requestGpsPermission();
     if (granted && userCoords) {
-      setFormLat(Number(userCoords.latitude.toFixed(6)));
-      setFormLng(Number(userCoords.longitude.toFixed(6)));
+      const lat = Number(userCoords.latitude.toFixed(6));
+      const lng = Number(userCoords.longitude.toFixed(6));
+      setFormLat(lat);
+      setFormLng(lng);
+      await fillAddressFromCoords(lat, lng);
     }
+  };
+
+  const handleFillAddressFromFormCoords = async () => {
+    await fillAddressFromCoords(Number(formLat), Number(formLng));
   };
 
   const handleSaveLocation = (e: React.FormEvent) => {
@@ -625,9 +651,20 @@ export const LocationGeofenceSettingsView: React.FC<LocationGeofenceSettingsView
 
               {/* Address / Landmark */}
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Address / Building Landmark (Optional)
-                </label>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Address / Building Landmark (Optional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => void handleFillAddressFromFormCoords()}
+                    disabled={geoBusy}
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span>{geoBusy ? 'Looking up…' : 'Fill from lat/lon'}</span>
+                  </button>
+                </div>
                 <input
                   type="text"
                   placeholder="e.g. DLF Cyber City, Tower B, Level 8"
@@ -635,6 +672,9 @@ export const LocationGeofenceSettingsView: React.FC<LocationGeofenceSettingsView
                   onChange={(e) => setFormAddress(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium"
                 />
+                {geoHint && (
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{geoHint}</p>
+                )}
               </div>
 
               {/* GPS Coordinates */}

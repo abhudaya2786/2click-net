@@ -13,6 +13,7 @@ import { preprocessTranscriptForEnterprise } from './server/services/piiFilterSe
 import { stripAudioPayload } from './server/services/audioRetentionService.ts';
 import { enterpriseConfig } from './server/config/env.ts';
 import { registerAuthRoutes } from './server/auth/index.ts';
+import { registerGeoRoutes } from './server/geo/index.ts';
 import { registerCompanyOrgRoutes } from './server/org/index.ts';
 import { redactCommandTriggers } from './src/utils/wakeWordRedaction.ts';
 import {
@@ -173,6 +174,9 @@ function createApp() {
 
   // Auth: User ID + password signup / signin
   registerAuthRoutes(app);
+
+  // Reverse geocode (OpenStreetMap Nominatim proxy)
+  registerGeoRoutes(app);
 
   // Enterprise field-workforce modules (additive — does not replace MoM routes)
   registerEnterpriseRoutes(app);
