@@ -252,7 +252,7 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
         type="button"
         aria-label="Create new meeting"
         onClick={() => onNavigate('/meetings/new')}
-        className="md:hidden fixed z-30 right-4 bottom-[calc(var(--app-bottom-h)+0.85rem)] w-14 h-14 rounded-full bg-[#00baf2] text-white flex items-center justify-center shadow-lg shadow-cyan-500/40 active:scale-95"
+        className="md:hidden fixed z-30 left-4 bottom-[calc(var(--app-bottom-h)+5.5rem)] w-14 h-14 rounded-full bg-[#00baf2] text-white flex items-center justify-center shadow-lg shadow-cyan-500/40 active:scale-95"
       >
         <Plus className="w-7 h-7" />
       </button>
