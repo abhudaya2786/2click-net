@@ -60,7 +60,26 @@ import { BillingSubscriptionView } from './components/settings/BillingSubscripti
 import { GeofenceProvider } from './context/GeofenceContext';
 import { GeofenceAutoModeBanner } from './components/geofence/GeofenceAutoModeBanner';
 import { LocationGeofenceSettingsView } from './components/settings/LocationGeofenceSettingsView';
-import { CreditCard, Compass, MapPin, Power, MoreHorizontal, Settings2, X, FileAudio } from 'lucide-react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthView, AccountView } from './components/auth/AuthView';
+import { CompanySettingsView } from './components/company/CompanySettingsView';
+import { FieldTalkView } from './components/company/FieldTalkView';
+import { RealEstateSalesLanding } from './components/company/RealEstateSalesLanding';
+import { OwnerInboxView } from './components/inbox/OwnerInboxView';
+import {
+  CreditCard,
+  Compass,
+  MapPin,
+  Power,
+  MoreHorizontal,
+  Settings2,
+  X,
+  FileAudio,
+  LogIn,
+  User,
+  Inbox,
+  Building2,
+} from 'lucide-react';
 import { MobileInstallBanner } from './components/MobileInstallBanner';
 import { RecordingsLibraryView } from './components/recordings/RecordingsLibraryView';
 
@@ -77,9 +96,20 @@ function AppContent() {
       p.startsWith('/meetings') ||
       p.startsWith('/settings') ||
       p.startsWith('/recordings') ||
-      p === '/mom'
-    )
-      return p;
+      p === '/mom' ||
+      p === '/signin' ||
+      p === '/signup' ||
+      p === '/login' ||
+      p === '/account' ||
+      p === '/inbox' ||
+      p === '/field-talk' ||
+      p === '/for-real-estate' ||
+      p === '/sales' ||
+      p === '/company' ||
+      p === '/files'
+    ) {
+      return p === '/login' ? '/signin' : p === '/sales' ? '/for-real-estate' : p;
+    }
     return '/meetings';
   });
 
@@ -582,10 +612,14 @@ function AppContent() {
   const primaryNav = [
     { path: '/meetings', match: (r: string) => r.startsWith('/meetings'), label: 'Meetings', icon: Layers },
     { path: '/mom', match: (r: string) => r === '/mom' || r === '/', label: 'MoM AI', icon: Sparkles },
-    { path: '/recordings', match: (r: string) => r.startsWith('/recordings'), label: 'Files', icon: FileAudio },
+    { path: '/inbox', match: (r: string) => r === '/inbox', label: 'Owner Inbox', icon: Inbox },
+    { path: '/field-talk', match: (r: string) => r === '/field-talk', label: 'Field Talk', icon: Radio },
   ];
 
   const moreNav = [
+    { path: '/for-real-estate', label: 'Sell to RE Marketing', icon: Building2, id: 're-sales-nav-btn' },
+    { path: '/settings/company', label: 'Company & Report Routing', icon: Building2, id: 'company-settings-nav-btn' },
+    { path: '/account', label: 'Account', icon: User, id: 'account-nav-btn' },
     { path: '/recordings', label: 'Voice Files & Location', icon: FileAudio, id: 'recordings-library-nav-btn' },
     { path: '/settings/voice', label: 'Voice & Wake Words', icon: Mic, id: 'voice-settings-nav-btn' },
     { path: '/settings/schedule', label: 'Recording Schedule', icon: Calendar, id: 'schedule-settings-nav-btn' },
@@ -617,7 +651,7 @@ function AppContent() {
                 2Click<span className="hs-accent">MoM</span>
               </div>
               <div className="hidden sm:block text-[10px] font-semibold text-slate-500">
-                AI notetaker for meetings
+                Voice MoM · 2click.in
               </div>
             </div>
           </button>
@@ -1193,9 +1227,9 @@ function AppContent() {
         <div className="grid grid-cols-4 h-16">
           {[
             { path: '/meetings', label: 'Meetings', icon: Layers, active: currentRoute.startsWith('/meetings') && currentRoute !== '/meetings/new' },
-            { path: '/mom', label: 'MoM', icon: Sparkles, active: currentRoute === '/mom' || currentRoute === '/' },
-            { path: '/recordings', label: 'Files', icon: FileAudio, active: currentRoute.startsWith('/recordings') || currentRoute === '/files' },
-            { path: '/settings/voice', label: 'More', icon: Settings2, active: currentRoute.startsWith('/settings') },
+            { path: '/inbox', label: 'Inbox', icon: Inbox, active: currentRoute === '/inbox' },
+            { path: '/field-talk', label: 'Talk', icon: Radio, active: currentRoute === '/field-talk' },
+            { path: '/settings/company', label: 'More', icon: Settings2, active: currentRoute.startsWith('/settings') || currentRoute === '/recordings' || currentRoute === '/files' || currentRoute === '/account' },
           ].map((item) => {
             const Icon = item.icon;
             return (

@@ -12,11 +12,17 @@ import { registerEnterpriseRoutes } from './server/routes/enterpriseRoutes.ts';
 import { preprocessTranscriptForEnterprise } from './server/services/piiFilterService.ts';
 import { stripAudioPayload } from './server/services/audioRetentionService.ts';
 import { enterpriseConfig } from './server/config/env.ts';
+import { registerAuthRoutes } from './server/auth/index.ts';
+import { registerCompanyOrgRoutes } from './server/org/index.ts';
+import { redactCommandTriggers } from './src/utils/wakeWordRedaction.ts';
 
 const rootDir = process.cwd();
 const isProd = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
+
+/** In-memory Instant Save store for command sessions (user-scoped). */
+const instantConversations: any[] = [];
 
 function requireLiveAi() {
   if (!hasAiApiKey()) {
@@ -125,6 +131,9 @@ function createApp() {
       demoMode: !hasAiApiKey(),
     });
   });
+
+  // Auth: User ID + password signup / signin
+  registerAuthRoutes(app);
 
   // Enterprise field-workforce modules (additive — does not replace MoM routes)
   registerEnterpriseRoutes(app);

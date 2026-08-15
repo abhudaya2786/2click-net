@@ -2,7 +2,7 @@
 
 /* HappyScribe-inspired tokens: clean white canvas + strong brand blue */
 @theme {
-  --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   --color-hs-50: #eef4ff;
