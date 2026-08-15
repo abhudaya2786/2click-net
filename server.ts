@@ -160,6 +160,9 @@ function createApp() {
         languageDetected = speechResult.detectedLanguage || languageDetected;
       }
 
+      // Strip voice command triggers from transcript before MoM generation
+      transcript = redactCommandTriggers(transcript);
+
       if (!transcript || transcript.length < 10) {
         return res.status(400).json({ error: 'Provide audioBase64 or transcriptText with enough content.' });
       }
@@ -188,6 +191,17 @@ function createApp() {
         languageHint: languageDetected,
       });
 
+      // Redact any residual trigger words from model output
+      if (minutes.summary) minutes.summary = redactCommandTriggers(minutes.summary);
+      if (Array.isArray(minutes.discussion_points)) {
+        minutes.discussion_points = minutes.discussion_points.map((p: string) =>
+          redactCommandTriggers(String(p)),
+        );
+      }
+      if (Array.isArray(minutes.decisions)) {
+        minutes.decisions = minutes.decisions.map((d: string) => redactCommandTriggers(String(d)));
+      }
+
       const meeting = minutesToMeeting(minutes, {
         transcriptText: transcript,
         segments,
@@ -212,6 +226,81 @@ function createApp() {
       console.error('[generate-mom]', e);
       res.status(e.status || 500).json({ error: e.message || 'Failed to generate MoM' });
     }
+  });
+
+  /** Instant Save for command-based voice sessions (user database). */
+  app.post('/api/v1/conversations', (req, res) => {
+    try {
+      const body = req.body || {};
+      const userId = body.user_id || body.userId;
+      if (!userId) {
+        return res.status(400).json({ error: 'user_id is required' });
+      }
+      let rawText = typeof body.raw_text === 'string' ? body.raw_text : '';
+      rawText = redactCommandTriggers(rawText);
+      if (!rawText && !body.audio_base64) {
+        return res.status(400).json({ error: 'raw_text or audio_base64 required' });
+      }
+      const summary = redactCommandTriggers(
+        body.summary || rawText.slice(0, 240) || 'Voice command session note',
+      );
+      const row = {
+        id: uid('conv'),
+        conversation_id: undefined as string | undefined,
+        user_id: String(userId),
+        type: body.type || 'voice_note',
+        contact_name: body.contact_name || 'Command Session',
+        raw_transcript: rawText,
+        summary,
+        detected_dialect: body.detected_dialect || 'auto',
+        detected_intent: redactCommandTriggers(body.detected_intent || summary),
+        pure_hindi: redactCommandTriggers(body.pure_hindi || rawText),
+        pure_english: redactCommandTriggers(body.pure_english || rawText),
+        duration_seconds: body.duration_seconds || 0,
+        source: body.source || 'command_session',
+        created_at: new Date().toISOString(),
+        persistence: 'memory',
+      };
+      row.conversation_id = row.id;
+      instantConversations.unshift(row);
+      if (instantConversations.length > 500) instantConversations.length = 500;
+      res.status(201).json({
+        success: true,
+        conversation_id: row.id,
+        user_id: row.user_id,
+        type: row.type,
+        raw_transcript: row.raw_transcript,
+        summary: row.summary,
+        detected_dialect: row.detected_dialect,
+        detected_intent: row.detected_intent,
+        pure_hindi: row.pure_hindi,
+        pure_english: row.pure_english,
+        persistence: 'memory',
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message || 'Instant Save failed' });
+    }
+  });
+
+  app.get('/api/v1/conversations', (req, res) => {
+    const userId = String(req.query.user_id || '');
+    if (!userId) return res.status(400).json({ error: 'user_id is required' });
+    const q = String(req.query.q || '').toLowerCase();
+    let rows = instantConversations.filter((c) => c.user_id === userId);
+    if (q) {
+      rows = rows.filter(
+        (c) =>
+          String(c.raw_transcript || '').toLowerCase().includes(q) ||
+          String(c.summary || '').toLowerCase().includes(q),
+      );
+    }
+    res.json({
+      success: true,
+      user_id: userId,
+      count: rows.length,
+      persistence: 'memory',
+      conversations: rows,
+    });
   });
 
   app.post('/api/transcribe', async (req, res) => {

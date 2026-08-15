@@ -23,21 +23,31 @@ import {
 } from '../utils/voiceDefaults';
 import { WakeWordProvider } from '../utils/wakeWordProvider';
 import { VoiceCommandProvider } from '../utils/voiceCommandProvider';
+import {
+  commandSessionController,
+  CommandSessionSnapshot,
+} from '../utils/commandSessionController';
+import { playCommandFeedback } from '../utils/voiceFeedback';
 
-const WAKE_WORDS_KEY = 'voice_mom_wake_words_v2';
-const VOICE_COMMANDS_KEY = 'voice_mom_voice_commands_v2';
-const VOICE_CONFIG_KEY = 'voice_mom_voice_config_v2';
+const WAKE_WORDS_KEY = 'voice_mom_wake_words_v3';
+const VOICE_COMMANDS_KEY = 'voice_mom_voice_commands_v3';
+const VOICE_CONFIG_KEY = 'voice_mom_voice_config_v3';
+
+const SESSION_ACTIONS: VoiceCommandAction[] = [
+  'START_RECORDING',
+  'STOP_RECORDING',
+  'SAVE_NOTE',
+  'CANCEL_RECORDING',
+];
 
 interface VoiceContextValue {
-  // Config & State
   config: VoiceSystemConfig;
   status: VoiceListeningStatus;
   isListening: boolean;
   isSupported: boolean;
   statusError?: string;
   interimTranscript: string;
-  
-  // Detection Alerts & Safety
+
   activeWakeWordAlert: WakeWordDetectionEvent | null;
   activeCommandAlert: VoiceCommandExecutionEvent | null;
   pendingActionConfirmation: {
@@ -47,11 +57,12 @@ interface VoiceContextValue {
     description: string;
   } | null;
 
-  // Providers
+  /** Command-based record/transcribe/save session */
+  commandSession: CommandSessionSnapshot;
+
   wakeWordProvider: WakeWordProvider;
   voiceCommandProvider: VoiceCommandProvider;
 
-  // Actions
   startListening: () => Promise<boolean>;
   stopListening: () => void;
   toggleListening: () => void;
@@ -59,25 +70,21 @@ interface VoiceContextValue {
   confirmPendingAction: () => void;
   cancelPendingAction: () => void;
 
-  // Wake Words CRUD
   addWakeWord: (item: Omit<WakeWordItem, 'id' | 'detectedCount'>) => void;
   updateWakeWord: (id: string, updates: Partial<WakeWordItem>) => void;
   deleteWakeWord: (id: string) => void;
   toggleWakeWord: (id: string, enabled?: boolean) => void;
   resetWakeWordsToDefault: () => void;
 
-  // Voice Commands CRUD
   addVoiceCommand: (item: Omit<VoiceCommandItem, 'id' | 'executionCount'>) => void;
   updateVoiceCommand: (id: string, updates: Partial<VoiceCommandItem>) => void;
   deleteVoiceCommand: (id: string) => void;
   toggleVoiceCommand: (id: string, enabled?: boolean) => void;
   resetVoiceCommandsToDefault: () => void;
 
-  // Config Update
   updateConfig: (updates: Partial<VoiceSystemConfig>) => void;
   setLanguageMode: (mode: VoiceLanguageMode) => void;
 
-  // Simulator / Test Tool
   simulateSpokenPhrase: (phrase: string) => {
     wakeWordDetected: WakeWordDetectionEvent | null;
     commandExecuted: VoiceCommandExecutionEvent | null;
@@ -86,8 +93,14 @@ interface VoiceContextValue {
 
 const VoiceContext = createContext<VoiceContextValue | null>(null);
 
+function feedbackForAction(action: VoiceCommandAction): 'start' | 'stop' | 'cancel' | 'command' {
+  if (action === 'START_RECORDING') return 'start';
+  if (action === 'CANCEL_RECORDING') return 'cancel';
+  if (action === 'STOP_RECORDING' || action === 'SAVE_NOTE') return 'stop';
+  return 'command';
+}
+
 export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Load initial configs from LocalStorage
   const [config, setConfig] = useState<VoiceSystemConfig>(() => {
     try {
       const saved = localStorage.getItem(VOICE_CONFIG_KEY);
@@ -114,7 +127,22 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const saved = localStorage.getItem(VOICE_COMMANDS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasCancel = parsed.some((c: VoiceCommandItem) => c.action === 'CANCEL_RECORDING');
+          const hasSaveNote = parsed.some((c: VoiceCommandItem) => c.action === 'SAVE_NOTE');
+          const has2Click = parsed.some(
+            (c: VoiceCommandItem) =>
+              /2\s*click\s*start/i.test(c.phrase) ||
+              (c.aliases || []).some((a) => /2\s*click\s*start/i.test(a)),
+          );
+          if (hasCancel && hasSaveNote && has2Click) return parsed;
+          // Merge missing command-session defaults
+          const byId = new Map(parsed.map((c: VoiceCommandItem) => [c.id, c]));
+          for (const d of DEFAULT_VOICE_COMMANDS) {
+            if (!byId.has(d.id)) byId.set(d.id, d);
+          }
+          return Array.from(byId.values());
+        }
       }
     } catch (e) {}
     return DEFAULT_VOICE_COMMANDS;
@@ -131,58 +159,30 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     title: string;
     description: string;
   } | null>(null);
+  const [commandSession, setCommandSession] = useState<CommandSessionSnapshot>(() =>
+    commandSessionController.snapshot(),
+  );
 
-  // Provider Refs (Stable Singletons)
   const wakeWordProviderRef = useRef<WakeWordProvider>(
-    new WakeWordProvider(wakeWords, config.isWakeWordEnabled)
+    new WakeWordProvider(wakeWords, config.isWakeWordEnabled),
   );
   const voiceCommandProviderRef = useRef<VoiceCommandProvider>(
-    new VoiceCommandProvider(commands, config.isVoiceCommandEnabled)
+    new VoiceCommandProvider(commands, config.isVoiceCommandEnabled),
   );
+  const configRef = useRef(config);
+  configRef.current = config;
 
   const isSupported = wakeWordProviderRef.current.isSupported();
 
-  // Play subtle feedback chime
-  const playFeedbackChime = (type: 'wake' | 'command' | 'confirm') => {
-    if (!config.audioFeedback || typeof window === 'undefined') return;
-    try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
+  const emitFeedback = useCallback((kind: 'start' | 'stop' | 'cancel' | 'wake' | 'command' | 'confirm') => {
+    const cfg = configRef.current;
+    playCommandFeedback(kind, {
+      audio: cfg.audioFeedback !== false,
+      haptic: cfg.hapticFeedback !== false,
+    });
+  }, []);
 
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      if (type === 'wake') {
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.3);
-      } else if (type === 'command') {
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
-        osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.1); // E5
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.25);
-      } else {
-        osc.frequency.setValueAtTime(440, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.06, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.2);
-      }
-    } catch (e) {
-      // AudioCtx policy safe fallback
-    }
-  };
-
-  // Sync wake words to provider & localStorage
+  // Sync wake words
   useEffect(() => {
     wakeWordProviderRef.current.setWakeWords(wakeWords);
     try {
@@ -190,9 +190,10 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {}
   }, [wakeWords]);
 
-  // Sync commands to provider & localStorage
+  // Sync commands
   useEffect(() => {
     voiceCommandProviderRef.current.setCommands(commands);
+    commandSessionController.setCommandPhrases(commands);
     try {
       localStorage.setItem(VOICE_COMMANDS_KEY, JSON.stringify(commands));
     } catch (e) {}
@@ -203,67 +204,156 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     wakeWordProviderRef.current.setEnabled(config.isWakeWordEnabled);
     wakeWordProviderRef.current.setLanguageMode(config.languageMode);
     voiceCommandProviderRef.current.setEnabled(config.isVoiceCommandEnabled);
+    commandSessionController.setSaveUrl(config.commandSessionSaveUrl || '');
     try {
       localStorage.setItem(VOICE_CONFIG_KEY, JSON.stringify(config));
     } catch (e) {}
   }, [config]);
+
+  // Command session snapshot subscription
+  useEffect(() => {
+    return commandSessionController.onChange(setCommandSession);
+  }, []);
+
+  // Register global command-session action handlers
+  useEffect(() => {
+    const provider = voiceCommandProviderRef.current;
+
+    const unsubStart = provider.registerActionHandler('START_RECORDING', () => {
+      if (commandSessionController.isRecording()) return;
+      emitFeedback('start');
+      void commandSessionController.start();
+    });
+    const unsubStop = provider.registerActionHandler('STOP_RECORDING', () => {
+      if (!commandSessionController.isRecording()) {
+        setActiveCommandAlert({
+          command: {
+            id: 'hint',
+            phrase: 'No active session',
+            aliases: [],
+            action: 'STOP_RECORDING',
+            language: 'multilingual',
+            enabled: true,
+            executionCount: 0,
+          },
+          action: 'STOP_RECORDING',
+          rawTranscript: 'Say "2Click Start" first',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+      emitFeedback('stop');
+      commandSessionController.flushPendingInterim();
+      void commandSessionController.stopAndSave();
+    });
+    const unsubSave = provider.registerActionHandler('SAVE_NOTE', () => {
+      if (!commandSessionController.isRecording()) {
+        setActiveCommandAlert({
+          command: {
+            id: 'hint',
+            phrase: 'No active session',
+            aliases: [],
+            action: 'SAVE_NOTE',
+            language: 'multilingual',
+            enabled: true,
+            executionCount: 0,
+          },
+          action: 'SAVE_NOTE',
+          rawTranscript: 'Say "2Click Start" first',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+      emitFeedback('stop');
+      commandSessionController.flushPendingInterim();
+      void commandSessionController.stopAndSave();
+    });
+    const unsubCancel = provider.registerActionHandler('CANCEL_RECORDING', () => {
+      if (!commandSessionController.isRecording()) return;
+      emitFeedback('cancel');
+      void commandSessionController.cancel();
+    });
+
+    return () => {
+      unsubStart();
+      unsubStop();
+      unsubSave();
+      unsubCancel();
+    };
+  }, [emitFeedback]);
 
   // Bind Provider Event Listeners
   useEffect(() => {
     const wwProvider = wakeWordProviderRef.current;
     const cmdProvider = voiceCommandProviderRef.current;
 
-    // Status Listener
     const unsubStatus = wwProvider.onStatusChange((newStatus, err) => {
       setStatus(newStatus);
       setStatusError(err);
     });
 
-    // Interim speech transcript & command extraction listener
     const unsubSpeech = wwProvider.onInterimSpeech((text, isFinal) => {
       setInterimTranscript(text);
 
-      // Check if text triggers a voice command
-      if (config.isVoiceCommandEnabled) {
-        const executed = cmdProvider.processTranscript(text);
-        if (executed) {
-          playFeedbackChime('command');
-          setActiveCommandAlert(executed);
-
-          // Update execution count in state
-          setCommands(cmdProvider.getCommands());
-
-          // Check if explicit consent is required before performing sensitive actions (e.g. recording start)
-          if (
-            config.requireExplicitConfirmationForRecording &&
-            (executed.action === 'START_RECORDING' || executed.action === 'STOP_RECORDING')
-          ) {
-            setPendingActionConfirmation({
-              action: executed.action,
-              sourceEvent: executed,
-              title: executed.action === 'START_RECORDING' ? 'Confirm Recording Activation' : 'Confirm Stop Recording',
-              description: `Voice Command "${executed.command.phrase}" received. Tap confirm or grant prompt to proceed.`,
-            });
-          }
-
-          // Auto-hide alert after 3.5 seconds
-          setTimeout(() => {
-            setActiveCommandAlert(null);
-          }, 3500);
-        }
+      // Accumulate speech only after start-command session is active
+      if (commandSessionController.isRecording()) {
+        commandSessionController.appendSpeech(text, isFinal);
       }
+
+      if (!configRef.current.isVoiceCommandEnabled) return;
+
+      const tentative = cmdProvider.findMatchingCommand(text);
+      if (!tentative) return;
+
+      const needsConfirm =
+        configRef.current.requireExplicitConfirmationForRecording &&
+        (tentative.action === 'START_RECORDING' ||
+          tentative.action === 'STOP_RECORDING' ||
+          tentative.action === 'SAVE_NOTE' ||
+          tentative.action === 'CANCEL_RECORDING');
+
+      const executed = cmdProvider.processTranscript(text, {
+        executeHandlers: !needsConfirm,
+      });
+      if (!executed) return;
+
+      if (needsConfirm) {
+        setActiveCommandAlert(executed);
+        setPendingActionConfirmation({
+          action: executed.action,
+          sourceEvent: executed,
+          title:
+            executed.action === 'START_RECORDING'
+              ? 'Confirm Recording Activation'
+              : executed.action === 'CANCEL_RECORDING'
+                ? 'Confirm Cancel Recording'
+                : 'Confirm Stop & Save',
+          description: `Voice Command "${executed.command.phrase}" received. Tap confirm to proceed.`,
+        });
+        emitFeedback('command');
+        setCommands(cmdProvider.getCommands());
+        setTimeout(() => setActiveCommandAlert(null), 3500);
+        return;
+      }
+
+      if (!SESSION_ACTIONS.includes(executed.action)) {
+        emitFeedback('command');
+      }
+      setActiveCommandAlert(executed);
+      setCommands(cmdProvider.getCommands());
+      setTimeout(() => setActiveCommandAlert(null), 3500);
     });
 
-    // Wake Word Detection Listener
     const unsubDetection = wwProvider.onDetection((event) => {
-      playFeedbackChime('wake');
+      emitFeedback('wake');
       setActiveWakeWordAlert(event);
       setWakeWords(wwProvider.getWakeWords());
 
-      // If wake word is "Meeting Start", prepare recording activation
+      // Direct start wake phrases can arm recording when confirmation is on
+      const word = event.wakeWord.word.toLowerCase();
       if (
-        event.wakeWord.word.toLowerCase().includes('start') ||
-        event.rawTranscript.toLowerCase().includes('start')
+        configRef.current.requireExplicitConfirmationForRecording &&
+        (word.includes('start') || event.rawTranscript.toLowerCase().includes('start'))
       ) {
         setPendingActionConfirmation({
           action: 'START_RECORDING',
@@ -273,7 +363,6 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         });
       }
 
-      // Auto dismiss wake alert badge after 4.5 seconds if not interactive
       setTimeout(() => {
         setActiveWakeWordAlert((curr) => (curr?.timestamp === event.timestamp ? null : curr));
       }, 4500);
@@ -284,13 +373,11 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       unsubSpeech();
       unsubDetection();
     };
-  }, [config.isVoiceCommandEnabled, config.requireExplicitConfirmationForRecording]);
+  }, [emitFeedback]);
 
-  // Clean-up on page unload / component unmount to prevent covert background listening
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Stop listening when tab is inactive/hidden for privacy
         wakeWordProviderRef.current.stopListening();
       }
     };
@@ -300,12 +387,9 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       wakeWordProviderRef.current.destroy();
       voiceCommandProviderRef.current.destroy();
+      // Keep commandSessionController alive across Strict Mode remounts
     };
   }, []);
-
-  // -------------------------------------------------------------
-  // Actions API
-  // -------------------------------------------------------------
 
   const startListening = useCallback(async () => {
     return await wakeWordProviderRef.current.startListening();
@@ -316,7 +400,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const toggleListening = useCallback(() => {
-    if (status === 'listening') {
+    if (status === 'listening' || status === 'detected') {
       stopListening();
     } else {
       startListening();
@@ -330,23 +414,17 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const confirmPendingAction = useCallback(() => {
     if (!pendingActionConfirmation) return;
     const { action } = pendingActionConfirmation;
-    playFeedbackChime('confirm');
-    
-    // Execute action directly on the command provider
+    emitFeedback(feedbackForAction(action));
     voiceCommandProviderRef.current.manuallyTriggerAction(action, 'User confirmed voice action');
     setPendingActionConfirmation(null);
-  }, [pendingActionConfirmation]);
+  }, [pendingActionConfirmation, emitFeedback]);
 
   const cancelPendingAction = useCallback(() => {
     setPendingActionConfirmation(null);
   }, []);
 
-  // -------------------------------------------------------------
-  // Wake Words CRUD
-  // -------------------------------------------------------------
-
   const addWakeWord = useCallback((item: Omit<WakeWordItem, 'id' | 'detectedCount'>) => {
-    const created = wakeWordProviderRef.current.addWakeWord(item);
+    wakeWordProviderRef.current.addWakeWord(item);
     setWakeWords(wakeWordProviderRef.current.getWakeWords());
   }, []);
 
@@ -368,10 +446,6 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const resetWakeWordsToDefault = useCallback(() => {
     setWakeWords(DEFAULT_WAKE_WORDS);
   }, []);
-
-  // -------------------------------------------------------------
-  // Voice Commands CRUD
-  // -------------------------------------------------------------
 
   const addVoiceCommand = useCallback((item: Omit<VoiceCommandItem, 'id' | 'executionCount'>) => {
     voiceCommandProviderRef.current.addCommand(item);
@@ -397,10 +471,6 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCommands(DEFAULT_VOICE_COMMANDS);
   }, []);
 
-  // -------------------------------------------------------------
-  // Config Updates
-  // -------------------------------------------------------------
-
   const updateConfig = useCallback((updates: Partial<VoiceSystemConfig>) => {
     setConfig((prev) => ({ ...prev, ...updates }));
   }, []);
@@ -409,43 +479,73 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setConfig((prev) => ({ ...prev, languageMode: mode }));
   }, []);
 
-  // -------------------------------------------------------------
-  // Simulator for Manual Phrase Testing without mic
-  // -------------------------------------------------------------
+  const simulateSpokenPhrase = useCallback(
+    (phrase: string) => {
+      // Simulator must not be blocked by wake/command cooldowns
+      const wake = wakeWordProviderRef.current.checkTextForWakeWord(phrase);
+      // If cooldown blocked wake match, still surface soft match for UI
+      const wakeSoft =
+        wake ||
+        (() => {
+          const normalized = phrase;
+          const ww = wakeWordProviderRef.current.getWakeWords().find((item) => {
+            if (!item.enabled) return false;
+            const candidates = [item.word, ...(item.aliases || [])].map((p) =>
+              p.toLowerCase(),
+            );
+            const n = normalized.toLowerCase();
+            return candidates.some((c) => c && n.includes(c.toLowerCase()));
+          });
+          if (!ww) return null;
+          return {
+            wakeWord: ww,
+            rawTranscript: phrase,
+            confidence: 0.9,
+            timestamp: new Date().toISOString(),
+          } as WakeWordDetectionEvent;
+        })();
 
-  const simulateSpokenPhrase = useCallback((phrase: string) => {
-    const wake = wakeWordProviderRef.current.checkTextForWakeWord(phrase);
-    if (wake) {
-      playFeedbackChime('wake');
-      setActiveWakeWordAlert(wake);
-      setWakeWords(wakeWordProviderRef.current.getWakeWords());
-    }
+      if (wakeSoft) {
+        emitFeedback('wake');
+        setActiveWakeWordAlert(wakeSoft);
+        setWakeWords(wakeWordProviderRef.current.getWakeWords());
+      }
 
-    const cmd = voiceCommandProviderRef.current.processTranscript(phrase);
-    if (cmd) {
-      playFeedbackChime('command');
-      setActiveCommandAlert(cmd);
-      setCommands(voiceCommandProviderRef.current.getCommands());
-    }
+      const cmd = voiceCommandProviderRef.current.processTranscript(phrase, {
+        bypassCooldown: true,
+      });
+      if (cmd) {
+        if (!SESSION_ACTIONS.includes(cmd.action)) {
+          emitFeedback('command');
+        }
+        setActiveCommandAlert(cmd);
+        setCommands(voiceCommandProviderRef.current.getCommands());
+      } else if (commandSessionController.isRecording() && phrase.trim()) {
+        // Feed free-form spoken content into the active command session buffer
+        commandSessionController.appendSpeech(phrase.trim(), true);
+      }
 
-    return {
-      wakeWordDetected: wake,
-      commandExecuted: cmd,
-    };
-  }, []);
+      return {
+        wakeWordDetected: wakeSoft,
+        commandExecuted: cmd,
+      };
+    },
+    [emitFeedback],
+  );
 
   return (
     <VoiceContext.Provider
       value={{
         config,
         status,
-        isListening: status === 'listening',
+        isListening: status === 'listening' || status === 'detected',
         isSupported,
         statusError,
         interimTranscript,
         activeWakeWordAlert,
         activeCommandAlert,
         pendingActionConfirmation,
+        commandSession,
         wakeWordProvider: wakeWordProviderRef.current,
         voiceCommandProvider: voiceCommandProviderRef.current,
         startListening,

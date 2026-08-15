@@ -5,20 +5,25 @@ import {
   Sparkles,
   Radio,
   CheckCircle2,
-  AlertTriangle,
   ChevronRight,
   Sliders,
   X,
   Play,
   Square,
   ShieldCheck,
-  Languages,
+  Loader2,
 } from 'lucide-react';
 import { useVoice } from '../../context/VoiceContext';
 
 interface VoiceWakeWordBannerProps {
   onNavigateToSettings?: () => void;
   onNavigate?: (path: string) => void;
+}
+
+function formatSessionTimer(totalSecs: number) {
+  const mins = Math.floor(totalSecs / 60);
+  const secs = totalSecs % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
 export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
@@ -34,25 +39,121 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
     activeCommandAlert,
     pendingActionConfirmation,
     interimTranscript,
-    startListening,
-    stopListening,
+    commandSession,
     toggleListening,
     dismissWakeWordAlert,
     confirmPendingAction,
     cancelPendingAction,
-    config,
   } = useVoice();
+
+  const sessionActive =
+    commandSession.status === 'recording' ||
+    commandSession.status === 'processing' ||
+    commandSession.status === 'saved' ||
+    commandSession.status === 'cancelled' ||
+    commandSession.status === 'error';
 
   return (
     <div id="voice-assistant-overlay" className="relative z-40">
-      {/* 1. TOP FLOATING STATUS BAR / LISTENER PILL */}
       <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 max-w-sm w-full pointer-events-none">
-        {/* Active Speech Transcription Bubble if currently talking */}
-        {isListening && interimTranscript && (
+        {sessionActive && (
+          <div
+            className={`pointer-events-auto max-w-xs w-full px-3.5 py-2.5 rounded-2xl text-white text-xs backdrop-blur-md border shadow-lg animate-in fade-in slide-in-from-bottom-2 ${
+              commandSession.status === 'recording'
+                ? 'bg-rose-950/95 border-rose-500/40'
+                : commandSession.status === 'processing'
+                  ? 'bg-amber-950/95 border-amber-500/40'
+                  : commandSession.status === 'saved'
+                    ? 'bg-emerald-950/95 border-emerald-500/40'
+                    : commandSession.status === 'cancelled'
+                      ? 'bg-slate-900/95 border-slate-500/40'
+                      : 'bg-rose-950/95 border-rose-500/40'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 font-bold uppercase tracking-wide text-[10px]">
+                {commandSession.status === 'recording' && (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-rose-400 animate-pulse" />
+                    <span>Recording</span>
+                  </>
+                )}
+                {commandSession.status === 'processing' && (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-300" />
+                    <span>Gemini + Instant Save</span>
+                  </>
+                )}
+                {commandSession.status === 'saved' && (
+                  <>
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                    <span>Saved</span>
+                  </>
+                )}
+                {commandSession.status === 'cancelled' && (
+                  <>
+                    <X className="w-3.5 h-3.5 text-slate-300" />
+                    <span>Cancelled — not saved</span>
+                  </>
+                )}
+                {commandSession.status === 'error' && (
+                  <>
+                    <X className="w-3.5 h-3.5 text-rose-300" />
+                    <span>Save error</span>
+                  </>
+                )}
+              </div>
+              {commandSession.status === 'recording' && (
+                <span className="font-mono text-[11px] text-rose-200">
+                  {formatSessionTimer(commandSession.durationSeconds)}
+                </span>
+              )}
+            </div>
+            {commandSession.status === 'recording' && (
+              <p className="mt-1 text-[11px] text-rose-100/90 leading-snug">
+                Say <span className="font-semibold">“Meeting khatam”</span>,{' '}
+                <span className="font-semibold">“2Click Stop”</span>, or{' '}
+                <span className="font-semibold">“Save note”</span> to process &amp; save. “Cancel
+                recording” discards.
+              </p>
+            )}
+            {commandSession.status === 'saved' && (
+              <div className="mt-2 flex items-center justify-between gap-2">
+                <p className="text-[11px] text-emerald-100/90 truncate min-w-0">
+                  {commandSession.lastMomSummary
+                    ? commandSession.lastMomSummary
+                    : commandSession.lastSavedId
+                      ? `Saved · ${commandSession.lastSavedId}`
+                      : 'Note saved to MoM document'}
+                </p>
+                {onNavigate && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('/mom')}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-100 cursor-pointer"
+                  >
+                    Open note
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
+            {commandSession.status === 'error' && commandSession.lastError && (
+              <p className="mt-1 text-[11px] text-rose-100/90 line-clamp-2">{commandSession.lastError}</p>
+            )}
+            {commandSession.redactedTranscript && commandSession.status === 'recording' && (
+              <p className="mt-1.5 line-clamp-2 text-[11px] text-white/70 italic font-mono">
+                “{commandSession.redactedTranscript}”
+              </p>
+            )}
+          </div>
+        )}
+
+        {isListening && interimTranscript && !sessionActive && (
           <div className="pointer-events-auto max-w-xs px-3.5 py-2 rounded-2xl bg-slate-900/90 text-white text-xs backdrop-blur-md border border-slate-700/60 shadow-lg animate-in fade-in slide-in-from-bottom-2">
             <div className="flex items-center gap-1.5 text-[10px] text-indigo-400 font-bold uppercase mb-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping" />
-              <span>Speech Stream</span>
+              <span>Listening for commands</span>
             </div>
             <p className="line-clamp-2 text-slate-200 italic font-mono text-[11px]">
               "{interimTranscript}"
@@ -60,12 +161,15 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
           </div>
         )}
 
-        {/* Global Voice Assistant Pill */}
         <div className="pointer-events-auto flex items-center gap-2 p-1.5 pl-3 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl backdrop-blur-md">
-          {/* Status Indicator */}
           <div className="flex items-center gap-2">
             <div className="relative flex items-center justify-center">
-              {isListening ? (
+              {commandSession.status === 'recording' ? (
+                <>
+                  <span className="w-3 h-3 rounded-full bg-rose-500 animate-ping absolute opacity-75" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 relative" />
+                </>
+              ) : isListening ? (
                 <>
                   <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping absolute opacity-75" />
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 relative" />
@@ -80,16 +184,23 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
             <div className="flex flex-col">
               <div className="flex items-center gap-1">
                 <span className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200">
-                  {isListening ? 'Voice Assistant Active' : 'Voice Assistant Idle'}
+                  {commandSession.status === 'recording'
+                    ? 'Command Session Live'
+                    : isListening
+                      ? 'Voice Assistant Active'
+                      : 'Voice Assistant Idle'}
                 </span>
               </div>
               <span className="text-[9px] text-slate-400 dark:text-slate-500">
-                {isListening ? 'Say "Namaskar" or "Meeting Start"' : 'Mic paused (No background tracking)'}
+                {commandSession.status === 'recording'
+                  ? 'Recording until stop/save/cancel'
+                  : isListening
+                    ? 'Say “2Click Start” or “Meeting shuru karo”'
+                    : 'Tap mic — phir voice command bolo (Chrome/Edge)'}
               </span>
             </div>
           </div>
 
-          {/* Toggle Mic Button */}
           <button
             onClick={toggleListening}
             className={`p-2 rounded-full font-bold text-xs transition cursor-pointer ${
@@ -102,7 +213,6 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
             {isListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Settings Shortcut Button */}
           {onNavigateToSettings && (
             <button
               onClick={onNavigateToSettings}
@@ -115,7 +225,6 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
         </div>
       </div>
 
-      {/* 2. PROMINENT "WAKE WORD DETECTED" BANNER / MODAL OVERLAY */}
       {activeWakeWordAlert && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92vw] animate-in fade-in zoom-in-95 duration-200 shadow-2xl">
           <div className="p-4 rounded-3xl bg-gradient-to-r from-indigo-900 via-indigo-800 to-purple-900 text-white border-2 border-indigo-400/50 shadow-indigo-500/20 shadow-2xl">
@@ -137,7 +246,7 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                     Ready for your voice command
                   </h3>
                   <p className="text-[11px] text-indigo-200 mt-0.5">
-                    Say "Meeting Start", "Meeting Stop", "Generate Minutes", or tap below.
+                    Say "2Click Start", "Meeting shuru karo", or "Start recording".
                   </p>
                 </div>
               </div>
@@ -151,7 +260,6 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
               </button>
             </div>
 
-            {/* Quick Action Shortcuts inside Wake Word Alert */}
             <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-white/15">
               <button
                 onClick={() => {
@@ -179,7 +287,6 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
         </div>
       )}
 
-      {/* 3. EXPLICIT RECORDING / COMMAND ACTION CONFIRMATION MODAL (No Silent Recording) */}
       {pendingActionConfirmation && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95">
@@ -188,13 +295,17 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
                   pendingActionConfirmation.action === 'START_RECORDING'
                     ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'
-                    : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                    : pendingActionConfirmation.action === 'CANCEL_RECORDING'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-600'
+                      : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
                 }`}
               >
                 {pendingActionConfirmation.action === 'START_RECORDING' ? (
                   <Radio className="w-6 h-6 animate-pulse" />
+                ) : pendingActionConfirmation.action === 'CANCEL_RECORDING' ? (
+                  <X className="w-6 h-6" />
                 ) : (
-                  <CheckCircle2 className="w-6 h-6" />
+                  <Square className="w-6 h-6" />
                 )}
               </div>
               <div>
@@ -213,7 +324,10 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
 
             <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-              <span>Visible consent check: Session will display active recording badge and audio level visualizer.</span>
+              <span>
+                Visible consent check: Session will display active recording badge and audio level
+                visualizer.
+              </span>
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-2">
@@ -235,7 +349,6 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
         </div>
       )}
 
-      {/* 4. EXECUTED COMMAND TOAST */}
       {activeCommandAlert && !pendingActionConfirmation && (
         <div className="fixed top-20 right-5 z-50 max-w-xs animate-in fade-in slide-in-from-top-3">
           <div className="p-3.5 rounded-2xl bg-emerald-600 text-white shadow-xl flex items-center gap-3">
@@ -248,6 +361,15 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                 "{activeCommandAlert.command.phrase}" → {activeCommandAlert.action}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {!isSupported && (
+        <div className="fixed bottom-20 left-4 right-4 z-40 pointer-events-none">
+          <div className="mx-auto max-w-md pointer-events-auto px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800">
+            Voice commands need Web Speech API (Chrome / Edge recommended).
+            {statusError ? ` ${statusError}` : ''}
           </div>
         </div>
       )}

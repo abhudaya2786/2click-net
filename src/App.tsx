@@ -27,6 +27,7 @@ import {
 import confetti from 'canvas-confetti';
 import { MeetingData, ActionItem, MeetingContextOptions, ScheduledEvent, PrivacySettings } from './types';
 import { SAMPLE_MEETINGS } from './data/sampleMeetings';
+import { COMMAND_SESSION_NOTE_EVENT } from './utils/buildCommandSessionMeeting';
 import { AudioRecorder } from './components/AudioRecorder';
 import { AudioUploader } from './components/AudioUploader';
 import { MeetingHeader } from './components/MeetingHeader';
@@ -203,6 +204,30 @@ function AppContent() {
       console.error('Failed to load local storage data:', err);
     }
   }, []);
+
+  // Voice command sessions write MoM notes into localStorage — keep App UI in sync
+  useEffect(() => {
+    const onNoteSaved = (ev: Event) => {
+      const meeting = (ev as CustomEvent)?.detail?.meeting as MeetingData | undefined;
+      if (!meeting?.id) return;
+      setSavedMeetings((prev) => {
+        const next = [meeting, ...prev.filter((m) => m.id !== meeting.id)];
+        try {
+          if (!privacySettings.ephemeralMode) {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+          }
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+      setCurrentMeeting(meeting);
+      // Show the MoM document immediately after voice stop/save
+      navigate('/mom');
+    };
+    window.addEventListener(COMMAND_SESSION_NOTE_EVENT, onNoteSaved as EventListener);
+    return () => window.removeEventListener(COMMAND_SESSION_NOTE_EVENT, onNoteSaved as EventListener);
+  }, [privacySettings.ephemeralMode]);
 
   // Save meetings to local storage whenever they change (respecting Ephemeral mode)
   const persistMeetings = (meetings: MeetingData[]) => {
