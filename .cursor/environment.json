@@ -5,14 +5,14 @@
     "dockerfile": "Dockerfile",
     "context": "."
   },
-  "install": "npm install --no-audit --no-fund",
+  "install": "export PATH=\"$HOME/.local/node/bin:/usr/local/bin:$PATH\"; node -v; npm -v; npm install --no-audit --no-fund",
   "ports": [
     { "name": "app", "port": 3000 }
   ],
   "terminals": [
     {
       "name": "mom-dev",
-      "command": "npm run dev",
+      "command": "export PATH=\"$HOME/.local/node/bin:/usr/local/bin:$PATH\"; npm run dev",
       "description": "Voice MoM Vite+Express dev server on port 3000"
     }
   ]

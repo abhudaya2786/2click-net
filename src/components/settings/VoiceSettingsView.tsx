@@ -41,12 +41,22 @@ const AVAILABLE_ACTIONS: { action: VoiceCommandAction; label: string; descriptio
   {
     action: 'START_RECORDING',
     label: 'Start Recording (START_RECORDING)',
-    description: 'Arms or initiates audio recording in the active meeting studio.',
+    description: 'Starts command session record/transcribe (2Click Start / Meeting shuru karo).',
   },
   {
     action: 'STOP_RECORDING',
     label: 'Stop Recording (STOP_RECORDING)',
-    description: 'Safely halts recording and finalizes the audio track.',
+    description: 'Stops session, runs Gemini MoM, Instant Saves to user DB.',
+  },
+  {
+    action: 'SAVE_NOTE',
+    label: 'Save Note (SAVE_NOTE)',
+    description: 'Same as stop: process with Gemini and Instant Save.',
+  },
+  {
+    action: 'CANCEL_RECORDING',
+    label: 'Cancel Recording (CANCEL_RECORDING)',
+    description: 'Clears the session buffer without saving to the database.',
   },
   {
     action: 'GENERATE_MINUTES',
@@ -829,6 +839,15 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
               </button>
             </div>
 
+
+            {!isListening && (
+              <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                Mic band hai — pehle <span className="font-extrabold">Start Listening</span> / <span className="font-extrabold">Start Mic Test</span> dabao, phir bolo: “2Click Start”, “Meeting khatam”, “Save note”, ya “Cancel recording”.
+                {!isSupported && ' Is browser me Web Speech API support nahi (Chrome/Edge use karo).'}
+                {statusError ? ` (${statusError})` : ''}
+              </div>
+            )}
+
             {/* Text Simulator Form */}
             <form onSubmit={handleRunSimulation} className="space-y-3">
               <label className="block text-[11px] font-bold uppercase text-slate-500">
@@ -839,7 +858,7 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
                   type="text"
                   value={simText}
                   onChange={(e) => setSimText(e.target.value)}
-                  placeholder="Type e.g. 'Namaskar', 'Meeting Start', 'मीटिंग शुरू करो', 'minutes banao'"
+                  placeholder="Type e.g. '2Click Start', 'Meeting khatam', 'Save note', 'Cancel recording'"
                   className="flex-1 text-xs px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                 />
                 <button
@@ -854,7 +873,7 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
             {/* Quick Test Chips */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-slate-400 font-medium text-[11px]">Quick Tests:</span>
-              {['Namaskar', 'Hello', 'Meeting Start', 'Meeting Stop', 'Generate Minutes', 'मीटिंग शुरू करो', 'minutes banao'].map((txt) => (
+              {['2Click Start', 'Meeting shuru karo', 'Start recording', 'Cement delivery kal subah 10 baje', 'Meeting khatam', '2Click Stop', 'Save note', 'Cancel recording', 'मीटिंग शुरू करो'].map((txt) => (
                 <button
                   key={txt}
                   type="button"
@@ -964,6 +983,26 @@ export const VoiceSettingsView: React.FC<VoiceSettingsViewProps> = ({ onNavigate
                   Active audio recordings always render live pulsing state badges and visualizers.
                 </p>
               </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Beep + Vibration Feedback on Command Triggers
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  Subtle audio chime and haptic vibration when start / stop / cancel commands fire.
+                </div>
+              </div>
+
+              <input
+                type="checkbox"
+                checked={config.audioFeedback !== false && config.hapticFeedback !== false}
+                onChange={(e) =>
+                  updateConfig({ audioFeedback: e.target.checked, hapticFeedback: e.target.checked })
+                }
+                className="w-4 h-4 text-indigo-600 rounded cursor-pointer"
+              />
             </div>
 
             {/* Toggle Confirmation Checkbox */}

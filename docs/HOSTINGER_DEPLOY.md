@@ -1,32 +1,64 @@
-# Hostinger — fix www.2click.in white screen
+# Fix blank white screen on www.2click.in (Hostinger)
 
 ## Root cause
-`public_html/index.html` still contains Vite **dev** entry:
+
+Hostinger was serving the **Vite source** `index.html`:
 
 ```html
 <script type="module" src="/src/main.tsx"></script>
 ```
 
-Hostinger serves `.tsx` as `Content-Type: text/plain` → browser blocks the module → **white screen**.
+`GET /src/main.tsx` returns `Content-Type: text/plain`, so Chrome blocks the module and the page stays white.
 
-Google “Construction Super App” is **old SEO cache**, separate from the white screen.
+## Current status (2026-08-14)
 
-## Fix (do this in Hostinger File Manager)
+`https://www.2click.in` may still be broken until `public_html` is replaced with a production build.
 
-1. Open domain **public_html** (www.2click.in root).
-2. **Delete** old files: especially `index.html`, any `src/` folder, old construction app files.
-3. Upload **`hostinger-mom-upload.zip`** from artifacts / `dist/` and extract **into** `public_html` (so you see `public_html/index.html` + `public_html/assets/`).
-4. Open `public_html/index.html` and confirm it has `/assets/....js` — **not** `/src/main.tsx`.
-5. Browser hard refresh: `Ctrl+Shift+R` (or mobile clear cache).
+- Working full-stack app (UI + `/api`): https://temporary-flying-cygnus-dou4esu.vercel.app
+- Local: `npm run dev` → http://127.0.0.1:3000
 
-### Temporary 1-file fix
-Upload `REPLACE_public_html_index.html` as `public_html/index.html` only — redirects to working Vercel app.
+## Fix
 
-## Build locally
+Upload a **production Vite build** (hashed `/assets/*.js` + `/assets/*.css`) — never upload `/src`.
+
 ```bash
 npm run build
 npm run pack:hostinger
 ```
 
-## Google title still old?
-After live HTML title changes to Voice MoM, use Google Search Console → URL Inspection → Request indexing for `https://www.2click.in/`.
+Then upload **everything inside** `dist/hostinger-upload/` into Hostinger `public_html` (replace old `index.html` and remove any leftover `/src` folder).
+
+Or extract:
+
+```bash
+tar -xzf dist/hostinger-mom-upload.tar.gz -C /path/to/public_html
+```
+
+Artifacts also include `hostinger-mom-upload.zip` for File Manager.
+
+The pack includes `.htaccess` that:
+
+- Sets JS/CSS MIME types
+- SPA-rewrites unknown routes to `index.html`
+- 404s `/src/*.tsx` so source modules cannot load by mistake
+
+### Minimal workaround (no zip)
+
+Replace `public_html/index.html` with a redirect to the Vercel app (see `hostinger_index_redirect.html` artifact).
+
+## API note
+
+Static Hostinger hosting does **not** run the Node `/api/*` server. For Instant Save / Gemini MoM:
+
+- Prefer deploying the full app on **Vercel**, **or**
+- Point `2click.in` DNS to Vercel, **or**
+- Put a Node backend on a VPS and proxy `/api`.
+
+## Verify after upload
+
+```bash
+curl -sS https://www.2click.in/ | grep -o 'src="[^"]*"'
+# Must show /assets/index-XXXX.js — NOT /src/main.tsx
+curl -sSI https://www.2click.in/assets/index-XXXX.js | grep -i content-type
+# Expect application/javascript (or text/javascript)
+```

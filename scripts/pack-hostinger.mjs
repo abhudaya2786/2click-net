@@ -1,129 +1,104 @@
+#!/usr/bin/env node
 /**
- * Pack production static client for Hostinger public_html upload.
- * Usage: npm run build && npm run pack:hostinger
+ * Pack Vite production client for Hostinger public_html upload.
+ * Fixes blank white screen caused by serving /src/main.tsx as text/plain.
  */
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
-const root = process.cwd();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(__dirname, '..');
 const clientDir = path.join(root, 'dist', 'client');
 const outDir = path.join(root, 'dist', 'hostinger-upload');
-const artifactsDir = '/opt/cursor/artifacts';
+const tarball = path.join(root, 'dist', 'hostinger-mom-upload.tar.gz');
 
-if (!fs.existsSync(path.join(clientDir, 'index.html'))) {
-  console.error('Missing dist/client — run: npm run build');
-  process.exit(1);
-}
-
-fs.rmSync(outDir, { recursive: true, force: true });
-fs.mkdirSync(outDir, { recursive: true });
-fs.cpSync(clientDir, outDir, { recursive: true });
-
-const htaccess = `# Hostinger / Apache — SPA + correct JS MIME
-Options -MultiViews
-RewriteEngine On
-
-# Never serve Vite source paths on production
-RewriteRule ^src/ - [R=404,L]
-
-# SPA fallback
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
-
+const HTACCESS = `# 2Click MoM — Hostinger static shell
+# Prevents MIME text/plain on JS modules (blank white screen).
 <IfModule mod_mime.c>
   AddType application/javascript .js .mjs
   AddType text/css .css
   AddType application/wasm .wasm
+  AddType application/manifest+json .webmanifest
+  AddType image/png .png
   AddType image/svg+xml .svg
+  AddType image/webp .webp
 </IfModule>
 
-<IfModule mod_headers.c>
-  <FilesMatch "\\.(js|css|mjs)$">
-    Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
-  <FilesMatch "index\\.html$">
-    Header set Cache-Control "no-cache"
-  </FilesMatch>
+# Never serve Vite source as modules from this static host
+RedirectMatch 404 (?i)^/src/.*\\.(tsx?|jsx?)$
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
 </IfModule>
 `;
-fs.writeFileSync(path.join(outDir, '.htaccess'), htaccess);
 
-const indexHtml = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
-if (indexHtml.includes('/src/main.tsx')) {
-  console.error('ERROR: packed index.html still points at /src/main.tsx — build failed');
-  process.exit(1);
-}
-if (!/\/assets\/.+\.js/.test(indexHtml)) {
-  console.error('ERROR: packed index.html has no /assets/*.js');
-  process.exit(1);
-}
-
-const tarPath = path.join(root, 'dist', 'hostinger-mom-upload.tar.gz');
-const zipPath = path.join(root, 'dist', 'hostinger-mom-upload.zip');
-execSync(`tar -czf "${tarPath}" -C "${outDir}" .`);
-try {
-  execSync(`cd "${outDir}" && zip -qr "${zipPath}" .`);
-} catch {
-  console.warn('zip not available — tar.gz only');
-}
-
-// Emergency redirect to working Vercel (optional upload as public_html/index.html)
-const vercelUrl = process.env.VERCEL_FALLBACK_URL || 'https://temporary-flying-cygnus-dou4esu.vercel.app';
-const redirectHtml = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>2Click.in — Voice MoM</title>
-  <meta name="description" content="2Click Voice MoM for real-estate marketing teams — field talk to owner text reports." />
-  <meta http-equiv="refresh" content="0;url=${vercelUrl}/" />
-  <link rel="canonical" href="${vercelUrl}/" />
-  <script>location.replace(${JSON.stringify(vercelUrl + '/')});</script>
-</head>
-<body>
-  <p>Opening 2Click Voice MoM… <a href="${vercelUrl}/">Continue</a></p>
-</body>
-</html>
-`;
-const redirectPath = path.join(root, 'dist', 'REPLACE_public_html_index.html');
-fs.writeFileSync(redirectPath, redirectHtml);
-
-fs.mkdirSync(artifactsDir, { recursive: true });
-for (const f of [tarPath, zipPath, redirectPath]) {
-  if (fs.existsSync(f)) {
-    fs.copyFileSync(f, path.join(artifactsDir, path.basename(f)));
+function mustExist(p, label) {
+  if (!fs.existsSync(p)) {
+    throw new Error(`${label} missing: ${p}. Run \`npm run build\` first.`);
   }
 }
 
-const readme = `HOSTINGER FIX — White screen
+mustExist(clientDir, 'dist/client');
+mustExist(path.join(clientDir, 'index.html'), 'built index.html');
 
-Problem: public_html has Vite DEV files:
-  <script type="module" src="/src/main.tsx"></script>
-Hostinger serves .tsx as text/plain → browser white screen.
+const indexHtml = fs.readFileSync(path.join(clientDir, 'index.html'), 'utf8');
+if (indexHtml.includes('/src/main.tsx')) {
+  throw new Error('Built index.html still references /src/main.tsx — Vite build failed');
+}
+if (!/\/assets\/index-[^"]+\.js/.test(indexHtml)) {
+  throw new Error('Built index.html missing hashed /assets/*.js entry');
+}
 
-Fix (recommended):
-1. Hostinger File Manager → open domain public_html
-2. DELETE old contents (especially index.html, src/, node_modules if any)
-3. Upload hostinger-mom-upload.zip (or extract tar.gz)
-4. Ensure public_html/index.html contains /assets/*.js (NOT /src/main.tsx)
-5. Ensure public_html/assets/ folder exists with .js + .css
-6. Hard refresh: Ctrl+Shift+R
+fs.rmSync(outDir, { recursive: true, force: true });
+fs.mkdirSync(outDir, { recursive: true });
 
-Quick temporary fix:
-- Upload ONLY REPLACE_public_html_index.html as public_html/index.html
-  (redirects to working Vercel)
+// Optional PWA extras from public/ — never overwrite built index/assets with stale copies
+const publicDir = path.join(root, 'public');
+if (fs.existsSync(publicDir)) {
+  for (const name of ['icons', 'manifest.webmanifest', 'sw.js', 'robots.txt', 'favicon.ico']) {
+    const src = path.join(publicDir, name);
+    if (!fs.existsSync(src)) continue;
+    execSync(`cp -a "${src}" "${outDir}/"`);
+  }
+}
 
-Google still shows "Construction Super App":
-- That is OLD Google search cache / old meta
-- After correct upload, request re-index in Google Search Console
-`;
-fs.writeFileSync(path.join(outDir, 'README_UPLOAD.txt'), readme);
-fs.writeFileSync(path.join(artifactsDir, 'HOSTINGER_WHITE_SCREEN_FIX.txt'), readme);
+// Client build is the source of truth for index.html + hashed assets
+execSync(`cp -a "${clientDir}/." "${outDir}/"`);
 
-console.log('Packed:', outDir);
-console.log('Archive:', tarPath);
-if (fs.existsSync(zipPath)) console.log('Zip:', zipPath);
-console.log('Redirect HTML:', redirectPath);
-const scriptTag = indexHtml.match(/<script[\s\S]*?<\/script>/);
-console.log('index script:', scriptTag ? scriptTag[0] : '(none)');
+fs.writeFileSync(path.join(outDir, '.htaccess'), HTACCESS);
+
+// Sanity: no source tree
+if (fs.existsSync(path.join(outDir, 'src'))) {
+  fs.rmSync(path.join(outDir, 'src'), { recursive: true, force: true });
+}
+
+// Drop stale hashed assets not referenced by final index.html
+const finalHtml = fs.readFileSync(path.join(outDir, 'index.html'), 'utf8');
+const needed = new Set(
+  [...finalHtml.matchAll(/\/assets\/(index-[A-Za-z0-9_-]+\.(?:js|css))/g)].map((m) => m[1]),
+);
+const assetsDir = path.join(outDir, 'assets');
+if (fs.existsSync(assetsDir)) {
+  for (const f of fs.readdirSync(assetsDir)) {
+    if ((f.startsWith('index-') || f.endsWith('.js') || f.endsWith('.css')) && !needed.has(f)) {
+      fs.unlinkSync(path.join(assetsDir, f));
+    }
+  }
+}
+
+execSync(`tar -czf "${tarball}" -C "${outDir}" .`);
+const size = fs.statSync(tarball).size;
+console.log('Hostinger pack ready:');
+console.log('  folder:', outDir);
+console.log('  tarball:', tarball, `(${Math.round(size / 1024)} KB)`);
+console.log('  entry:', indexHtml.match(/src="([^"]+)"/)?.[1]);
+console.log('Upload contents of dist/hostinger-upload/ into Hostinger public_html (replace old files).');

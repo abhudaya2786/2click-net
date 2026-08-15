@@ -10,6 +10,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
+  // PWA icons/manifest/sw live here; outDir stays dist/client (separate folders).
+  publicDir: 'static-pwa',
   build: {
     outDir: 'dist/client',
     emptyOutDir: true,
