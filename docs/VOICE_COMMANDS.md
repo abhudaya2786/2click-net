@@ -1,9 +1,13 @@
 # Voice Commands — 2Click.in
 
-## Browser reality
+## Quick use (mobile)
 
-Wake-word and voice commands work **while the app is open** and microphone / speech recognition permission is granted.  
-We do **not** claim always-on background wake-word on the web.
+1. Tap mic on the Voice Assistant pill → status must become **Active** (green).  
+2. Say **“Meeting shuru karo”** or **“2Click Start”** (Chrome often hears “to click start” — that is accepted).  
+3. Or tap the blue **Start** button if speech fails.  
+4. To finish: say **“Meeting khatam”** / **“2Click Stop”** or tap **Stop**.
+
+If pill stays Idle after mic tap, allow microphone permission and prefer Chrome. APK/WebView without Web Speech: use **Start/Stop** buttons.
 
 ## Default wake phrases
 

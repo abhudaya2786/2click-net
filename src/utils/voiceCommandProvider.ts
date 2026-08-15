@@ -16,6 +16,8 @@ export class VoiceCommandProvider {
   private lastExecutedTime: number = 0;
   private lastExecutedAction: VoiceCommandAction | null = null;
   private executionCooldownMs: number = 900;
+  /** After stop/save/cancel, ignore START for a short window (STT echo / leftover interim). */
+  private suppressStartUntilMs: number = 0;
 
   constructor(initialCommands: VoiceCommandItem[] = [], enabled: boolean = true) {
     this.commands = [...initialCommands];
@@ -68,6 +70,11 @@ export class VoiceCommandProvider {
     this.isEnabled = enabled;
   }
 
+  /** Block START_RECORDING matches briefly (after stop/save or tap Stop). */
+  public suppressStartFor(ms: number = 2500) {
+    this.suppressStartUntilMs = Date.now() + Math.max(0, ms);
+  }
+
   // -------------------------------------------------------------
   // Match & Execution Engine
   // -------------------------------------------------------------
@@ -114,6 +121,12 @@ export class VoiceCommandProvider {
     if (!matchedCmd) return null;
 
     const now = Date.now();
+    if (
+      matchedCmd.action === 'START_RECORDING' &&
+      now < this.suppressStartUntilMs
+    ) {
+      return null;
+    }
     if (!opts.bypassCooldown) {
       const withinCooldown = now - this.lastExecutedTime < this.executionCooldownMs;
       // Same action within cooldown → ignore; different action (e.g. start→stop) allowed
@@ -124,6 +137,13 @@ export class VoiceCommandProvider {
 
     this.lastExecutedTime = now;
     this.lastExecutedAction = matchedCmd.action;
+    if (
+      matchedCmd.action === 'STOP_RECORDING' ||
+      matchedCmd.action === 'SAVE_NOTE' ||
+      matchedCmd.action === 'CANCEL_RECORDING'
+    ) {
+      this.suppressStartUntilMs = now + 2500;
+    }
     matchedCmd.executionCount = (matchedCmd.executionCount || 0) + 1;
     matchedCmd.lastExecutedAt = new Date().toISOString();
 

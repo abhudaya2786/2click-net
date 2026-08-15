@@ -28,6 +28,11 @@ import {
   CommandSessionSnapshot,
 } from '../utils/commandSessionController';
 import { playCommandFeedback } from '../utils/voiceFeedback';
+import {
+  mergeVoiceCommands,
+  mergeWakeWords,
+  mergeVoiceConfig,
+} from '../utils/voiceStorageMerge';
 
 const WAKE_WORDS_KEY = 'voice_mom_wake_words_v3';
 const VOICE_COMMANDS_KEY = 'voice_mom_voice_commands_v3';
@@ -63,9 +68,13 @@ interface VoiceContextValue {
   wakeWordProvider: WakeWordProvider;
   voiceCommandProvider: VoiceCommandProvider;
 
-  startListening: () => Promise<boolean>;
+  startListening: (opts?: { skipMicPrime?: boolean }) => Promise<boolean>;
   stopListening: () => void;
-  toggleListening: () => void;
+  toggleListening: () => Promise<boolean>;
+  /** Hands-free fallback when STT fails — starts command session */
+  startCommandSessionManual: () => void;
+  stopCommandSessionManual: () => void;
+  cancelCommandSessionManual: () => void;
   dismissWakeWordAlert: () => void;
   confirmPendingAction: () => void;
   cancelPendingAction: () => void;
@@ -104,7 +113,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [config, setConfig] = useState<VoiceSystemConfig>(() => {
     try {
       const saved = localStorage.getItem(VOICE_CONFIG_KEY);
-      if (saved) return { ...DEFAULT_VOICE_CONFIG, ...JSON.parse(saved) };
+      if (saved) return mergeVoiceConfig(JSON.parse(saved));
     } catch (e) {
       console.warn('Could not parse voice config, using defaults');
     }
@@ -116,7 +125,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const saved = localStorage.getItem(WAKE_WORDS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        return mergeWakeWords(parsed);
       }
     } catch (e) {}
     return DEFAULT_WAKE_WORDS;
@@ -127,22 +136,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const saved = localStorage.getItem(VOICE_COMMANDS_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const hasCancel = parsed.some((c: VoiceCommandItem) => c.action === 'CANCEL_RECORDING');
-          const hasSaveNote = parsed.some((c: VoiceCommandItem) => c.action === 'SAVE_NOTE');
-          const has2Click = parsed.some(
-            (c: VoiceCommandItem) =>
-              /2\s*click\s*start/i.test(c.phrase) ||
-              (c.aliases || []).some((a) => /2\s*click\s*start/i.test(a)),
-          );
-          if (hasCancel && hasSaveNote && has2Click) return parsed;
-          // Merge missing command-session defaults
-          const byId = new Map(parsed.map((c: VoiceCommandItem) => [c.id, c]));
-          for (const d of DEFAULT_VOICE_COMMANDS) {
-            if (!byId.has(d.id)) byId.set(d.id, d);
-          }
-          return Array.from(byId.values());
-        }
+        return mergeVoiceCommands(parsed);
       }
     } catch (e) {}
     return DEFAULT_VOICE_COMMANDS;
@@ -222,7 +216,12 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const unsubStart = provider.registerActionHandler('START_RECORDING', () => {
       if (commandSessionController.isRecording()) return;
       emitFeedback('start');
-      void commandSessionController.start();
+      void commandSessionController.start().then(() => {
+        // MediaRecorder getUserMedia often kills Web Speech — restart listener for stop/save
+        setTimeout(() => {
+          void wakeWordProviderRef.current.startListening({ skipMicPrime: true });
+        }, 400);
+      });
     });
     const unsubStop = provider.registerActionHandler('STOP_RECORDING', () => {
       if (!commandSessionController.isRecording()) {
@@ -243,6 +242,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       emitFeedback('stop');
+      setInterimTranscript('');
       commandSessionController.flushPendingInterim();
       void commandSessionController.stopAndSave();
     });
@@ -265,12 +265,14 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       emitFeedback('stop');
+      setInterimTranscript('');
       commandSessionController.flushPendingInterim();
       void commandSessionController.stopAndSave();
     });
     const unsubCancel = provider.registerActionHandler('CANCEL_RECORDING', () => {
       if (!commandSessionController.isRecording()) return;
       emitFeedback('cancel');
+      setInterimTranscript('');
       void commandSessionController.cancel();
     });
 
@@ -292,7 +294,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setStatusError(err);
     });
 
-    const unsubSpeech = wwProvider.onInterimSpeech((text, isFinal) => {
+    const unsubSpeech = wwProvider.onInterimSpeech((text, isFinal, alternatives) => {
       setInterimTranscript(text);
 
       // Accumulate speech only after start-command session is active
@@ -302,46 +304,51 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (!configRef.current.isVoiceCommandEnabled) return;
 
-      const tentative = cmdProvider.findMatchingCommand(text);
-      if (!tentative) return;
+      const candidates = [text, ...(alternatives || [])];
+      let executed: VoiceCommandExecutionEvent | null = null;
+      for (const candidate of candidates) {
+        const tentative = cmdProvider.findMatchingCommand(candidate);
+        if (!tentative) continue;
 
-      const needsConfirm =
-        configRef.current.requireExplicitConfirmationForRecording &&
-        (tentative.action === 'START_RECORDING' ||
-          tentative.action === 'STOP_RECORDING' ||
-          tentative.action === 'SAVE_NOTE' ||
-          tentative.action === 'CANCEL_RECORDING');
+        const needsConfirm =
+          configRef.current.requireExplicitConfirmationForRecording &&
+          (tentative.action === 'START_RECORDING' ||
+            tentative.action === 'STOP_RECORDING' ||
+            tentative.action === 'SAVE_NOTE' ||
+            tentative.action === 'CANCEL_RECORDING');
 
-      const executed = cmdProvider.processTranscript(text, {
-        executeHandlers: !needsConfirm,
-      });
-      if (!executed) return;
-
-      if (needsConfirm) {
-        setActiveCommandAlert(executed);
-        setPendingActionConfirmation({
-          action: executed.action,
-          sourceEvent: executed,
-          title:
-            executed.action === 'START_RECORDING'
-              ? 'Confirm Recording Activation'
-              : executed.action === 'CANCEL_RECORDING'
-                ? 'Confirm Cancel Recording'
-                : 'Confirm Stop & Save',
-          description: `Voice Command "${executed.command.phrase}" received. Tap confirm to proceed.`,
+        executed = cmdProvider.processTranscript(candidate, {
+          executeHandlers: !needsConfirm,
         });
-        emitFeedback('command');
+        if (!executed) continue;
+
+        if (needsConfirm) {
+          setActiveCommandAlert(executed);
+          setPendingActionConfirmation({
+            action: executed.action,
+            sourceEvent: executed,
+            title:
+              executed.action === 'START_RECORDING'
+                ? 'Confirm Recording Activation'
+                : executed.action === 'CANCEL_RECORDING'
+                  ? 'Confirm Cancel Recording'
+                  : 'Confirm Stop & Save',
+            description: `Voice Command "${executed.command.phrase}" received. Tap confirm to proceed.`,
+          });
+          emitFeedback('command');
+          setCommands(cmdProvider.getCommands());
+          setTimeout(() => setActiveCommandAlert(null), 3500);
+          return;
+        }
+
+        if (!SESSION_ACTIONS.includes(executed.action)) {
+          emitFeedback('command');
+        }
+        setActiveCommandAlert(executed);
         setCommands(cmdProvider.getCommands());
         setTimeout(() => setActiveCommandAlert(null), 3500);
         return;
       }
-
-      if (!SESSION_ACTIONS.includes(executed.action)) {
-        emitFeedback('command');
-      }
-      setActiveCommandAlert(executed);
-      setCommands(cmdProvider.getCommands());
-      setTimeout(() => setActiveCommandAlert(null), 3500);
     });
 
     const unsubDetection = wwProvider.onDetection((event) => {
@@ -349,18 +356,43 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setActiveWakeWordAlert(event);
       setWakeWords(wwProvider.getWakeWords());
 
-      // Direct start wake phrases can arm recording when confirmation is on
       const word = event.wakeWord.word.toLowerCase();
-      if (
-        configRef.current.requireExplicitConfirmationForRecording &&
-        (word.includes('start') || event.rawTranscript.toLowerCase().includes('start'))
-      ) {
-        setPendingActionConfirmation({
-          action: 'START_RECORDING',
-          sourceEvent: event,
-          title: 'Activate Meeting Recording?',
-          description: `Wake word "${event.wakeWord.word}" detected. Tap to confirm and initiate visible recording session.`,
-        });
+      const startish =
+        word.includes('start') ||
+        event.wakeWord.id === 'ww-2click-start' ||
+        event.wakeWord.id === 'ww-meeting-start' ||
+        /\b(start|shuru|शुरू|chalu)\b/i.test(event.rawTranscript);
+
+      // Start-named wake phrases should begin the session (not only show "Ready")
+      if (startish && !commandSessionController.isRecording()) {
+        if (configRef.current.requireExplicitConfirmationForRecording) {
+          setPendingActionConfirmation({
+            action: 'START_RECORDING',
+            sourceEvent: event,
+            title: 'Activate Meeting Recording?',
+            description: `Wake word "${event.wakeWord.word}" detected. Tap to confirm and initiate visible recording session.`,
+          });
+        } else if (configRef.current.isVoiceCommandEnabled) {
+          // Prefer command pipeline so UI shows "Command Executed"
+          const executed = cmdProvider.processTranscript(
+            /start|shuru|शुरू/i.test(event.rawTranscript)
+              ? event.rawTranscript
+              : `${event.wakeWord.word}`,
+            { executeHandlers: true, bypassCooldown: true },
+          );
+          if (executed) {
+            setActiveCommandAlert(executed);
+            setCommands(cmdProvider.getCommands());
+            setTimeout(() => setActiveCommandAlert(null), 3500);
+          } else {
+            emitFeedback('start');
+            void commandSessionController.start().then(() => {
+              setTimeout(() => {
+                void wwProvider.startListening({ skipMicPrime: true });
+              }, 400);
+            });
+          }
+        }
       }
 
       setTimeout(() => {
@@ -391,21 +423,52 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
-  const startListening = useCallback(async () => {
-    return await wakeWordProviderRef.current.startListening();
+  const startListening = useCallback(async (opts?: { skipMicPrime?: boolean }) => {
+    return await wakeWordProviderRef.current.startListening(opts);
   }, []);
 
   const stopListening = useCallback(() => {
     wakeWordProviderRef.current.stopListening();
   }, []);
 
-  const toggleListening = useCallback(() => {
+  const toggleListening = useCallback(async () => {
     if (status === 'listening' || status === 'detected') {
       stopListening();
-    } else {
-      startListening();
+      return true;
     }
+    const ok = await startListening();
+    if (!ok) {
+      // statusError is set by provider; keep Idle visible with message
+      return false;
+    }
+    return true;
   }, [status, startListening, stopListening]);
+
+  const startCommandSessionManual = useCallback(() => {
+    if (commandSessionController.isRecording()) return;
+    emitFeedback('start');
+    voiceCommandProviderRef.current.manuallyTriggerAction(
+      'START_RECORDING',
+      'Manual Start (tap)',
+    );
+  }, [emitFeedback]);
+
+  const stopCommandSessionManual = useCallback(() => {
+    if (!commandSessionController.isRecording()) return;
+    emitFeedback('stop');
+    setInterimTranscript('');
+    commandSessionController.flushPendingInterim();
+    voiceCommandProviderRef.current.suppressStartFor(2500);
+    void commandSessionController.stopAndSave();
+  }, [emitFeedback]);
+
+  const cancelCommandSessionManual = useCallback(() => {
+    if (!commandSessionController.isRecording()) return;
+    emitFeedback('cancel');
+    setInterimTranscript('');
+    voiceCommandProviderRef.current.suppressStartFor(2500);
+    void commandSessionController.cancel();
+  }, [emitFeedback]);
 
   const dismissWakeWordAlert = useCallback(() => {
     setActiveWakeWordAlert(null);
@@ -551,6 +614,9 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         startListening,
         stopListening,
         toggleListening,
+        startCommandSessionManual,
+        stopCommandSessionManual,
+        cancelCommandSessionManual,
         dismissWakeWordAlert,
         confirmPendingAction,
         cancelPendingAction,
