@@ -41,6 +41,9 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
     interimTranscript,
     commandSession,
     toggleListening,
+    startCommandSessionManual,
+    stopCommandSessionManual,
+    cancelCommandSessionManual,
     dismissWakeWordAlert,
     confirmPendingAction,
     cancelPendingAction,
@@ -196,13 +199,39 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                   ? 'Recording until stop/save/cancel'
                   : isListening
                     ? 'Bolo “2Click Start” ya “Meeting shuru karo”'
-                    : 'Mic tap karo — phir voice command bolo'}
+                    : status === 'permission_needed'
+                      ? 'Mic allow karo, phir dubara tap'
+                      : status === 'error'
+                        ? 'Speech error — neeche Start button use karo'
+                        : 'Mic tap karo — ya Start button dabao'}
               </span>
             </div>
           </div>
 
+          {commandSession.status === 'recording' ? (
+            <button
+              type="button"
+              onClick={stopCommandSessionManual}
+              className="px-3 py-2 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shadow-sm cursor-pointer"
+              title="Stop & save session"
+            >
+              Stop
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={startCommandSessionManual}
+              className="px-3 py-2 rounded-full bg-[#00BAF2] hover:bg-[#0099cc] text-white text-xs font-extrabold shadow-sm cursor-pointer"
+              title="Start command session without voice"
+            >
+              Start
+            </button>
+          )}
+
           <button
-            onClick={toggleListening}
+            onClick={() => {
+              void toggleListening();
+            }}
             className={`p-2.5 rounded-full font-bold text-sm transition cursor-pointer ${
               isListening
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
@@ -243,10 +272,12 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                     </span>
                   </div>
                   <h3 className="text-sm sm:text-base font-bold text-white mt-0.5">
-                    Ready for your voice command
+                    {/start|shuru|शुरू/i.test(activeWakeWordAlert.wakeWord.word)
+                      ? 'Session start ho raha hai…'
+                      : 'Ready for your voice command'}
                   </h3>
                   <p className="text-[11px] text-indigo-200 mt-0.5">
-                    Say "2Click Start", "Meeting shuru karo", or "Start recording".
+                    Say "2Click Start", "Meeting shuru karo", or "Start recording" — ya Start button.
                   </p>
                 </div>
               </div>
@@ -368,8 +399,44 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
       {!isSupported && (
         <div className="fixed bottom-20 left-4 right-4 z-40 pointer-events-none">
           <div className="mx-auto max-w-md pointer-events-auto px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-800">
-            Voice commands need Web Speech API (Chrome / Edge recommended).
+            Voice speech API is browser me nahi hai (Chrome/Edge better). Neeche{' '}
+            <strong>Start</strong> button se session shuru karo.
             {statusError ? ` ${statusError}` : ''}
+          </div>
+        </div>
+      )}
+
+      {isSupported && (status === 'permission_needed' || status === 'error') && statusError && (
+        <div className="fixed bottom-20 left-4 right-4 z-40 pointer-events-none">
+          <div className="mx-auto max-w-md pointer-events-auto px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+            {statusError}{' '}
+            <button
+              type="button"
+              className="underline font-bold pointer-events-auto"
+              onClick={startCommandSessionManual}
+            >
+              Start without voice
+            </button>
+            {commandSession.status === 'recording' && (
+              <>
+                {' · '}
+                <button
+                  type="button"
+                  className="underline font-bold pointer-events-auto"
+                  onClick={stopCommandSessionManual}
+                >
+                  Stop & save
+                </button>
+                {' · '}
+                <button
+                  type="button"
+                  className="underline font-bold pointer-events-auto"
+                  onClick={cancelCommandSessionManual}
+                >
+                  Cancel
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

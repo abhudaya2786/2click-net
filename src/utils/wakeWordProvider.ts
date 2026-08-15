@@ -7,18 +7,31 @@ import {
 
 export type WakeWordListener = (event: WakeWordDetectionEvent) => void;
 export type StatusChangeListener = (status: VoiceListeningStatus, error?: string) => void;
-export type SpeechInterimListener = (transcript: string, isFinal: boolean) => void;
+export type SpeechInterimListener = (
+  transcript: string,
+  isFinal: boolean,
+  alternatives?: string[],
+) => void;
 
 /**
- * Text normalizer for multi-lingual Hindi, Hinglish, and English voice matching
+ * Text normalizer for multi-lingual Hindi, Hinglish, and English voice matching.
+ * Also canonicalizes common Chrome STT mishears of the "2Click" brand.
  */
 export function normalizeVoiceText(text: string): string {
   if (!text) return '';
-  return text
+  let out = text
     .toLowerCase()
     .trim()
     .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'।]/g, '') // remove punctuation including Devanagari danda
     .replace(/\s+/g, ' ');
+
+  // "to/too/two/tu click" and "toclick" → "2click" so brand commands match reliably
+  out = out
+    .replace(/\b(to|too|two|tu|doo|do)\s*click\b/g, '2click')
+    .replace(/\btoclick\b/g, '2click')
+    .replace(/\b2\s*click\b/g, '2click');
+
+  return out;
 }
 
 export class WakeWordProvider {
@@ -192,7 +205,7 @@ export class WakeWordProvider {
     return typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
   }
 
-  public async startListening(): Promise<boolean> {
+  public async startListening(opts?: { skipMicPrime?: boolean }): Promise<boolean> {
     if (!this.isSupported()) {
       this.updateStatus('unsupported', 'Web Speech API is not supported in this browser.');
       return false;
@@ -203,6 +216,27 @@ export class WakeWordProvider {
     }
 
     try {
+      // Prime mic permission first — improves Chrome/Android SpeechRecognition reliability.
+      // Skip when a MediaRecorder session already owns the mic.
+      if (
+        !opts?.skipMicPrime &&
+        typeof navigator !== 'undefined' &&
+        navigator.mediaDevices?.getUserMedia
+      ) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach((t) => t.stop());
+        } catch (permErr: any) {
+          this.updateStatus(
+            'permission_needed',
+            permErr?.name === 'NotAllowedError'
+              ? 'Microphone permission denied — Settings → allow mic, then tap again.'
+              : permErr?.message || 'Microphone permission required for voice commands.',
+          );
+          return false;
+        }
+      }
+
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       const rec = new SpeechRecognition();
 
@@ -231,26 +265,43 @@ export class WakeWordProvider {
       rec.onresult = (event: any) => {
         let interimTranscript = '';
         let finalTranscript = '';
+        const alternativeTexts: string[] = [];
 
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           const res = event.results[i];
-          const transcript = res[0].transcript;
+          // Prefer primary transcript for display, but keep alternatives for matching
+          const primary = String(res[0]?.transcript || '');
           if (res.isFinal) {
-            finalTranscript += transcript + ' ';
+            finalTranscript += primary + ' ';
           } else {
-            interimTranscript += transcript + ' ';
+            interimTranscript += primary + ' ';
+          }
+          const altCount = typeof res.length === 'number' ? res.length : 1;
+          for (let a = 0; a < altCount; a++) {
+            const t = String(res[a]?.transcript || '').trim();
+            if (t) alternativeTexts.push(t);
           }
         }
 
         const combined = (finalTranscript || interimTranscript).trim();
         if (combined) {
-          this.interimListeners.forEach((fn) => fn(combined, Boolean(finalTranscript)));
+          const uniqueAlts = Array.from(
+            new Set(alternativeTexts.map((t) => t.trim()).filter(Boolean)),
+          );
+          this.interimListeners.forEach((fn) =>
+            fn(combined, Boolean(finalTranscript), uniqueAlts),
+          );
 
-          // Check wake word spotting
-          const detected = this.checkTextForWakeWord(combined);
+          // Check wake word spotting against primary + STT alternatives
+          const textsToCheck = [combined, ...uniqueAlts];
+          let detected: WakeWordDetectionEvent | null = null;
+          for (const t of textsToCheck) {
+            detected = this.checkTextForWakeWord(t);
+            if (detected) break;
+          }
           if (detected) {
             this.updateStatus('detected');
-            this.detectionListeners.forEach((fn) => fn(detected));
+            this.detectionListeners.forEach((fn) => fn(detected!));
             
             // Brief visual state before returning to listening
             setTimeout(() => {
@@ -267,11 +318,16 @@ export class WakeWordProvider {
         if (event.error === 'not-allowed' || event.error === 'permission-denied') {
           this.shouldRestart = false;
           this.isListening = false;
-          this.updateStatus('permission_needed', 'Microphone permission was denied.');
+          this.updateStatus('permission_needed', 'Microphone / speech permission was denied.');
         } else if (event.error === 'no-speech') {
           // Normal timeout when no speech is detected - continue running if desired
+        } else if (event.error === 'network') {
+          this.updateStatus(
+            'error',
+            'Speech network error — Chrome speech service unreachable. Use Start/Stop buttons or try again on Wi‑Fi.',
+          );
         } else if (event.error !== 'aborted') {
-          this.updateStatus('error', event.error);
+          this.updateStatus('error', `Speech error: ${event.error}`);
         }
       };
 
