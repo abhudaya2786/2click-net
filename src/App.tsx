@@ -652,11 +652,11 @@ function AppContent() {
             onClick={() => go('/meetings')}
             className="flex items-center gap-2.5 min-w-0 cursor-pointer text-left group"
           >
-            <div className="w-8 h-8 rounded-lg bg-hs-600 text-white flex items-center justify-center shadow-sm group-hover:bg-hs-700 transition-colors">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-hs-500 to-hs-700 text-white flex items-center justify-center group-hover:brightness-110 transition">
               <Mic className="w-4 h-4" />
             </div>
             <div className="min-w-0 leading-tight">
-              <div className="text-[15px] font-extrabold tracking-tight text-slate-950 dark:text-white truncate">
+              <div className="font-display text-[15px] font-extrabold tracking-tight text-slate-950 dark:text-white truncate">
                 2Click<span className="hs-accent">MoM</span>
               </div>
               <div className="hidden sm:block text-[10px] font-semibold text-slate-500">
@@ -704,7 +704,7 @@ function AppContent() {
                 <button
                   id="signin-header-btn"
                   onClick={() => go('/signin')}
-                  className="btn-hs-secondary !px-2.5"
+                  className="btn-hs-secondary !px-2.5 hidden sm:inline-flex"
                   title="Sign In"
                 >
                   <LogIn className="w-3.5 h-3.5" />
@@ -724,17 +724,16 @@ function AppContent() {
 
             <button
               onClick={() => go('/meetings/new')}
-              className="btn-hs"
+              className="btn-hs hidden sm:inline-flex"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Try for free</span>
-              <span className="sm:hidden">New</span>
+              <span>Try for free</span>
             </button>
 
             <button
               id="open-history-btn"
               onClick={() => setIsHistoryOpen(true)}
-              className="btn-hs-secondary relative !px-2.5"
+              className="btn-hs-secondary relative !px-2.5 hidden sm:inline-flex"
               title="History"
             >
               <History className="w-3.5 h-3.5 text-slate-500" />
@@ -864,11 +863,13 @@ function AppContent() {
         <GeofenceAutoModeBanner onNavigate={navigate} onOpenSettings={() => navigate('/settings/location')} />
       )}
 
-      <div className="app-main-inner">
-      {/* Main Container Routed Views */}
+      {/* Landing is full-bleed — skip padded shell */}
       {currentRoute === '/' ? (
         <LandingPage onNavigate={navigate} />
-      ) : currentRoute === '/signin' || currentRoute === '/login' ? (
+      ) : (
+      <div className="app-main-inner">
+      {/* Main Container Routed Views */}
+      {currentRoute === '/signin' || currentRoute === '/login' ? (
         <main>
           <AuthView mode="signin" onNavigate={navigate} />
         </main>
@@ -1235,31 +1236,32 @@ function AppContent() {
       </main>
       )}
       </div>
+      )}
       </div>
 
-      {/* Mobile bottom nav — primary routes only */}
+      {/* Mobile bottom nav — floating app tab bar */}
       {currentRoute !== '/' && (
-      <nav
-        id="mobile-bottom-nav"
-        className="md:hidden shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md pb-safe no-print"
-      >
-        <div className="grid grid-cols-4 h-16">
+      <nav id="mobile-bottom-nav" className="md:hidden shrink-0 no-print pt-1">
+        <div className="app-tabbar grid grid-cols-4">
           {[
             { path: '/meetings', label: 'Meetings', icon: Layers, active: currentRoute.startsWith('/meetings') && currentRoute !== '/meetings/new' },
-            { path: '/inbox', label: 'Inbox', icon: Inbox, active: currentRoute === '/inbox' },
+            { path: '/mom', label: 'MoM AI', icon: Sparkles, active: currentRoute === '/mom' },
             { path: '/field-talk', label: 'Talk', icon: Radio, active: currentRoute === '/field-talk' },
-            { path: '/settings/company', label: 'More', icon: Settings2, active: currentRoute.startsWith('/settings') || currentRoute === '/recordings' || currentRoute === '/files' || currentRoute === '/account' },
+            { path: '/inbox', label: 'Inbox', icon: Inbox, active: currentRoute === '/inbox' || currentRoute.startsWith('/settings') || currentRoute === '/account' },
           ].map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.path}
+                type="button"
                 onClick={() => go(item.path)}
-                className={`flex flex-col items-center justify-center gap-0.5 text-[10px] font-bold cursor-pointer ${
-                  item.active ? 'text-hs-700 dark:text-hs-300' : 'text-slate-500 dark:text-slate-400'
-                }`}
+                aria-label={item.label}
+                aria-current={item.active ? 'page' : undefined}
+                className={`app-tabbar-btn ${item.active ? 'is-active' : ''}`}
               >
-                <Icon className="w-5 h-5" />
+                <span className="app-tab-icon">
+                  <Icon className="w-5 h-5" />
+                </span>
                 {item.label}
               </button>
             );

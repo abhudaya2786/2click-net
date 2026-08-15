@@ -16,28 +16,47 @@ Browsers refuse that module (wrong MIME / no bundler) → **empty white page**.
 
 ## Android APK (Capacitor)
 
-Package ID: `in.twoclick.mom`
+Package ID: `in.twoclick.mom`  
+App name: **2Click MoM**
 
-**Default mode = bundled UI** (assets inside the APK) so the app is not white when Hostinger is broken.  
-`/api` calls are rewritten to `VITE_API_BASE_URL`.
+**Default mode = bundled UI** (assets inside the APK) so the app works even when `2click.in` Production is not live yet.  
+`/api` calls are rewritten to `VITE_API_BASE_URL` (baked at build time).
 
 ```bash
-export VITE_API_BASE_URL=https://your-working-mom-host.example
+# Bundled APK (recommended while Production domain is DEPLOYMENT_NOT_FOUND)
+export VITE_API_BASE_URL=https://temporary-flying-cygnus-dou4esu.vercel.app
+unset CAPACITOR_SERVER_URL
 npm run android:apk
-# → dist/2click-mom.apk
+# → dist/2click-mom.apk  (~4–5 MB debug)
+```
+
+After Production is live on `https://2click.in`:
+
+```bash
+export VITE_API_BASE_URL=https://2click.in
+unset CAPACITOR_SERVER_URL
+npm run android:apk
 ```
 
 Optional live WebView wrapper (only if that URL already shows the UI, not white):
 
 ```bash
-export CAPACITOR_SERVER_URL=https://your-working-mom-host.example
+export CAPACITOR_SERVER_URL=https://2click.in
+export VITE_API_BASE_URL=https://2click.in
 npm run android:apk
 ```
 
+### Install on phone
+
+1. Copy `2click-mom.apk` to the Android device  
+2. Enable **Install unknown apps** for Files/Chrome  
+3. Open the APK and install  
+4. Allow **Microphone** when prompted  
+
 ### GitHub Actions
 
-**Actions → Build Android APK → Run workflow**
-
+**Actions → Build Android APK → Run workflow**  
+Leave `server_url` empty for bundled assets.
 ## Hostinger static upload
 
 ```bash
