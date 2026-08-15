@@ -1,6 +1,9 @@
 node_modules/
 build/
 dist/
+public/
+api/index.js
+api/index.js.map
 coverage/
 .DS_Store
 *.log
@@ -9,4 +12,10 @@ coverage/
 !.env.example
 .vite/
 *.local
-data/auth/
+.vercel/
+*.apk
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/

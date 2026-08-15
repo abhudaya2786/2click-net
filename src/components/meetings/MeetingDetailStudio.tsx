@@ -35,6 +35,7 @@ import {
 import { FullMeetingRecord, MeetingParticipantEntity, MeetingState, RecordingEntity } from '../../types';
 import { meetingDb } from '../../utils/meetingDatabase';
 import { useVoice } from '../../context/VoiceContext';
+import { commandSessionController } from '../../utils/commandSessionController';
 import { useGeofence } from '../../context/GeofenceContext';
 import { MeetingStateBadge } from './MeetingStateBadge';
 import { TranscriptViewer } from './TranscriptViewer';
@@ -360,6 +361,8 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
           durationSeconds: elapsedSeconds || Math.round(audioResult.durationSeconds),
           fileSizeBytes: audioResult.sizeBytes,
           audioData: base64Data,
+          blob: audioResult.blob,
+          saveToDevice: true,
           status: 'Ready',
         });
 
@@ -382,6 +385,8 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
               durationSeconds: elapsedSeconds,
               fileSizeBytes: audioBlob.size,
               audioData: base64Data,
+              blob: audioBlob,
+              saveToDevice: true,
               status: 'Ready',
             });
 
@@ -476,6 +481,8 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
           durationSeconds: rec.durationSeconds,
           fileSizeBytes: wavMaster.sizeBytes,
           audioData: base64Norm,
+          blob: wavMaster.blob,
+          saveToDevice: true,
           status: 'Ready',
         });
         setNormalizationMsg(`Gain Leveling Applied (${gainAppliedDb > 0 ? '+' : ''}${gainAppliedDb} dB). Normalized Master saved!`);
@@ -526,6 +533,8 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
           durationSeconds: rec.durationSeconds,
           fileSizeBytes: wavMaster.sizeBytes,
           audioData: base64Boost,
+          blob: wavMaster.blob,
+          saveToDevice: true,
           status: 'Ready',
         });
         setNormalizationMsg('Whisper Boost (+6 dB) generated with zero digital distortion.');
@@ -582,6 +591,8 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
           durationSeconds: rec.durationSeconds,
           fileSizeBytes: wavMaster.sizeBytes,
           audioData: base64Clean,
+          blob: wavMaster.blob,
+          saveToDevice: true,
           status: 'Ready',
         });
         setNormalizationMsg('Target Speaker Isolated! Sub-85Hz rumble and high-frequency noise removed via FFT spectral gating.');
@@ -612,12 +623,17 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
   const { voiceCommandProvider } = useVoice();
   useEffect(() => {
     const unsubStart = voiceCommandProvider.registerActionHandler('START_RECORDING', () => {
+      // Hands-free CommandSession owns mic buffer; avoid duplicate MediaRecorder
+      if (commandSessionController.isRecording()) return;
       if (meetingState === 'READY' || meetingState === 'IDLE') {
         handleStartRecording();
       }
     });
 
     const unsubStop = voiceCommandProvider.registerActionHandler('STOP_RECORDING', () => {
+      if (commandSessionController.isRecording() || commandSessionController.getStatus() === 'processing') {
+        return;
+      }
       if (meetingState === 'RECORDING' || meetingState === 'PAUSED') {
         handleStopRecording();
       }
@@ -1477,7 +1493,7 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
                   Recorded Sessions ({meeting.recordings?.length || 0})
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  WAV (16/32-Bit Float PCM), Lossless FLAC, and WebM sessions stored in local database.
+                  Files save under your user name. Phone: Documents/2ClickMoM/Recordings — Browser: Downloads + Files tab.
                 </p>
               </div>
 
@@ -1523,50 +1539,17 @@ export const MeetingDetailStudio: React.FC<MeetingDetailStudioProps> = ({ meetin
                           <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                             {rec.fileName}
                           </span>
-                          {isCleanVoiceFFT && (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                              FFT ISOLATED (85-3000 Hz)
-                            </span>
-                          )}
-                          {isFloat32 ? (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                              32-BIT FLOAT WAV
-                            </span>
-                          ) : isFlac ? (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                              LOSSLESS FLAC
-                            </span>
-                          ) : isWav ? (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                              16-BIT PCM WAV
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                              WEBM OPUS
-                            </span>
-                          )}
-
-                          {isStereo && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                              STEREO
-                            </span>
-                          )}
-                          {is16k && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                              16 kHz
-                            </span>
-                          )}
-                          {is44k && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                              44.1 kHz
-                            </span>
-                          )}
-                          {is48k && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                              48 kHz
+                          {rec.localPath && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Path saved
                             </span>
                           )}
                         </div>
+                        {rec.localPath && (
+                          <div className="text-[10px] font-mono text-slate-600 dark:text-slate-400 mt-1 break-all">
+                            {rec.localPath}
+                          </div>
+                        )}
                         <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-1">
                           <span>Duration: {formatTimer(rec.durationSeconds)}</span>
                           <span>•</span>
