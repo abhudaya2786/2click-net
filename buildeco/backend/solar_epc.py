@@ -44,34 +44,62 @@ router = APIRouter(prefix="/api/solar/epc", tags=["solar-epc"])
 PEAK_SUN_HOURS = 4.5          # average across India
 SYSTEM_EFFICIENCY = 0.8       # sizing derate
 PERFORMANCE_RATIO = 0.8       # generation PR
-AREA_PER_KWP = 80             # sq.ft per kWp (rooftop)
+AREA_PER_KWP = 100            # default sq.ft per kWp (standard / budget)
+AREA_PER_KWP_BY_TIER = {"premium": 80, "standard": 100, "budget": 100}
 DEGRADATION = 0.0055          # 0.55% annual module degradation
 GST_RATE = 0.138              # blended solar GST (~13.8%)
 CO2_PER_KWH = 0.82            # kg CO2 offset per kWh (grid)
 CORP_TAX_RATE = 0.25          # for C&I accelerated depreciation benefit
 TARIFF_ESCALATION = 0.03      # 3% annual tariff escalation for savings model
 
+BRAND_RECS = {
+    "premium": {
+        "panels": ["Jinko", "Trina", "Panasonic"],
+        "inverters": ["Deye", "SolarEdge", "Enphase"],
+        "panel_tech": "N-Type TOPCon Bifacial",
+        "panel_tech_detail": "N-Type TOPCon Bifacial modules (>21.5% efficiency) for higher yield in Indian irradiance, including rear-side gain on light-coloured roofs.",
+    },
+    "standard": {
+        "panels": ["Waaree", "Vikram", "Tata Power"],
+        "inverters": ["Growatt", "Solis", "Havells"],
+        "panel_tech": "Mono-PERC Half-cut",
+        "panel_tech_detail": "Mono-PERC Half-cut modules (>21% efficiency) — proven ALMM-listed technology with strong shade tolerance and lower hot-spot risk.",
+    },
+    "budget": {
+        "panels": ["ALMM-approved Mono-PERC"],
+        "inverters": ["String MPPT (IEC 62109)"],
+        "panel_tech": "Mono-PERC (ALMM)",
+        "panel_tech_detail": "ALMM-listed Mono-PERC modules for cost-optimised rooftops that still meet MNRE quality gates.",
+    },
+}
+
+BOP_QUALITY = (
+    "Balance of Plant is specified for 25-year outdoor duty: UV-protected DC cables (Polycab / Lapp, EN 50618), "
+    "IP65-rated AC/DC distribution boxes with Class-II SPDs, copper-bonded chemical earthing (AC / DC / LA pits), "
+    "and Hot-Dip Galvanized Iron (HDGI) mounting structures (≥80 micron, rust-proof, designed for 150 km/h wind)."
+)
+
 TIERS = {
     "premium": {
         "label": "Tier-1 Premium",
         "module_wp": 585, "module_tech": "N-Type TOPCon Bifacial (>21.5% eff)",
-        "module_brand": "Waaree / Adani", "module_rate_per_wp": 20,
-        "inverter_brand": "Sungrow / SolarEdge", "inverter_rate_per_kw": 6500,
-        "structure_brand": "Anodized Aluminium / Tata", "structure_rate_per_kw": 5500,
+        "module_brand": "Jinko / Trina / Panasonic", "module_rate_per_wp": 20,
+        "inverter_brand": "Deye / SolarEdge / Enphase", "inverter_rate_per_kw": 6500,
+        "structure_brand": "HDGI rust-proof / Anodized Aluminium", "structure_rate_per_kw": 5500,
         "dc_rate_per_kw": 2200, "ac_rate_per_kw": 2300,
-        "protection_brand": "Schneider / Havells", "protection_rate_per_kw": 2500,
+        "protection_brand": "Schneider / Havells IP65 AC-DC DB", "protection_rate_per_kw": 2500,
         "earthing_pit_rate": 6000, "la_type": "ESE Lightning Arrester", "la_rate": 12000,
         "netmeter_rate": 8000, "install_rate_per_kw": 6000,
         "battery_brand": "Exide / Luminous LiFePO4", "battery_rate_per_kwh": 32000,
     },
     "standard": {
         "label": "Standard",
-        "module_wp": 550, "module_tech": "Mono-PERC (>21% eff)",
-        "module_brand": "Vikram / Premier", "module_rate_per_wp": 16,
-        "inverter_brand": "Growatt / Luminous", "inverter_rate_per_kw": 5000,
-        "structure_brand": "HDGI (Hot-dip Galvanised)", "structure_rate_per_kw": 4200,
+        "module_wp": 550, "module_tech": "Mono-PERC Half-cut (>21% eff)",
+        "module_brand": "Waaree / Vikram / Tata Power", "module_rate_per_wp": 16,
+        "inverter_brand": "Growatt / Solis / Havells", "inverter_rate_per_kw": 5000,
+        "structure_brand": "HDGI (Hot-dip Galvanised, rust-proof)", "structure_rate_per_kw": 4200,
         "dc_rate_per_kw": 1700, "ac_rate_per_kw": 1800,
-        "protection_brand": "Havells", "protection_rate_per_kw": 2000,
+        "protection_brand": "Havells IP65 AC-DC DB", "protection_rate_per_kw": 2000,
         "earthing_pit_rate": 5000, "la_type": "Conventional Copper LA", "la_rate": 6000,
         "netmeter_rate": 7000, "install_rate_per_kw": 5000,
         "battery_brand": "Luminous LiFePO4", "battery_rate_per_kwh": 28000,
@@ -81,9 +109,9 @@ TIERS = {
         "module_wp": 545, "module_tech": "Mono-PERC (ALMM)",
         "module_brand": "ALMM Approved (Local)", "module_rate_per_wp": 14,
         "inverter_brand": "Local MPPT String", "inverter_rate_per_kw": 4200,
-        "structure_brand": "GI Structure", "structure_rate_per_kw": 3200,
+        "structure_brand": "HDGI GI Structure", "structure_rate_per_kw": 3200,
         "dc_rate_per_kw": 1400, "ac_rate_per_kw": 1500,
-        "protection_brand": "Standard", "protection_rate_per_kw": 1500,
+        "protection_brand": "Standard IP65 DB", "protection_rate_per_kw": 1500,
         "earthing_pit_rate": 4000, "la_type": "Conventional LA", "la_rate": 4500,
         "netmeter_rate": 6000, "install_rate_per_kw": 4000,
         "battery_brand": "LiFePO4 (Local)", "battery_rate_per_kwh": 24000,
@@ -133,7 +161,8 @@ class EpcIn(BaseModel):
     interest_rate: Optional[float] = None
     customer_name: Optional[str] = None
     site_address: Optional[str] = None
-    state: str = "Maharashtra"
+    state: str = "Uttar Pradesh"
+    city: Optional[str] = "Lucknow"
     discom: Optional[str] = None
     contact: Optional[str] = None
     brand_selections: Optional[dict] = None   # {category_code: brand_id} — customer-selected brands
@@ -189,15 +218,15 @@ def _build_boq(cap_kwp, tier, system_type, daily_kwh, autonomy_days, ov=None):
     inv_type = "Hybrid" if system_type in ("hybrid", "offgrid") else "On-Grid"
     add("inverter", f"Solar {inv_type} Inverter", "MPPT >98.5% · IEC 62109 · IP65/66",
         t["inverter_brand"], inv_kw, "kW", t["inverter_rate_per_kw"])
-    add("structure", "Mounting Structure", f'{t["structure_brand"]} ≥80 micron · wind 150 km/h · seasonal tilt',
+    add("structure", "Mounting Structure", f'{t["structure_brand"]} ≥80 micron · wind 150 km/h · rust-proof HDGI',
         t["structure_brand"], cap_kwp, "kWp", t["structure_rate_per_kw"])
-    add("dc_cable", "DC Cables & Connectors", "Tinned Cu · EN 50618 · 4/6 mm² · MC4",
+    add("dc_cable", "DC Cables & Connectors", "UV-protected tinned Cu · EN 50618 · 4/6 mm² · MC4",
         "Polycab / Lapp", cap_kwp, "kWp", t["dc_rate_per_kw"])
     add("ac_cable", "AC Cables (Armoured)", "Armoured XLPE Cu/Al",
         "Polycab / Havells", cap_kwp, "kWp", t["ac_rate_per_kw"])
-    add("protection", "Protection (AJB/SPD/MCB)", "IP65 AJB · SPD Class II · MCB/MCCB",
+    add("protection", "Protection (AJB/SPD/MCB)", "IP65 AC/DC distribution boxes · SPD Class II · MCB/MCCB",
         t["protection_brand"], cap_kwp, "kWp", t["protection_rate_per_kw"])
-    add("earthing", "Chemical Earthing (3 Pits)", "AC / DC / LA pits + chemical compound",
+    add("earthing", "Copper-bonded Chemical Earthing (3 Pits)", "AC / DC / LA pits + chemical compound",
         "Ashlok / JMV", 3, "pits", t["earthing_pit_rate"])
     add("la", "Lightning Arrester", t["la_type"], "JMV / OBO", 1, "nos", t["la_rate"])
     add("netmeter", "Net-Meter / Bi-Directional Kit", "DISCOM-approved bi-directional meter",
@@ -217,6 +246,135 @@ def _build_boq(cap_kwp, tier, system_type, daily_kwh, autonomy_days, ov=None):
     return items, subtotal, actual_wp, mod_count, battery_kwh
 
 
+def _inr(n) -> str:
+    return f"₹{int(round(float(n or 0))):,}".replace(",", ",")
+
+
+def _area_per_kwp(tier: str) -> int:
+    return AREA_PER_KWP_BY_TIER.get(tier, AREA_PER_KWP)
+
+
+def _location_label(x: EpcIn) -> str:
+    parts = [p for p in [(x.city or "").strip(), (x.state or "").strip()] if p]
+    return ", ".join(parts) or "India"
+
+
+def build_consultant_proposal(result: dict, x: EpcIn) -> dict:
+    """BuildEco Group Solar EPC Consultant narrative (5 pillars)."""
+    loc = _location_label(x)
+    sz = result["sizing"]
+    pr = result["pricing"]
+    gen = result["generation"]
+    env = result["environment"]
+    tier = result["inputs"]["tier"]
+    rec = BRAND_RECS.get(tier, BRAND_RECS["standard"])
+    sys_label = {"ongrid": "On-Grid", "hybrid": "Hybrid", "offgrid": "Off-Grid"}.get(result["inputs"]["system_type"], "On-Grid")
+    bill = x.monthly_bill or 0
+    roof = sz.get("roof_area_sqft") or 0
+    zero_kw = sz["required_capacity_kwp"]
+    rec_kw = sz["recommended_capacity_kwp"]
+    sqft_kw = sz["sqft_per_kwp"]
+    roof_ok = not sz.get("roof_limited")
+    roof_line = (
+        f"Your {int(roof)} sq.ft roof can host about {sz['roof_capacity_kwp']} kW at {sqft_kw} sq.ft/kW "
+        f"({'Premium 80 sq.ft/kW' if tier == 'premium' else 'Standard 100 sq.ft/kW'}). "
+    )
+    if roof_ok:
+        roof_line += f"The roof is sufficient for the {rec_kw} kW plant sized to drive the electricity bill toward zero."
+    else:
+        roof_line += (
+            f"A bill-zero plant would need {zero_kw} kW, which exceeds roof capacity. "
+            f"We therefore recommend {rec_kw} kW (roof-limited) and can add a carport or extra roof later."
+        )
+
+    name = (x.customer_name or "Valued customer").strip()
+    intro = (
+        f"Dear {name}, BuildEco Group has analysed your {sys_label.lower()} rooftop requirement at {loc}. "
+        f"With a monthly bill of {_inr(bill)} at ₹{x.tariff}/unit, we recommend a professionally engineered "
+        f"{rec_kw} kW {sys_label} system using {rec['panel_tech']} modules."
+    )
+
+    panels = ", ".join(rec["panels"])
+    inverters = ", ".join(rec["inverters"])
+    boq_items = result.get("boq", {}).get("items") or []
+    boq_lines = [f"{it['item']}: {it['brand']} — {it['qty']} {it['unit']} ({_inr(it['amount'])})" for it in boq_items[:8]]
+
+    return {
+        "role": "BuildEco Group — Expert Solar EPC Consultant",
+        "intro": intro,
+        "closing": (
+            "This proposal is an engineering estimate for discussion. A site survey (shadow analysis, structure load, "
+            "and DISCOM net-metering) will lock final BOQ. BuildEco Group will handle design, supply, installation, "
+            "and commissioning with documented warranties."
+        ),
+        "sections": [
+            {
+                "id": "sizing",
+                "title": "1. System Sizing Summary",
+                "body": roof_line,
+                "bullets": [
+                    f"Monthly bill: {_inr(bill)} · Tariff: ₹{x.tariff}/unit · Location: {loc}",
+                    f"Daily consumption: {sz['daily_consumption_kwh']} kWh",
+                    f"Plant size to make the bill ~zero: {zero_kw} kW",
+                    f"Recommended plant (after roof check): {rec_kw} kW {sys_label}",
+                    f"Roof area: {int(roof) if roof else 0} sq.ft · Density: {sqft_kw} sq.ft/kW · Roof sufficient: {'Yes' if roof_ok else 'No — roof limited'}",
+                    f"Year-1 generation: {gen['annual_kwh_y1']:,} kWh",
+                ],
+            },
+            {
+                "id": "brands",
+                "title": "2. Brand & Quality Specifications",
+                "body": rec["panel_tech_detail"] + " " + BOP_QUALITY,
+                "bullets": [
+                    f"Component grade: {result['inputs']['tier_label']}",
+                    f"Panel technology: {rec['panel_tech']}",
+                    f"Recommended Tier-1 panels: {panels}",
+                    f"Recommended inverters: {inverters}",
+                    "BOP: UV-protected DC cables (Polycab/Lapp), IP65 AC/DC DBs, copper-bonded earthing, rust-proof HDGI structure",
+                ],
+            },
+            {
+                "id": "boq",
+                "title": "3. Estimated BOQ (Bill of Quantities)",
+                "body": f"Indicative {result['boq']['tier_label']} BOQ for a {rec_kw} kW plant. GST @ {round(result['boq']['gst_rate']*100, 1)}% included in project cost.",
+                "bullets": boq_lines + [f"BOQ subtotal: {_inr(result['boq']['subtotal'])} · GST: {_inr(result['boq']['gst'])} · Project cost: {_inr(result['boq']['total'])}"],
+            },
+            {
+                "id": "finance",
+                "title": "4. Financial Investment & ROI",
+                "body": (
+                    f"Estimated project cost {_inr(pr['total'])}. Applicable PM Surya Ghar subsidy at {loc} is "
+                    f"{_inr(pr['subsidy'])} (residential CFA; 1 kW ₹30,000 / 2 kW ₹60,000 / 3 kW+ capped at ₹78,000). "
+                    f"Net investment {_inr(pr['net_cost'])}. Payback about {result['payback_years']} years, with "
+                    f"{_inr(result['lifetime_savings'])} modelled savings over 25 years (3% tariff escalation, 0.55%/yr degradation)."
+                ),
+                "bullets": [
+                    f"Estimated cost: {_inr(pr['total'])}",
+                    f"Government subsidy ({loc}): {_inr(pr['subsidy'])}",
+                    f"Net cost after subsidy: {_inr(pr['net_cost'])}",
+                    f"Payback period: {result['payback_years']} years",
+                    f"Total 25-year savings: {_inr(result['lifetime_savings'])}",
+                    f"25-year net gain (savings − net cost): {_inr(result['roi_25yr'])}",
+                ],
+            },
+            {
+                "id": "environment",
+                "title": "5. Environmental Impact",
+                "body": (
+                    f"Your {rec_kw} kW rooftop plant at {loc} offsets about {env['co2_offset_tonnes_year']} tonnes of CO₂ every year "
+                    f"({env['co2_offset_tonnes_25yr']} tonnes over 25 years) — roughly {env['trees_equivalent']} trees planted each year. "
+                    "That is clean, silent generation on your own roof."
+                ),
+                "bullets": [
+                    f"CO₂ offset (year 1): {env['co2_offset_tonnes_year']} tonnes",
+                    f"CO₂ offset (25 years): {env['co2_offset_tonnes_25yr']} tonnes",
+                    f"Trees equivalent (year 1): {env['trees_equivalent']}",
+                ],
+            },
+        ],
+    }
+
+
 def compute_epc(x: EpcIn, brand_overrides=None) -> dict:
     tier = x.tier if x.tier in TIERS else "standard"
     system_type = x.system_type if x.system_type in ("ongrid", "hybrid", "offgrid") else "ongrid"
@@ -230,13 +388,15 @@ def compute_epc(x: EpcIn, brand_overrides=None) -> dict:
     else:
         daily = 0.0
 
+    area_density = _area_per_kwp(tier)
     required_kwp = daily / (PEAK_SUN_HOURS * SYSTEM_EFFICIENCY) if daily else 0.0
     capacity = float(x.capacity_override) if x.capacity_override else required_kwp
-    roof_cap = (float(x.roof_area_sqft) / AREA_PER_KWP) if x.roof_area_sqft else None
+    roof_cap = (float(x.roof_area_sqft) / area_density) if x.roof_area_sqft else None
     roof_limited = bool(roof_cap and capacity > roof_cap)
     if roof_limited:
         capacity = roof_cap
     capacity = round(max(capacity, 0.5), 2)
+    required_kwp = round(required_kwp, 2)
 
     items, subtotal, actual_wp, mod_count, battery_kwh = _build_boq(
         capacity, tier, system_type, daily, x.autonomy_days, brand_overrides)
@@ -301,14 +461,17 @@ def compute_epc(x: EpcIn, brand_overrides=None) -> dict:
             "tariff": tariff, "monthly_bill": x.monthly_bill, "monthly_units": x.monthly_units,
             "roof_area_sqft": x.roof_area_sqft, "autonomy_days": x.autonomy_days,
             "customer_name": x.customer_name, "site_address": x.site_address,
-            "state": x.state, "discom": x.discom, "contact": x.contact,
+            "state": x.state, "city": x.city, "discom": x.discom, "contact": x.contact,
         },
         "sizing": {
             "daily_consumption_kwh": round(daily, 2),
-            "required_capacity_kwp": round(required_kwp, 2),
+            "required_capacity_kwp": required_kwp,
             "recommended_capacity_kwp": capacity,
-            "area_required_sqft": round(capacity * AREA_PER_KWP),
-            "roof_area_sqft": x.roof_area_sqft, "roof_limited": roof_limited,
+            "sqft_per_kwp": area_density,
+            "area_required_sqft": round(capacity * area_density),
+            "roof_area_sqft": x.roof_area_sqft,
+            "roof_capacity_kwp": round(roof_cap, 2) if roof_cap else None,
+            "roof_limited": roof_limited,
             "module_count": mod_count, "module_wp": round(actual_wp / max(mod_count, 1)),
             "installed_wp": actual_wp, "battery_kwh": battery_kwh,
             "peak_sun_hours": PEAK_SUN_HOURS, "performance_ratio": PERFORMANCE_RATIO,
@@ -335,7 +498,7 @@ def compute_epc(x: EpcIn, brand_overrides=None) -> dict:
             "scheme": "PM Surya Ghar: Muft Bijli Yojana" if segment == "residential" else "Not applicable (C&I)",
             "amount": subsidy,
             "slabs": {"1kW": 30000, "2kW": 60000, "3kW+": 78000},
-            "note": "Central subsidy for residential rooftop; capped at ₹78,000 for 3 kW & above."
+            "note": f"Central CFA under PM Surya Ghar for residential rooftop at {_location_label(x)}; capped at ₹78,000 for 3 kW & above."
         },
         "financing": financing,
         "payback_years": payback,
@@ -343,6 +506,7 @@ def compute_epc(x: EpcIn, brand_overrides=None) -> dict:
         "lifetime_savings": round(lifetime_savings),
         "kyc_checklist": KYC_CHECKLIST[segment],
     }
+    result["consultant_proposal"] = build_consultant_proposal(result, x)
 
     if segment == "commercial":
         ad_benefit = round(subtotal * 0.40 * CORP_TAX_RATE, 2)  # 40% accelerated depreciation tax saving (yr-1)
@@ -368,8 +532,14 @@ async def epc_config():
         "tiers": {k: {"label": v["label"], "module_wp": v["module_wp"],
                       "module_tech": v["module_tech"], "module_brand": v["module_brand"]}
                   for k, v in TIERS.items()},
-        "constants": {"peak_sun_hours": PEAK_SUN_HOURS, "area_per_kwp": AREA_PER_KWP,
-                      "degradation_percent": round(DEGRADATION * 100, 2), "gst_rate": GST_RATE},
+        "constants": {
+            "peak_sun_hours": PEAK_SUN_HOURS,
+            "area_per_kwp": AREA_PER_KWP,
+            "area_per_kwp_by_tier": AREA_PER_KWP_BY_TIER,
+            "degradation_percent": round(DEGRADATION * 100, 2),
+            "gst_rate": GST_RATE,
+        },
+        "brand_recs": BRAND_RECS,
         "subsidy_slabs": {"1kW": 30000, "2kW": 60000, "3kW+": 78000},
         "kyc": KYC_CHECKLIST,
     }
