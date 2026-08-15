@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import PageSEO from "@/components/marketing/PageSEO";
 import Ai3dHomeStudio from "@/components/design/Ai3dHomeStudio";
-import AiHomeStudio from "@/components/studio/AiHomeStudio";
 import { useLang } from "@/context/LanguageContext";
 import { SUPER_COPY } from "@/lib/superAppCopy";
 import { Sparkles } from "lucide-react";
 import ModuleWorkflowBanner from "@/components/marketing/ModuleWorkflowBanner";
 import { CORE_PLATFORM_SCREENS } from "@/lib/platformScreenArchitecture";
+
+const AiHomeStudio = lazy(() => import("@/components/studio/AiHomeStudio"));
 
 export default function DesignStudio() {
   const { lang } = useLang();
@@ -62,7 +63,13 @@ export default function DesignStudio() {
       </div>
 
       <div className="mt-10">
-        {showAi3dStudio ? <AiHomeStudio /> : <Ai3dHomeStudio />}
+        {showAi3dStudio ? (
+          <Suspense fallback={<p className="text-sm text-muted-foreground">Loading 3D studio…</p>}>
+            <AiHomeStudio />
+          </Suspense>
+        ) : (
+          <Ai3dHomeStudio />
+        )}
       </div>
     </div>
   );
