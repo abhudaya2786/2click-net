@@ -1,0 +1,35 @@
+{
+  "summary": "Iteration 10 — Full regression across auth, contact (NEW), marketplace, mart, material calc, contractor BOQ, solar EPC, tenders, admin RBAC (13 sub-tabs) and billing (Stripe redirect). Backend regression suite: 19/19 tests PASS (test_regression_iter10.py). Frontend smoke: contact page shows phone +91 70072 54932 and all 3 offices (Gorakhpur/Gurugram/Vapi); POST /api/contact returns 200 and success toast displayed; Footer exposes footer-phone/footer-email/footer-offices with matching content ('Head Office: Gorakhpur, UP | Corporate Office: Gurugram, Haryana | Branch Office: Vapi, Gujarat'). Public pages /freelancers, /pricing, /marketplace (7 product cards), /mart (82 mart-trend-btn), /tenders, /solar (solar-estimator + epc-estimate), and /login forgot-password flow (link → forgot-email → forgot-sent) all render without errors. Authed flows: customer login → dashboard, nav-materials, nav-solar-epc, nav-billing (2 invoice-pay buttons), dash-logout works. Contractor BOQ tab shows boq-template-select + boq-pdf-btn. Admin login → Administration section exposes 13 rbac-tab-* sub-tabs (companies, departments, roles, matrix, assign, categories, branding, pricing/plans+commission, billing, materials [Super Mart admin], modules, menus, audit) — every tab clicks cleanly with 0 console errors, brand-save present on branding, admin-materials editor renders with Add row + inline editable rate. Iteration 8 & 9 previously PASSED features confirmed unchanged. No regressions found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "MaterialCalculator (CustomerDashboard)", "issues": ["Pre-existing (iter7/8/9) hydration warning: platform instrumentation injects <span x-excluded=true> inside <option> in template-select. Non-blocking, cosmetic. Fix: pass a plain string child (e.g., `{String(t.name)}`) instead of the interpolated expression."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_regression_iter10.py",
+    "/app/test_reports/pytest/iter10.xml"
+  ],
+  "action_items": [
+    "(LOW) Silence <span>-in-<option> hydration warning in MaterialCalculator by wrapping template.name with String() (still open from iter7).",
+    "(LOW) Contractor BOQ template load still does 12 sequential POSTs — batch endpoint /api/erp/boq/bulk would improve perceived speed (from iter8)."
+  ],
+  "critical_code_review_comments": [
+    "/api/contact endpoint stores raw user-supplied name/message with no length cap and no rate limiting — trivial abuse vector for spam / DB bloat. Recommend: max_length via Pydantic Field(..., max_length=2000) on message and simple in-memory or Mongo TTL rate limit per IP.",
+    "ContactIn has no 'company' / 'source' field; if marketing wants to route enterprise leads, extend schema early. Currently only name/email/message/phone are captured.",
+    "Backend BASE_URL discovery in tests needed a fallback to /app/frontend/.env because REACT_APP_BACKEND_URL isn't in the shell env — good to codify a conftest helper for future suites (added inline in test_regression_iter10.py).",
+    "Admin dashboard uses only 3 top-level nav items (Overview, Users&Roles, Administration, AuditLogs). The 13 rbac-tab-* sub-tabs are nested under Administration. This is fine, but data-testid naming diverges from other dashboards (nav-* vs rbac-tab-*); consider unifying for testability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_regression_iter10.py (new — 19 tests, all pass)"
+  ],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "customer@buildecogroup.com / Demo@12345, contractor@buildecogroup.com / Demo@12345, abbhuadaya@gmail.com / Admin@12345 — all working",
+  "seed_data_creation": "1 contact_messages doc created via /api/contact (name=TEST_iter10, TEST_regression). No other persistent state added beyond iter8/iter9 (invoices remain unpaid; Stripe checkout initiated only, not completed).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All modules stable. When re-testing Contact, verify data-testids: contact-name, contact-email, contact-message, contact-submit, contact-phone-link, contact-email-link, office-0/1/2, footer-phone/footer-email/footer-offices. For admin, use data-testid pattern rbac-tab-<companies|departments|roles|matrix|assign|categories|branding|pricing|billing|materials|modules|menus|audit>, brand-save inside rbac-tab-branding, admin-materials inside rbac-tab-materials. Backend regression: run `pytest /app/backend/tests/test_regression_iter10.py -v` (19 tests). Solar EPC endpoint is /api/solar/epc/estimate (not /api/solar/estimate). Billing endpoints are /api/plans and /api/invoices/me (public_router). Branding is /api/branding (public GET).",
+  "rca of the issue": "No blocking issue found. Only two pre-existing low-priority items carried over from iter7/8."
+}
