@@ -1,12 +1,23 @@
 import { AIProvider } from './AIProvider';
 import { OpenAIProvider } from './OpenAIProvider';
 import { GeminiAIProvider } from './GeminiAIProvider';
+import { DemoAIProvider } from './DemoAIProvider';
 
 export * from './AIProvider';
 export * from './OpenAIProvider';
 export * from './GeminiAIProvider';
+export * from './DemoAIProvider';
+
+export function hasAiApiKey(): boolean {
+  return Boolean(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY);
+}
 
 export function getAIProvider(preferred?: string): AIProvider {
+  // Offline / smoke-test path when no live keys are configured
+  if (!hasAiApiKey() || preferred === 'demo') {
+    return new DemoAIProvider();
+  }
+
   if (preferred === 'openai') {
     if (process.env.OPENAI_API_KEY) {
       return new OpenAIProvider();
