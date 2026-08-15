@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Pause, Play, RotateCcw, Sparkles, Volume2, AlertCircle, Radio, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { recordingService } from '../utils/recordingService';
 
 interface AudioRecorderProps {
   onAudioRecorded: (audioBlob: Blob, durationFormatted: string) => void;
@@ -13,6 +14,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onAudioRecorded, i
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [audioLevel, setAudioLevel] = useState(0);
+  const pendingStartRef = useRef(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -116,11 +118,36 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onAudioRecorded, i
   useEffect(() => {
     return () => {
       cleanupAudio();
+      if (recordingService.snapshot().owner === 'mom') {
+        recordingService.reset();
+      }
     };
+  }, []);
+
+  useEffect(() => {
+    return recordingService.subscribe((snap) => {
+      if (pendingStartRef.current && snap.consentGrantedAt && snap.state !== 'CONSENT_REQUIRED') {
+        pendingStartRef.current = false;
+        void startMicCapture();
+      }
+    });
   }, []);
 
   const handleStartRecording = async () => {
     setAudioError(null);
+    const gate = recordingService.requestStart('mom');
+    if (!gate.ok) {
+      if (gate.reason === 'CONSENT_REQUIRED') {
+        pendingStartRef.current = true;
+        return;
+      }
+      setAudioError(gate.reason || 'Cannot start recording');
+      return;
+    }
+    await startMicCapture();
+  };
+
+  const startMicCapture = async () => {
     audioChunksRef.current = [];
     setRecordingTime(0);
 
@@ -128,6 +155,8 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onAudioRecorded, i
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Microphone access is not supported in this browser.');
       }
+
+      recordingService.begin('mom');
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -164,6 +193,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onAudioRecorded, i
           onAudioRecorded(finalBlob, durationStr);
         }
         cleanupAudio();
+        recordingService.complete();
       };
 
       mediaRecorder.start(250);
@@ -177,11 +207,15 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onAudioRecorded, i
       startVisualizer(stream);
     } catch (err: any) {
       console.error('Failed to start recording:', err);
-      setAudioError(
-        err.name === 'NotAllowedError'
-          ? 'Microphone permission was denied. Please allow microphone access in your browser settings.'
-          : err.message || 'Could not access microphone.'
-      );
+      recordingService.fail(err?.message || 'Microphone error');
+      const name = err?.name || '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setAudioError('Microphone permission denied. Allow mic access in browser settings, then try again.');
+      } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+        setAudioError('No microphone device found. Connect a mic and retry.');
+      } else {
+        setAudioError(err?.message || 'Could not access microphone.');
+      }
       cleanupAudio();
     }
   };
@@ -255,6 +289,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({ onAudioRecorded, i
               id="start-recording-btn"
               onClick={handleStartRecording}
               disabled={isProcessing}
+              aria-label="Start live recording"
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-600 active:scale-95 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25 transition-all flex-shrink-0 cursor-pointer disabled:opacity-50 touch-manipulation min-w-[56px] min-h-[56px]"
               title="Click to start live recording"
             >

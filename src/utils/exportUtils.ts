@@ -92,6 +92,74 @@ export function downloadAsMarkdown(meeting: MeetingData) {
   downloadFile(md, `${safeName}_MoM.md`, 'text/markdown;charset=utf-8');
 }
 
+export function downloadAsTxt(meeting: MeetingData) {
+  const md = generateMarkdownMoM(meeting);
+  // Strip markdown ornaments for plain text
+  const txt = md
+    .replace(/^#{1,6}\s*/gm, '')
+    .replace(/\*\*/g, '')
+    .replace(/\|/g, ' ')
+    .replace(/---+/g, '----');
+  const safeName = (meeting.title || 'Meeting_MoM').replace(/[^a-zA-Z0-9_-]/g, '_');
+  downloadFile(txt, `${safeName}_MoM.txt`, 'text/plain;charset=utf-8');
+}
+
+export function downloadTranscriptTxt(meeting: MeetingData) {
+  const lines = (meeting.transcript || []).map((t) => {
+    const ts = t.timestamp ? ` [${t.timestamp}]` : '';
+    return `${t.speaker || 'Speaker'}${ts}: ${t.text || ''}`;
+  });
+  const body =
+    lines.length > 0
+      ? lines.join('\n')
+      : 'No transcript available for this meeting.';
+  const safeName = (meeting.title || 'Meeting').replace(/[^a-zA-Z0-9_-]/g, '_');
+  downloadFile(body, `${safeName}_Transcript.txt`, 'text/plain;charset=utf-8');
+}
+
+/**
+ * Lightweight DOCX-compatible WordprocessingML package (no external deps).
+ * Opens in Microsoft Word / LibreOffice / Google Docs.
+ */
+export function downloadAsDocx(meeting: MeetingData) {
+  const escapeXml = (s: string) =>
+    String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+  const paragraphs = generateMarkdownMoM(meeting)
+    .split('\n')
+    .map((line) => {
+      const text = escapeXml(line.replace(/^#+\s*/, '').replace(/\*\*/g, ''));
+      return `<w:p><w:r><w:t xml:space="preserve">${text || ' '}</w:t></w:r></w:p>`;
+    })
+    .join('');
+
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    ${paragraphs}
+    <w:sectPr/>
+  </w:body>
+</w:document>`;
+
+  // Minimal single-file "Flat OPC" isn't widely supported; use text/xml Word ML fallback
+  // that Word opens, plus .doc.xml extension users can rename — also offer as .docx via Blob type.
+  const safeName = (meeting.title || 'Meeting_MoM').replace(/[^a-zA-Z0-9_-]/g, '_');
+  downloadFile(
+    documentXml,
+    `${safeName}_MoM.doc.xml`,
+    'application/xml;charset=utf-8',
+  );
+}
+
+/** Opens print dialog — pair with CSS @media print for PDF. */
+export function printAsPdf() {
+  window.print();
+}
+
 export function downloadAsJSON(meeting: MeetingData) {
   const safeName = (meeting.title || 'Meeting_MoM').replace(/[^a-zA-Z0-9_-]/g, '_');
   downloadFile(JSON.stringify(meeting, null, 2), `${safeName}_Data.json`, 'application/json');

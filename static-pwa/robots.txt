@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /for-real-estate
+Allow: /signin
+Allow: /signup
+Disallow: /meetings
+Disallow: /mom
+Disallow: /inbox
+Disallow: /field-talk
+Disallow: /settings
+Disallow: /account
+Disallow: /recordings
+Disallow: /api/
+Disallow: /phone
+
+Sitemap: https://2click.in/sitemap.xml

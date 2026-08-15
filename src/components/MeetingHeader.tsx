@@ -20,7 +20,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { MeetingData } from '../types';
-import { copyToClipboard, generateMarkdownMoM } from '../utils/exportUtils';
+import { copyToClipboard, generateMarkdownMoM, downloadAsTxt, downloadTranscriptTxt, downloadAsDocx } from '../utils/exportUtils';
 
 interface MeetingHeaderProps {
   meeting: MeetingData;
@@ -138,9 +138,40 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
             onClick={handlePrint}
             className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition min-h-[38px] sm:min-h-[34px] cursor-pointer touch-manipulation active:scale-95 shadow-2xs"
             title="Export / Print PDF"
+            aria-label="Print or save as PDF"
           >
             <Printer className="w-3.5 h-3.5 text-slate-400" />
             <span>PDF</span>
+          </button>
+
+          <button
+            id="txt-export-btn"
+            onClick={() => downloadAsTxt(meeting)}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition min-h-[38px] sm:min-h-[34px] cursor-pointer touch-manipulation active:scale-95 shadow-2xs"
+            title="Download Minutes as TXT"
+            aria-label="Download minutes as text file"
+          >
+            <span>TXT</span>
+          </button>
+
+          <button
+            id="transcript-txt-btn"
+            onClick={() => downloadTranscriptTxt(meeting)}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition min-h-[38px] sm:min-h-[34px] cursor-pointer touch-manipulation active:scale-95 shadow-2xs"
+            title="Download full transcript TXT"
+            aria-label="Download transcript as text file"
+          >
+            <span>Transcript</span>
+          </button>
+
+          <button
+            id="docx-export-btn"
+            onClick={() => downloadAsDocx(meeting)}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition min-h-[38px] sm:min-h-[34px] cursor-pointer touch-manipulation active:scale-95 shadow-2xs"
+            title="Download Word-compatible XML"
+            aria-label="Download minutes as Word XML"
+          >
+            <span>DOCX</span>
           </button>
 
           <button

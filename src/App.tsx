@@ -82,6 +82,9 @@ import {
 } from 'lucide-react';
 import { MobileInstallBanner } from './components/MobileInstallBanner';
 import { RecordingsLibraryView } from './components/recordings/RecordingsLibraryView';
+import { LandingPage } from './components/landing/LandingPage';
+import { RecordingConsentBanner } from './components/recording/RecordingConsentBanner';
+import { PhoneCallView } from './components/phone/PhoneCallView';
 
 const LOCAL_STORAGE_KEY = 'voice_mom_saved_meetings_v1';
 const SCHEDULED_EVENTS_KEY = 'voice_mom_scheduled_events_v1';
@@ -92,6 +95,7 @@ function AppContent() {
   // Navigation / Routing State for /meetings, /meetings/new, /meetings/[id], /settings/voice
   const [currentRoute, setCurrentRoute] = useState<string>(() => {
     const p = window.location.pathname;
+    if (p === '/' || p === '') return '/';
     if (
       p.startsWith('/meetings') ||
       p.startsWith('/settings') ||
@@ -106,11 +110,13 @@ function AppContent() {
       p === '/for-real-estate' ||
       p === '/sales' ||
       p === '/company' ||
-      p === '/files'
+      p === '/files' ||
+      p === '/phone' ||
+      p === '/phone-call'
     ) {
-      return p === '/login' ? '/signin' : p === '/sales' ? '/for-real-estate' : p;
+      return p === '/login' ? '/signin' : p === '/sales' ? '/for-real-estate' : p === '/phone-call' ? '/phone' : p;
     }
-    return '/meetings';
+    return '/';
   });
 
   const navigate = (path: string) => {
@@ -619,6 +625,7 @@ function AppContent() {
   const moreNav = [
     { path: '/for-real-estate', label: 'Sell to RE Marketing', icon: Building2, id: 're-sales-nav-btn' },
     { path: '/settings/company', label: 'Company & Report Routing', icon: Building2, id: 'company-settings-nav-btn' },
+    { path: '/phone', label: 'Phone Call Module', icon: Radio, id: 'phone-call-nav-btn' },
     { path: '/account', label: 'Account', icon: User, id: 'account-nav-btn' },
     { path: '/recordings', label: 'Voice Files & Location', icon: FileAudio, id: 'recordings-library-nav-btn' },
     { path: '/settings/voice', label: 'Voice & Wake Words', icon: Mic, id: 'voice-settings-nav-btn' },
@@ -636,7 +643,9 @@ function AppContent() {
   return (
     <div className="app-shell text-slate-800 dark:text-slate-100 font-sans transition-colors">
       <MobileInstallBanner />
+      <RecordingConsentBanner />
       {/* Compact top bar — fits one viewport row */}
+      {currentRoute !== '/' && (
       <header className="app-header shrink-0 z-40 pt-safe">
         <div className="mx-auto max-w-6xl px-3 sm:px-4 h-[var(--app-header-h)] flex items-center gap-2 sm:gap-3">
           <button
@@ -844,17 +853,22 @@ function AppContent() {
           </div>
         </div>
       </header>
+      )}
 
-      <div className="app-main">
+      <div className={`app-main ${currentRoute === '/' ? '!pt-0' : ''}`}>
       {/* Scheduled READY State Banner */}
-      <ScheduledReadyBanner onNavigate={navigate} />
+      {currentRoute !== '/' && <ScheduledReadyBanner onNavigate={navigate} />}
 
       {/* Geofence Location Auto-Mode Status HUD Banner */}
-      <GeofenceAutoModeBanner onNavigate={navigate} onOpenSettings={() => navigate('/settings/location')} />
+      {currentRoute !== '/' && (
+        <GeofenceAutoModeBanner onNavigate={navigate} onOpenSettings={() => navigate('/settings/location')} />
+      )}
 
       <div className="app-main-inner">
       {/* Main Container Routed Views */}
-      {currentRoute === '/signin' || currentRoute === '/login' ? (
+      {currentRoute === '/' ? (
+        <LandingPage onNavigate={navigate} />
+      ) : currentRoute === '/signin' || currentRoute === '/login' ? (
         <main>
           <AuthView mode="signin" onNavigate={navigate} />
         </main>
@@ -865,6 +879,10 @@ function AppContent() {
       ) : currentRoute === '/account' ? (
         <main>
           <AccountView onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/phone' ? (
+        <main>
+          <PhoneCallView onNavigate={navigate} />
         </main>
       ) : currentRoute === '/for-real-estate' || currentRoute === '/sales' ? (
         <main>
@@ -1220,6 +1238,7 @@ function AppContent() {
       </div>
 
       {/* Mobile bottom nav — primary routes only */}
+      {currentRoute !== '/' && (
       <nav
         id="mobile-bottom-nav"
         className="md:hidden shrink-0 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md pb-safe no-print"
@@ -1247,6 +1266,7 @@ function AppContent() {
           })}
         </div>
       </nav>
+      )}
 
       {/* Auto-Scheduler & Calendar Modal */}
       <AutoScheduleModal
