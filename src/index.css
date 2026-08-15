@@ -1,28 +1,31 @@
 @import "tailwindcss";
 
-/* 2Click mobile-app design system — ocean blue, no purple defaults */
+/* 2Click × Paytm-inspired design system — navy + cyan fintech app */
 @theme {
-  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Syne", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --color-hs-50: #eef5ff;
-  --color-hs-100: #d9e9ff;
-  --color-hs-200: #bcd8ff;
-  --color-hs-300: #8cbcff;
-  --color-hs-400: #5496ff;
-  --color-hs-500: #2a6ff0;
-  --color-hs-600: #0b4bd5;
-  --color-hs-700: #0939a8;
-  --color-hs-800: #0a3187;
-  --color-hs-900: #0d2c6b;
+  /* Paytm cyan scale mapped onto hs-* so existing classes pick it up */
+  --color-hs-50: #e8f9fe;
+  --color-hs-100: #c5f0fc;
+  --color-hs-200: #8ee0f9;
+  --color-hs-300: #4ecaf3;
+  --color-hs-400: #00baf2;
+  --color-hs-500: #00a8e0;
+  --color-hs-600: #0090c8;
+  --color-hs-700: #002e6e;
+  --color-hs-800: #002456;
+  --color-hs-900: #001a3d;
 
-  --color-ink: #0c1222;
-  --color-muted: #5b6475;
+  --color-ink: #1c2b39;
+  --color-muted: #5f6f7e;
   --color-panel: #ffffff;
-  --color-canvas: #f3f6fb;
-  --color-line: #e4eaf2;
-  --color-sea: #0ea5a0;
+  --color-canvas: #eef2f6;
+  --color-line: #dde5ee;
+  --color-sea: #00baf2;
+  --color-navy: #002e6e;
+  --color-cyan: #00baf2;
 }
 
 @layer base {
@@ -32,12 +35,13 @@
     --app-bottom-h: 0px;
     --text-body: 1rem;
     --text-meta: 0.875rem;
+    --paytm-navy: #002e6e;
+    --paytm-cyan: #00baf2;
   }
 
   @media (max-width: 767px) {
     :root {
-      /* Larger mobile type scale — phone UI was too tiny to read */
-      --app-bottom-h: 5rem;
+      --app-bottom-h: 4.35rem;
       --text-body: 1.0625rem;
       --text-meta: 0.9375rem;
     }
@@ -65,7 +69,7 @@
     touch-action: manipulation;
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
-    letter-spacing: -0.005em;
+    letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -81,7 +85,7 @@
   h3,
   .font-display {
     font-family: var(--font-display);
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     line-height: 1.2;
   }
 
@@ -91,7 +95,6 @@
     font-family: var(--font-mono);
   }
 
-  /* Comfortable form controls on phones */
   @media (max-width: 767px) {
     input,
     select,
@@ -108,27 +111,20 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background:
-    radial-gradient(120% 80% at 0% 0%, rgba(11, 75, 213, 0.08), transparent 50%),
-    radial-gradient(90% 60% at 100% 0%, rgba(14, 165, 160, 0.07), transparent 45%),
-    var(--color-canvas);
+  background: var(--color-canvas);
 }
 
 .dark .app-shell {
-  background:
-    radial-gradient(120% 80% at 0% 0%, rgba(42, 111, 240, 0.18), transparent 50%),
-    #061018;
+  background: #061018;
 }
 
 .app-header {
-  background: rgba(255, 255, 255, 0.78);
-  border-bottom: 1px solid rgba(228, 234, 242, 0.9);
-  backdrop-filter: blur(16px) saturate(1.2);
-  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  background: #ffffff;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .dark .app-header {
-  background: rgba(6, 16, 24, 0.82);
+  background: rgba(6, 16, 24, 0.92);
   border-bottom-color: #152033;
 }
 
@@ -145,7 +141,7 @@
   width: 100%;
   max-width: 72rem;
   margin-inline: auto;
-  padding: 1rem 1rem 1.75rem;
+  padding: 0.85rem 0.9rem 1.5rem;
 }
 
 @media (min-width: 640px) {
@@ -154,21 +150,29 @@
   }
 }
 
+/* Paytm home can go edge-to-edge inside the shell */
+.app-main-inner:has(.paytm-hero) {
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+}
+
+/* Paytm-style primary CTA — solid cyan */
 .btn-hs {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  border-radius: 0.85rem;
-  background: linear-gradient(180deg, #1a5de8 0%, #0b4bd5 100%);
+  border-radius: 9999px;
+  background: var(--paytm-cyan);
   color: #fff;
   font-weight: 700;
   font-size: 0.9375rem;
   line-height: 1.25;
-  padding: 0.8rem 1.2rem;
-  min-height: 2.75rem;
+  padding: 0.85rem 1.35rem;
+  min-height: 2.85rem;
   border: none;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset, 0 6px 16px -8px rgba(11, 75, 213, 0.55);
+  box-shadow: 0 4px 14px -6px rgba(0, 186, 242, 0.65);
   transition: transform 0.12s ease, filter 0.15s ease;
   cursor: pointer;
 }
@@ -186,22 +190,22 @@
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  border-radius: 0.85rem;
-  background: rgba(255, 255, 255, 0.9);
-  color: #0c1222;
-  font-weight: 650;
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--paytm-navy);
+  font-weight: 700;
   font-size: 0.9375rem;
   line-height: 1.25;
-  padding: 0.8rem 1.2rem;
-  min-height: 2.75rem;
-  border: 1px solid #d5dde8;
+  padding: 0.85rem 1.35rem;
+  min-height: 2.85rem;
+  border: 1.5px solid #c8d4e0;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   cursor: pointer;
 }
 
 .btn-hs-secondary:hover {
-  background: #f7f9fc;
-  border-color: #c5cedb;
+  background: #f5f9fc;
+  border-color: var(--paytm-cyan);
 }
 
 .btn-hs-secondary:active {
@@ -215,10 +219,10 @@
 }
 
 .hs-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--color-line);
+  background: #fff;
+  border: none;
   border-radius: 1rem;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  box-shadow: 0 2px 10px rgba(16, 40, 70, 0.06);
 }
 
 .dark .hs-card {
@@ -227,14 +231,14 @@
 }
 
 .hs-accent {
-  color: #0b4bd5;
+  color: var(--paytm-cyan);
 }
 
 .dark .hs-accent {
-  color: #5496ff;
+  color: #4ecaf3;
 }
 
-/* Mobile app floating tab bar — fixed so it never scrolls away */
+/* Paytm-style bottom tab bar — edge-to-edge white strip */
 .app-tabbar-wrap {
   position: fixed;
   left: 0;
@@ -247,18 +251,18 @@
 .app-tabbar {
   pointer-events: auto;
   position: relative;
-  margin: 0 0.75rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
-  border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(228, 234, 242, 0.95);
-  backdrop-filter: blur(18px) saturate(1.25);
-  -webkit-backdrop-filter: blur(18px) saturate(1.25);
-  box-shadow: 0 10px 30px -18px rgba(12, 18, 34, 0.35);
+  margin: 0;
+  border-radius: 0;
+  background: #ffffff;
+  border: none;
+  border-top: 1px solid #e3eaf1;
+  box-shadow: 0 -4px 20px rgba(16, 40, 70, 0.06);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .dark .app-tabbar {
-  background: rgba(12, 20, 32, 0.9);
-  border-color: #1c2a3d;
+  background: #0c1420;
+  border-top-color: #1c2a3d;
 }
 
 .app-tabbar-btn {
@@ -267,32 +271,31 @@
   align-items: center;
   justify-content: center;
   gap: 0.2rem;
-  height: 4.15rem;
-  font-size: 0.8125rem;
+  height: 3.85rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0;
-  line-height: 1.15;
-  color: #5b6475;
-  transition: color 0.15s ease, transform 0.12s ease;
+  line-height: 1.1;
+  color: #7a8a99;
+  transition: color 0.15s ease;
 }
 
 .app-tabbar-btn.is-active {
-  color: #0b4bd5;
+  color: var(--paytm-cyan);
 }
 
 .app-tabbar-btn.is-active .app-tab-icon {
-  background: rgba(11, 75, 213, 0.12);
-  color: #0b4bd5;
+  background: transparent;
+  color: var(--paytm-cyan);
 }
 
 .app-tab-icon {
-  width: 2.25rem;
-  height: 2rem;
-  border-radius: 0.7rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease;
 }
 
 .app-tab-icon svg {
@@ -300,16 +303,17 @@
   height: 1.35rem;
 }
 
-/* Soft list row for mobile meetings */
+/* Meeting rows — Paytm white cards */
 .app-list-row {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.05rem 1.1rem;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid var(--color-line);
-  border-radius: 1.1rem;
-  transition: border-color 0.15s ease, transform 0.1s ease;
+  padding: 1rem 1.1rem;
+  background: #ffffff;
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 2px 10px rgba(16, 40, 70, 0.05);
+  transition: transform 0.1s ease;
   cursor: pointer;
 }
 
@@ -319,15 +323,14 @@
 
 .dark .app-list-row {
   background: #0e1522;
-  border-color: #1c2433;
 }
 
 .app-list-row-title {
-  font-size: 1.0625rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 700;
   line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: #0c1222;
+  letter-spacing: -0.015em;
+  color: var(--color-ink);
 }
 
 .dark .app-list-row-title {
@@ -337,26 +340,25 @@
 .app-list-row-meta {
   font-size: 0.875rem;
   line-height: 1.4;
-  color: #5b6475;
-  margin-top: 0.2rem;
+  color: var(--color-muted);
+  margin-top: 0.15rem;
 }
 
 .dark .app-list-row-meta {
   color: #9aa6b8;
 }
 
-/* Readable type helpers for phone UI */
 .app-readable-title {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 6vw, 2.35rem);
+  font-size: clamp(1.85rem, 6.5vw, 2.5rem);
   font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
 }
 
 .app-readable-sub {
-  font-size: 1.125rem;
-  font-weight: 650;
+  font-size: 1.1rem;
+  font-weight: 600;
   line-height: 1.35;
 }
 
@@ -368,23 +370,98 @@
 .app-readable-meta {
   font-size: 0.9375rem;
   line-height: 1.45;
-  color: #5b6475;
+  color: var(--color-muted);
 }
 
-/* Waveform decorative plane */
+/* Paytm home pieces */
+.paytm-hero {
+  background: linear-gradient(165deg, #002e6e 0%, #003a8c 42%, #00baf2 140%);
+  color: #fff;
+  padding: 1.15rem 1.15rem 2.75rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.paytm-hero::after {
+  content: '';
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 9999px;
+  background: rgba(0, 186, 242, 0.28);
+  top: -70px;
+  right: -50px;
+  pointer-events: none;
+}
+
+.paytm-sheet {
+  margin: -1.6rem 0.85rem 0;
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 28px rgba(16, 40, 70, 0.1);
+  padding: 1.1rem 1rem 1.15rem;
+}
+
+.paytm-action-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem 0.35rem;
+  text-align: center;
+}
+
+.paytm-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem 0.15rem;
+  color: var(--color-ink);
+}
+
+.paytm-action-icon {
+  width: 3.15rem;
+  height: 3.15rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #e8f9fe 0%, #c5f0fc 100%);
+  color: var(--paytm-navy);
+  box-shadow: inset 0 0 0 1px rgba(0, 186, 242, 0.18);
+}
+
+.paytm-action-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #334556;
+}
+
+.paytm-section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--paytm-navy);
+  letter-spacing: -0.02em;
+}
+
 .ai-wave {
   position: absolute;
   inset: auto 0 0 0;
-  height: 42%;
+  height: 36%;
   pointer-events: none;
-  opacity: 0.55;
+  opacity: 0.35;
   background:
     repeating-linear-gradient(
       90deg,
       transparent 0,
       transparent 10px,
-      rgba(11, 75, 213, 0.08) 10px,
-      rgba(11, 75, 213, 0.08) 12px
+      rgba(0, 186, 242, 0.2) 10px,
+      rgba(0, 186, 242, 0.2) 12px
     );
   mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
 }
