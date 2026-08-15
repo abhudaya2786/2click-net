@@ -1,6 +1,9 @@
 node_modules/
 build/
 dist/
+public/
+api/index.js
+api/index.js.map
 coverage/
 .DS_Store
 *.log
@@ -9,11 +12,10 @@ coverage/
 !.env.example
 .vite/
 *.local
-
-# Hinglish normalizer
-hinglish-normalizer/.venv/
-hinglish-normalizer/.env
-
-hinglish-normalizer/__pycache__/
-hinglish-normalizer/**/__pycache__/
-*.pyc
+.vercel/
+*.apk
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
