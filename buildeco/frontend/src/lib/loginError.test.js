@@ -1,3 +1,4 @@
+import { formatApiErrorDetail, formatAxiosError } from "./api";
 import { formatLoginError, isDemoCredential } from "./loginError";
 import { profilesFromUserTypes } from "./loginProfiles";
 import { fallbackTreeForType } from "./signupCategories";
@@ -26,9 +27,16 @@ describe("login categories and errors", () => {
     expect(msg).toMatch(/Sign up/i);
   });
 
-  it("explains HTML 404 login host errors", () => {
-    const msg = formatLoginError({ response: { status: 404, data: "<!DOCTYPE html><html>" } });
-    expect(msg).toMatch(/not available on this host/i);
+  it("does not show the generic message for Hostinger HTML 404", () => {
+    const msg = formatAxiosError({ response: { status: 404, data: "<!DOCTYPE html><html>404</html>" } });
+    expect(msg).not.toBe("Something went wrong. Please try again.");
+    expect(msg).toMatch(/not found on this website host/i);
+  });
+
+  it("maps empty 401 JSON to invalid password, not the generic fallback", () => {
+    const msg = formatAxiosError({ response: { status: 401, data: {} } });
+    expect(msg).toBe("Invalid email or password.");
+    expect(formatApiErrorDetail(null)).toBe("");
   });
 
   it("merges API user-types into the login category grid", () => {

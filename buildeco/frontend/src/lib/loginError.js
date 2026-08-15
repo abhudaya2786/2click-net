@@ -1,4 +1,4 @@
-import { formatApiErrorDetail } from "./api";
+import { formatApiErrorDetail, formatAxiosError } from "./api";
 import { LOGIN_PROFILES } from "./loginProfiles";
 
 export function isDemoCredential(email, password) {
@@ -47,5 +47,5 @@ export function formatLoginError(error, { hi = false, email = "", password = "" 
   }
 
   if (detail && detail !== "Something went wrong. Please try again.") return detail;
-  return error?.message || t("Login failed. Please try again.", "लॉगिन नहीं हो पाया। फिर कोशिश करें।");
+  return formatAxiosError(error, t("Login failed. Please try again.", "लॉगिन नहीं हो पाया। फिर कोशिश करें।"));
 }

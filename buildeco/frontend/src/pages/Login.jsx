@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { api, formatApiErrorDetail } from "@/lib/api";
+import { api, formatAxiosError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,7 +121,7 @@ export default function Login() {
       const { data } = await api.post("/auth/otp/verify", { email: otpEmail, code: otp });
       finish(data);
     } catch (e2) {
-      setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
+      setErr(formatAxiosError(e2));
     } finally {
       setBusy(false);
     }
@@ -144,7 +144,7 @@ export default function Login() {
       await api.post("/auth/forgot-password", { email: forgotEmail, origin: window.location.origin });
       setForgotSent(true);
     } catch (e2) {
-      setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
+      setErr(formatAxiosError(e2));
     } finally {
       setBusy(false);
     }

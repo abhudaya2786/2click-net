@@ -6,14 +6,7 @@ const PRODUCTION_APIS = [
 ];
 const PRODUCTION_API = PRODUCTION_APIS[0];
 
-const FRONTEND_HOSTS = new Set(["buildecogroup.com", "www.buildecogroup.com", "localhost"]);
 const BLOCKED_BACKEND_HOSTS = ["wallet1.unodev.app", "unodev.app"];
-
-function isFrontendHost(hostname) {
-  if (!hostname) return false;
-  if (FRONTEND_HOSTS.has(hostname)) return true;
-  return hostname.endsWith(".vercel.app") || hostname.endsWith(".buildecogroup.com");
-}
 
 function isBlockedBackend(url) {
   try {
@@ -26,14 +19,21 @@ function isBlockedBackend(url) {
 
 function resolveBackendUrl() {
   if (typeof window !== "undefined") {
-    const host = window.location.hostname;
-    // Hostinger static hosting has no /api rewrite — call the production API host.
-    if (host === "buildecogroup.com" || host === "www.buildecogroup.com") {
-      return PRODUCTION_API;
-    }
-    // Vercel / localhost: same-origin /api (rewritten in vercel.json or local proxy)
-    if (isFrontendHost(host)) {
+    const host = window.location.hostname || "";
+    if (host === "localhost" || host === "127.0.0.1") {
+      const local = (process.env.REACT_APP_BACKEND_URL || "").trim().replace(/\/$/, "");
+      if (local && !local.includes("buildecogroup.com") && !isBlockedBackend(local)) return local;
       return "";
+    }
+    // Hostinger / Vercel / custom domain: never post login to a static host (HTML 404).
+    if (
+      host === "buildecogroup.com" ||
+      host === "www.buildecogroup.com" ||
+      host.endsWith(".buildecogroup.com") ||
+      host.endsWith(".vercel.app") ||
+      /hostinger|hstgr/i.test(host)
+    ) {
+      return PRODUCTION_API;
     }
   }
 
@@ -77,11 +77,70 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+function isHtmlBody(data) {
+  return typeof data === "string" && /<!DOCTYPE|<html/i.test(data);
+}
+
+function shouldRetryOnProductionApi(error) {
+  const cfg = error?.config;
+  if (!cfg || cfg.__prodRetry) return false;
+  const base = String(cfg.baseURL || "");
+  if (base.includes("emergent.host") || base.includes("emergentagent.com")) return false;
+  const status = error?.response?.status;
+  const data = error?.response?.data;
+  return !error.response || status === 404 || status === 502 || status === 503 || isHtmlBody(data);
+}
+
+api.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    try {
+      if (shouldRetryOnProductionApi(error)) {
+        error.config.__prodRetry = true;
+        error.config.baseURL = `${PRODUCTION_API}/api`;
+        return api.request(error.config);
+      }
+    } catch {
+      /* keep original error */
+    }
+    return Promise.reject(error);
+  },
+);
+
 export function formatApiErrorDetail(detail) {
-  if (detail == null) return "Something went wrong. Please try again.";
-  if (typeof detail === "string") return detail;
-  if (Array.isArray(detail))
-    return detail.map((e) => (e && typeof e.msg === "string" ? e.msg : JSON.stringify(e))).filter(Boolean).join(" ");
-  if (detail && typeof detail.msg === "string") return detail.msg;
-  return String(detail);
+  if (detail == null || detail === "") return "";
+  if (typeof detail === "string") {
+    if (/<!DOCTYPE|<html/i.test(detail)) return "";
+    return detail;
+  }
+  if (Array.isArray(detail)) {
+    return detail.map((e) => (e && typeof e.msg === "string" ? e.msg : "")).filter(Boolean).join(" ");
+  }
+  if (detail && typeof detail === "object") {
+    if (typeof detail.msg === "string") return detail.msg;
+    if (typeof detail.message === "string") return detail.message;
+    if (typeof detail.detail === "string") return detail.detail;
+    if (typeof detail.error === "string") return detail.error;
+  }
+  return "";
+}
+
+/** Human login/API error — never dump "[object Object]" or a blank HTML 404. */
+export function formatAxiosError(error, fallback = "Something went wrong. Please try again.") {
+  if (!error) return fallback;
+  if (!error.response) {
+    return "Cannot reach the server. Check your connection and try again.";
+  }
+  const { status, data } = error.response;
+  if (status === 404 || isHtmlBody(data)) {
+    return "Login server was not found on this website host. Retrying the BuildEco API — if this continues, use Sign up or Demo.";
+  }
+  const parsed = formatApiErrorDetail(
+    data && typeof data === "object" ? (data.detail ?? data.message ?? data.error ?? data) : data,
+  );
+  if (parsed) return parsed;
+  if (status === 401) return "Invalid email or password.";
+  if (status === 422) return "Please enter a valid email and password.";
+  if (status >= 500) return "The login server is temporarily unavailable. Please try again in a minute.";
+  return fallback;
 }
