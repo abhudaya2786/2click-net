@@ -1,75 +1,47 @@
-# 2Click.in — Voice Minutes of Meeting AI
+# 2Click.in — AI Voice Meeting & Office Intelligence
 
-This repository now hosts **Voice MoM** (from [`abhudaya2786/voice-mom`](https://github.com/abhudaya2786/voice-mom)).
+Voice → Transcript → AI Minutes → Tasks → Export / Share
 
-> **BuildEco Group (`buildecogroup.com`) is a separate product/repo and is not affected by this app.**
+> React 19 · Vite 6 · Express · Gemini/OpenAI · Capacitor · PWA · Vercel
 
-## Features
+BuildEco Group (`buildecogroup.com`) is a separate product.
 
-- Record or upload meeting audio
-- Speech transcription (Gemini / OpenAI)
-- Structured Minutes of Meeting, decisions, action items
-- Meeting chat copilot, email draft, privacy & schedule tools
-- Mobile-ready PWA + Android APK (`in.twoclick.mom`) — see `docs/MOBILE_APK.md`
-
-```bash
-# Debug APK (loads CAPACITOR_SERVER_URL in WebView)
-export CAPACITOR_SERVER_URL=https://2click.in
-npm run android:apk   # → dist/2click-mom.apk
-```
-
-## Deploy (Vercel)
-
-1. Import GitHub repo `abhudaya2786/2click-net` in [vercel.com/new](https://vercel.com/new)
-2. Set env `GEMINI_API_KEY` (optional — demo MoM works without it)
-3. Deploy — Express entry is `server.ts` (default export); UI builds into `public/`
-4. Project → Settings → Deployment Protection → **disable** Vercel Authentication for Production (otherwise public users get login wall)
-5. Domains → add `2click.in` + `www` → update Hostinger DNS:
-   - `A` / nameservers as shown by Vercel (remove Hostinger website pointing)
-
-```bash
-npx vercel --prod
-```
-
-## Run locally
-
-**Prerequisites:** Node.js 20+
+## Quick start
 
 ```bash
 npm install
 cp .env.example .env.local
-# optional: set GEMINI_API_KEY=... for live AI / audio transcription
+# optional: GEMINI_API_KEY=...
 npm run dev
 ```
 
-Open http://localhost:3000
+Open http://localhost:3000 — public landing at `/`, app at `/meetings`.
 
-Without an API key the server runs in **demo mode**: paste a transcript to generate MoM; live audio transcription still needs a key.
+Without API keys the server runs in **demo mode** (paste transcript → MoM).
 
-## Test
+## Scripts
 
-```bash
-npm test          # typecheck + API smoke suite (spawns its own server)
-npm run test:smoke
-```
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Local Vite+Express |
+| `npm test` | Typecheck + API smoke |
+| `npm run build` | Client + Node server |
+| `npm run build:vercel` | Static `public/` + `api/index.js` |
+| `npm run pack:hostinger` | Hostinger upload zip |
+| `npm run android:apk` | Debug APK |
 
-## Production (Docker / VPS)
+## Production
 
-```bash
-npm run build
-npm start
-```
+Canonical domain: **https://2click.in**
 
-## Environment
+See `docs/DEPLOYMENT.md` and `docs/COMPLETE_AUDIT.md`.
 
-| Variable | Required | Purpose |
-|---|---|---|
-| `GEMINI_API_KEY` | Optional (demo without it) | Live transcription + MoM |
-| `OPENAI_API_KEY` | Optional | Prefer OpenAI when set |
-| `PORT` | Optional | Default `3000` |
+## Docs
 
-## Source
-
-Application UI: `src/`  
-AI / speech / billing adapters: `server/`  
-HTTP entry: `server.ts`
+- `docs/ARCHITECTURE.md`
+- `docs/SECURITY_AUDIT.md`
+- `docs/VOICE_COMMANDS.md`
+- `docs/PRIVACY.md`
+- `docs/MOBILE.md`
+- `docs/TROUBLESHOOTING.md`
+- `docs/FINAL_UPGRADE_REPORT.md`
