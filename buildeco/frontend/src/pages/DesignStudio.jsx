@@ -1,5 +1,7 @@
+import { useState } from "react";
 import PageSEO from "@/components/marketing/PageSEO";
 import Ai3dHomeStudio from "@/components/design/Ai3dHomeStudio";
+import AiHomeStudio from "@/components/studio/AiHomeStudio";
 import { useLang } from "@/context/LanguageContext";
 import { SUPER_COPY } from "@/lib/superAppCopy";
 import { Sparkles } from "lucide-react";
@@ -11,6 +13,7 @@ export default function DesignStudio() {
   const c = SUPER_COPY[lang] || SUPER_COPY.en;
   const hi = lang === "hi";
   const screenMeta = CORE_PLATFORM_SCREENS.find((s) => s.id === "design");
+  const [showAi3dStudio, setShowAi3dStudio] = useState(false);
 
   return (
     <div className="mx-auto max-w-6xl px-4 md:px-8 py-10 md:py-14">
@@ -46,8 +49,20 @@ export default function DesignStudio() {
         </div>
       )}
 
+      <div className="mt-8">
+        <button
+          type="button"
+          onClick={() => setShowAi3dStudio((open) => !open)}
+          className="inline-flex items-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold shadow-sm hover:border-primary"
+        >
+          {showAi3dStudio
+            ? (hi ? "मौजूदा स्टूडियो दिखाएँ" : "Show existing studio")
+            : (hi ? "Open AI 3D Studio" : "Open AI 3D Studio")}
+        </button>
+      </div>
+
       <div className="mt-10">
-        <Ai3dHomeStudio />
+        {showAi3dStudio ? <AiHomeStudio /> : <Ai3dHomeStudio />}
       </div>
     </div>
   );
