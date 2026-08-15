@@ -17,9 +17,13 @@ import {
 import { DESIGN_FEATURE_MODULES, DESIGN_STYLES } from "@/lib/platformScreenArchitecture";
 import { api } from "@/lib/api";
 import {
-  Sparkles, Copy, Layout, Sun, Camera, ExternalLink, ChevronDown, ChevronUp,
+  Sparkles, Copy, Layout, Sun, Camera, ExternalLink, ChevronDown, ChevronUp, MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
+import LocationSelector from "@/components/LocationSelector";
+import GpsTracker from "@/components/GpsTracker";
+import House3D from "@/components/House3D";
+import { formatLiveAddress } from "@/lib/nominatim";
 
 function PromptBlock({ label, text, hi, onCopy }) {
   const [open, setOpen] = useState(true);
@@ -56,12 +60,22 @@ export default function Ai3dHomeStudio({ locationHint = "" }) {
   const [scale, setScale] = useState("1:50");
   const [fov, setFov] = useState(FOV_DEFAULT);
   const [extra, setExtra] = useState("");
+  const [location, setLocation] = useState({
+    state: "", city: "", district: "", pincode: "", lat: null, lng: null, location: "", display_name: "",
+  });
+  const [liveAddress, setLiveAddress] = useState(locationHint || "");
   const [workflow, setWorkflow] = useState(() =>
     buildFullWorkflow({ builtUpSqft: 400, style: "modern", scale: "1:50", fov: FOV_DEFAULT, lang })
   );
   const [busy, setBusy] = useState(false);
 
+  const siteLabel = liveAddress || locationHint;
   const zones = useMemo(() => computeLayoutZones(parseFloat(builtUp) || 0), [builtUp]);
+
+  const applyLocation = (next) => {
+    setLocation(next);
+    setLiveAddress(formatLiveAddress(next) || next.location || "");
+  };
 
   const copy = (text) => {
     navigator.clipboard.writeText(text);
@@ -70,9 +84,9 @@ export default function Ai3dHomeStudio({ locationHint = "" }) {
 
   useEffect(() => {
     const sqft = parseFloat(builtUp) || 400;
-    const extraWithLoc = [extra, locationHint].filter(Boolean).join(" · ");
+    const extraWithLoc = [extra, siteLabel].filter(Boolean).join(" · ");
     setWorkflow(buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra: extraWithLoc, lang }));
-  }, [builtUp, style, scale, fov, extra, lang, locationHint]);
+  }, [builtUp, style, scale, fov, extra, lang, siteLabel]);
 
   const activeFeature = DESIGN_FEATURE_MODULES.find((f) => f.id === featureModule);
   const styleLabel = DESIGN_STYLES.find((s) => s.id === style);
@@ -88,7 +102,7 @@ export default function Ai3dHomeStudio({ locationHint = "" }) {
     const composedExtra = [
       prefix && room ? `${prefix} ${room}` : room,
       styleLabel ? (hi ? styleLabel.hi : styleLabel.en) : style,
-      locationHint,
+      siteLabel,
     ].filter(Boolean).join(" · ");
     setBusy(true);
     const local = buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra: composedExtra, lang });
@@ -99,6 +113,7 @@ export default function Ai3dHomeStudio({ locationHint = "" }) {
         scale,
         fov,
         extra: composedExtra,
+        location: siteLabel || undefined,
         feature_module: featureModule,
         lang,
       });
@@ -116,6 +131,39 @@ export default function Ai3dHomeStudio({ locationHint = "" }) {
 
   return (
     <div className="space-y-10">
+      <section className="flex flex-wrap gap-6 items-stretch" data-testid="ai3d-merged-workspace">
+        <div className="flex-1 min-w-[280px] space-y-4">
+          <h2 className="font-display font-bold text-lg flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-primary" />
+            {hi ? "साइट लोकेशन + AI 3D डिज़ाइन" : "Site location + AI 3D design"}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            {hi
+              ? "पिनकोड / राज्य चुनें या GPS चलाएँ — पता 3D प्रीव्यू और जनरेट प्रॉम्प्ट में जुड़ जाएगा।"
+              : "Pick pincode / state or use GPS — the address feeds the 3D preview and generate prompts."}
+          </p>
+          <LocationSelector value={location} onChange={applyLocation} />
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{hi ? "या" : "OR"}</p>
+          <GpsTracker
+            onLocationFound={(address, loc) => {
+              setLiveAddress(address);
+              if (loc) setLocation((prev) => ({ ...prev, ...loc, location: address }));
+            }}
+          />
+          {siteLabel && (
+            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-300" data-testid="live-location-banner">
+              <strong>{hi ? "साइट:" : "Site:"}</strong> {siteLabel}
+            </div>
+          )}
+        </div>
+        <div className="flex-[2] min-w-[300px]">
+          <h2 className="font-display font-bold text-lg mb-3">
+            {hi ? "3D होम प्रीव्यू" : "3D home preview"}
+          </h2>
+          <House3D locationLabel={siteLabel} builtUpSqft={parseFloat(builtUp) || 0} />
+        </div>
+      </section>
+
       {/* AI feature modules */}
       <section>
         <h2 className="font-display font-bold text-lg mb-3">
