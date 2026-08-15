@@ -1945,7 +1945,7 @@ function resolveAppDataDir(...parts) {
 }
 
 // server/auth/store.ts
-var USER_ID_RE = /^[a-zA-Z0-9_]{3,32}$/;
+var USER_ID_RE = /^(?=.*[a-zA-Z0-9])[a-zA-Z0-9_.@-]{3,32}$/;
 var SESSION_TTL_MS = 1e3 * 60 * 60 * 24 * 30;
 function dataDir() {
   const override = String(process.env.AUTH_DATA_DIR || "").trim();
@@ -2004,7 +2004,7 @@ function normalizeUserId(raw) {
 function validateUserId(userId) {
   const id = normalizeUserId(userId);
   if (!USER_ID_RE.test(id)) {
-    return "User ID must be 3\u201332 characters (letters, numbers, underscore).";
+    return "User ID must be 3\u201332 characters (letters, numbers, _, @, ., -).";
   }
   return null;
 }

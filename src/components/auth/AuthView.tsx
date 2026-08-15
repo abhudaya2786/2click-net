@@ -181,14 +181,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
                 type="text"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
-                placeholder="e.g. rahul_site01"
+                placeholder="e.g. Anvi@1212"
                 autoComplete="username"
                 required
                 className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400 font-mono"
               />
             </div>
             <p className="mt-1 text-[10px] text-slate-400">
-              3–32 characters · letters, numbers, underscore
+              3–32 characters · letters, numbers, _, @, ., -
             </p>
           </div>
 
