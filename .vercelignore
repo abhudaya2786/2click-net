@@ -1,5 +1,11 @@
-# Server-side runtime JSON only (auth/company). Do NOT ignore src/data/.
+# Root runtime JSON only (auth/company). Do NOT use bare `data/` —
+# that also drops src/data/ and breaks Vite (sampleMeetings).
 /data/
+
+# Nested lockfile under api/ confuses Vercel install / function detection
+api/package-lock.json
+api/node_modules/
+
 .env
 .env.*
 !.env.example
