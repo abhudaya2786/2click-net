@@ -181,9 +181,9 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
               )}
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-1">
-                <span className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200">
+                <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200">
                   {commandSession.status === 'recording'
                     ? 'Command Session Live'
                     : isListening
@@ -191,35 +191,35 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
                       : 'Voice Assistant Idle'}
                 </span>
               </div>
-              <span className="text-[9px] text-slate-400 dark:text-slate-500">
+              <span className="text-xs text-slate-500 dark:text-slate-400 leading-snug">
                 {commandSession.status === 'recording'
                   ? 'Recording until stop/save/cancel'
                   : isListening
-                    ? 'Say “2Click Start” or “Meeting shuru karo”'
-                    : 'Tap mic — phir voice command bolo (Chrome/Edge)'}
+                    ? 'Bolo “2Click Start” ya “Meeting shuru karo”'
+                    : 'Mic tap karo — phir voice command bolo'}
               </span>
             </div>
           </div>
 
           <button
             onClick={toggleListening}
-            className={`p-2 rounded-full font-bold text-xs transition cursor-pointer ${
+            className={`p-2.5 rounded-full font-bold text-sm transition cursor-pointer ${
               isListening
                 ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-600 hover:text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-hs-600 hover:text-white'
             }`}
             title={isListening ? 'Stop Voice Listening' : 'Start Voice Listening'}
           >
-            {isListening ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
+            {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
           </button>
 
           {onNavigateToSettings && (
             <button
               onClick={onNavigateToSettings}
-              className="p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+              className="p-2.5 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
               title="Open Voice & Wake Word Settings"
             >
-              <Sliders className="w-3.5 h-3.5" />
+              <Sliders className="w-4 h-4" />
             </button>
           )}
         </div>

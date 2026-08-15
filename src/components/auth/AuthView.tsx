@@ -117,22 +117,22 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
               {isSignup ? <UserPlus className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                {isSignup ? 'Create account' : 'Sign in'}
+              <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                {isSignup ? 'Naya account banao' : 'Sign in karo'}
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-snug">
                 {isSignup
-                  ? 'User ID aur password se naya account banayein'
+                  ? 'User ID aur password se account banayein'
                   : 'Apna User ID aur password daalein'}
               </p>
             </div>
           </div>
 
-          <div className="flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-bold">
+          <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-sm font-bold">
             <button
               type="button"
               onClick={() => onNavigate('/signin')}
-              className={`flex-1 py-2 rounded-md transition cursor-pointer ${
+              className={`flex-1 py-2.5 rounded-lg transition cursor-pointer ${
                 !isSignup
                   ? 'bg-white dark:bg-slate-900 text-hs-700 dark:text-hs-300 shadow-sm'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -143,7 +143,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
             <button
               type="button"
               onClick={() => onNavigate('/signup')}
-              className={`flex-1 py-2 rounded-md transition cursor-pointer ${
+              className={`flex-1 py-2.5 rounded-lg transition cursor-pointer ${
                 isSignup
                   ? 'bg-white dark:bg-slate-900 text-hs-700 dark:text-hs-300 shadow-sm'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -154,10 +154,10 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-3.5">
+        <form onSubmit={handleSubmit} className="px-5 sm:px-6 py-5 space-y-4">
           {isSignup && (
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+              <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-1.5">
                 Display name (optional)
               </label>
               <input
@@ -166,17 +166,17 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="e.g. Rahul Sharma"
                 autoComplete="name"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400"
+                className="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400"
               />
             </div>
           )}
 
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+            <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-1.5">
               User ID
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={userId}
@@ -184,7 +184,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
                 placeholder="e.g. rahul_site01"
                 autoComplete="username"
                 required
-                className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400 font-mono"
+                className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400 font-mono"
               />
             </div>
             <p className="mt-1 text-[10px] text-slate-400">
@@ -193,7 +193,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+            <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-1.5">
               Password
             </label>
             <div className="relative">
@@ -205,7 +205,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
                 placeholder="Min 6 characters"
                 autoComplete={isSignup ? 'new-password' : 'current-password'}
                 required
-                className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400"
               />
               <button
                 type="button"
@@ -220,7 +220,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
 
           {isSignup && (
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500 mb-1">
+              <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-1.5">
                 Confirm password
               </label>
               <div className="relative">
@@ -232,21 +232,21 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
                   placeholder="Password dobara likhein"
                   autoComplete="new-password"
                   required
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400"
+                  className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 text-base text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-hs-500/30 focus:border-hs-400"
                 />
               </div>
             </div>
           )}
 
           {localError && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs">
+            <div className="flex items-start gap-2 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-sm leading-snug">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{localError}</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 text-xs">
+            <div className="flex items-start gap-2 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 text-sm leading-snug">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{success}</span>
             </div>
@@ -255,7 +255,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
           <button
             type="submit"
             disabled={busy}
-            className="btn-hs w-full justify-center !py-2.5 disabled:opacity-60"
+            className="btn-hs w-full justify-center !py-3.5 !text-base disabled:opacity-60"
           >
             {busy ? (
               <>
@@ -275,14 +275,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ mode, onNavigate }) => {
             )}
           </button>
 
-          <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 pt-1 text-sm text-slate-500">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
             <span>Password hashed server pe store hoti hai — plain text nahi.</span>
           </div>
         </form>
       </div>
 
-      <p className="text-center text-xs text-slate-500 mt-4">
+      <p className="text-center text-sm text-slate-500 mt-5 leading-relaxed">
         {isSignup ? (
           <>
             Already have an account?{' '}
