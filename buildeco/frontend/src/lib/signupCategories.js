@@ -51,7 +51,37 @@ async function fetchTreeForType(categoryType) {
     /* fallback */
   }
 
-  return [];
+  return fallbackTreeForType(categoryType);
+}
+
+const FALLBACK_SEEDS = {
+  marketplace: { name: "Marketplace", children: ["Cement", "Steel", "Sand", "Aggregate", "Bricks", "Electrical Material", "Plumbing Material", "Hardware", "Paint", "Tiles"] },
+  construction: { name: "Construction", children: ["Civil Work", "Plumbing", "Electrical", "Painting", "Tiles", "Flooring", "Wood Work", "Interior", "Renovation"] },
+  solar: { name: "Solar", children: ["Solar Panels", "Inverters", "Batteries", "Structure", "Installation"] },
+  logistics: { name: "Logistics", children: ["Dumper", "Tipper", "JCB", "Crane", "Heavy Transport"] },
+  professional_service: { name: "Professional Services", children: ["Architect", "Engineer", "CA", "Legal", "Consultant", "Freelancer"] },
+  freelancer: { name: "Freelancer Services", children: ["Architecture", "CAD Design", "3D Design", "Estimation", "BOQ", "Accounting"] },
+  architecture: { name: "Architecture", children: ["Residential", "Commercial", "Interior Design", "Vastu", "3D Visualization"] },
+};
+
+export function fallbackTreeForType(categoryType) {
+  const seed = FALLBACK_SEEDS[categoryType];
+  if (!seed) return [];
+  const parentId = `fallback_${categoryType}`;
+  return [{
+    id: parentId,
+    name: seed.name,
+    slug: categoryType,
+    category_type: categoryType,
+    parent_id: null,
+    children: seed.children.map((name, i) => ({
+      id: `${parentId}_${i}`,
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, "-"),
+      category_type: categoryType,
+      parent_id: parentId,
+    })),
+  }];
 }
 
 /** Load grouped category trees for signup. */
