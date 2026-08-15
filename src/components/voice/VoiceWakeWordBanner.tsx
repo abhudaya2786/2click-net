@@ -55,7 +55,7 @@ export const VoiceWakeWordBanner: React.FC<VoiceWakeWordBannerProps> = ({
 
   return (
     <div id="voice-assistant-overlay" className="relative z-40">
-      <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 max-w-sm w-full pointer-events-none">
+      <div className="fixed bottom-[calc(var(--app-bottom-h)+0.75rem)] md:bottom-4 right-4 z-40 flex flex-col items-end gap-2 max-w-sm w-full pointer-events-none">
         {sessionActive && (
           <div
             className={`pointer-events-auto max-w-xs w-full px-3.5 py-2.5 rounded-2xl text-white text-xs backdrop-blur-md border shadow-lg animate-in fade-in slide-in-from-bottom-2 ${
