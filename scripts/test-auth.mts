@@ -1,15 +1,39 @@
 /**
  * Auth API smoke tests: signup, signin, me, signout, duplicate user.
- * Expects server at AUTH_BASE (default http://127.0.0.1:3000).
+ * Spawns an isolated server unless AUTH_BASE is provided.
  */
-const BASE = process.env.AUTH_BASE || 'http://127.0.0.1:3000';
+import { spawn } from 'child_process';
+import path from 'path';
+
+const PORT = Number(process.env.SMOKE_AUTH_PORT || 3472);
+const EXTERNAL = String(process.env.AUTH_BASE || '').trim();
+const BASE = EXTERNAL || `http://127.0.0.1:${PORT}`;
+const root = process.cwd();
 
 function assert(cond: boolean, msg: string) {
   if (!cond) throw new Error(msg);
 }
 
-async function json(path: string, init: RequestInit = {}) {
-  const res = await fetch(`${BASE}${path}`, {
+function wait(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function waitForHealth(timeoutMs = 20000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const r = await fetch(`${BASE}/api/health`);
+      if (r.ok) return;
+    } catch {
+      /* retry */
+    }
+    await wait(300);
+  }
+  throw new Error('Server health timeout');
+}
+
+async function json(pathName: string, init: RequestInit = {}) {
+  const res = await fetch(`${BASE}${pathName}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -20,7 +44,28 @@ async function json(path: string, init: RequestInit = {}) {
   return { res, body };
 }
 
+let child: ReturnType<typeof spawn> | null = null;
+let stderr = '';
+
 async function main() {
+  if (!EXTERNAL) {
+    child = spawn(process.execPath, ['--import', 'tsx', path.join(root, 'server.ts')], {
+      cwd: root,
+      env: {
+        ...process.env,
+        PORT: String(PORT),
+        HOST: '127.0.0.1',
+      },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    child.stderr?.on('data', (d) => {
+      stderr += d.toString();
+    });
+  }
+
+  console.log(`\nAuth smoke → ${BASE}\n`);
+  await waitForHealth();
+
   const userId = `demo_${Date.now().toString(36)}`;
   const password = 'secret123';
 
@@ -73,7 +118,20 @@ async function main() {
   console.log('ALL auth smoke tests passed');
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main()
+  .catch((e) => {
+    console.error(e);
+    if (stderr) console.error(stderr.slice(-2000));
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    if (child) {
+      child.kill('SIGTERM');
+      await wait(400);
+      try {
+        child.kill('SIGKILL');
+      } catch {
+        /* ignore */
+      }
+    }
+  });
