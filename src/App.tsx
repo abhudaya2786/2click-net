@@ -27,6 +27,7 @@ import {
 import confetti from 'canvas-confetti';
 import { MeetingData, ActionItem, MeetingContextOptions, ScheduledEvent, PrivacySettings } from './types';
 import { SAMPLE_MEETINGS } from './data/sampleMeetings';
+import { COMMAND_SESSION_NOTE_EVENT } from './utils/buildCommandSessionMeeting';
 import { AudioRecorder } from './components/AudioRecorder';
 import { AudioUploader } from './components/AudioUploader';
 import { MeetingHeader } from './components/MeetingHeader';
@@ -59,13 +60,9 @@ import { BillingSubscriptionView } from './components/settings/BillingSubscripti
 import { GeofenceProvider } from './context/GeofenceContext';
 import { GeofenceAutoModeBanner } from './components/geofence/GeofenceAutoModeBanner';
 import { LocationGeofenceSettingsView } from './components/settings/LocationGeofenceSettingsView';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { AuthView, AccountView } from './components/auth/AuthView';
-import { CompanySettingsView } from './components/company/CompanySettingsView';
-import { FieldTalkView } from './components/company/FieldTalkView';
-import { RealEstateSalesLanding } from './components/company/RealEstateSalesLanding';
-import { OwnerInboxView } from './components/inbox/OwnerInboxView';
-import { CreditCard, Compass, MapPin, Power, MoreHorizontal, Settings2, X, LogIn, User, Inbox, Building2 } from 'lucide-react';
+import { CreditCard, Compass, MapPin, Power, MoreHorizontal, Settings2, X, FileAudio } from 'lucide-react';
+import { MobileInstallBanner } from './components/MobileInstallBanner';
+import { RecordingsLibraryView } from './components/recordings/RecordingsLibraryView';
 
 const LOCAL_STORAGE_KEY = 'voice_mom_saved_meetings_v1';
 const SCHEDULED_EVENTS_KEY = 'voice_mom_scheduled_events_v1';
@@ -79,18 +76,10 @@ function AppContent() {
     if (
       p.startsWith('/meetings') ||
       p.startsWith('/settings') ||
-      p === '/mom' ||
-      p === '/signin' ||
-      p === '/signup' ||
-      p === '/login' ||
-      p === '/account' ||
-      p === '/inbox' ||
-      p === '/field-talk' ||
-      p === '/for-real-estate' ||
-      p === '/sales'
-    ) {
-      return p === '/login' ? '/signin' : p === '/sales' ? '/for-real-estate' : p;
-    }
+      p.startsWith('/recordings') ||
+      p === '/mom'
+    )
+      return p;
     return '/meetings';
   });
 
@@ -217,6 +206,30 @@ function AppContent() {
     }
   }, []);
 
+  // Voice command sessions write MoM notes into localStorage — keep App UI in sync
+  useEffect(() => {
+    const onNoteSaved = (ev: Event) => {
+      const meeting = (ev as CustomEvent)?.detail?.meeting as MeetingData | undefined;
+      if (!meeting?.id) return;
+      setSavedMeetings((prev) => {
+        const next = [meeting, ...prev.filter((m) => m.id !== meeting.id)];
+        try {
+          if (!privacySettings.ephemeralMode) {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
+          }
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+      setCurrentMeeting(meeting);
+      // Show the MoM document immediately after voice stop/save
+      navigate('/mom');
+    };
+    window.addEventListener(COMMAND_SESSION_NOTE_EVENT, onNoteSaved as EventListener);
+    return () => window.removeEventListener(COMMAND_SESSION_NOTE_EVENT, onNoteSaved as EventListener);
+  }, [privacySettings.ephemeralMode]);
+
   // Save meetings to local storage whenever they change (respecting Ephemeral mode)
   const persistMeetings = (meetings: MeetingData[]) => {
     setSavedMeetings(meetings);
@@ -293,10 +306,38 @@ function AppContent() {
   const handleAudioRecorded = async (audioBlob: Blob, durationFormatted: string) => {
     setIsProcessing(true);
     setErrorMessage(null);
-    setProcessingStatus('Uploading & analyzing voice recording with Gemini 3.7 Flash...');
+    setProcessingStatus('Saving voice file to your recordings library...');
 
     try {
       const base64Audio = await blobToBase64(audioBlob);
+      const durationParts = durationFormatted.split(':').map((x) => Number(x) || 0);
+      const durationSeconds =
+        durationParts.length === 3
+          ? durationParts[0] * 3600 + durationParts[1] * 60 + durationParts[2]
+          : durationParts.length === 2
+            ? durationParts[0] * 60 + durationParts[1]
+            : durationParts[0] || 0;
+
+      // Always persist a user-visible copy (Downloads / Documents/2ClickMoM/Recordings)
+      const meetingIdForRec = currentMeeting?.id || `standalone-${Date.now()}`;
+      try {
+        const savedRec = await meetingDb.saveRecording(meetingIdForRec, {
+          mimeType: audioBlob.type || 'audio/webm',
+          durationSeconds,
+          fileSizeBytes: audioBlob.size,
+          audioData: base64Audio,
+          blob: audioBlob,
+          saveToDevice: true,
+          status: 'Saved',
+        });
+        setProcessingStatus(
+          savedRec.localPath
+            ? `Saved: ${savedRec.localPath}`
+            : 'Recording saved to library. Generating MoM...',
+        );
+      } catch (saveErr) {
+        console.warn('Recording library save failed', saveErr);
+      }
 
       setProcessingStatus('Transcribing speech, identifying speakers, and structuring decisions...');
 
@@ -336,6 +377,8 @@ function AppContent() {
       setCurrentMeeting(generatedMeeting);
       const updatedList = [generatedMeeting, ...savedMeetings.filter((m) => m.id !== generatedMeeting.id)];
       persistMeetings(updatedList);
+      // Jump to recordings library so user can see the file path
+      navigate('/recordings');
     } catch (err: any) {
       console.error('Error generating MoM from audio:', err);
       setErrorMessage(err.message || 'An error occurred during audio processing. Please verify microphone audio.');
@@ -539,14 +582,11 @@ function AppContent() {
   const primaryNav = [
     { path: '/meetings', match: (r: string) => r.startsWith('/meetings'), label: 'Meetings', icon: Layers },
     { path: '/mom', match: (r: string) => r === '/mom' || r === '/', label: 'MoM AI', icon: Sparkles },
-    { path: '/inbox', match: (r: string) => r === '/inbox', label: 'Owner Inbox', icon: Inbox },
-    { path: '/field-talk', match: (r: string) => r === '/field-talk', label: 'Field Talk', icon: Radio },
+    { path: '/recordings', match: (r: string) => r.startsWith('/recordings'), label: 'Files', icon: FileAudio },
   ];
 
   const moreNav = [
-    { path: '/for-real-estate', label: 'Sell to RE Marketing', icon: Building2, id: 're-sales-nav-btn' },
-    { path: '/settings/company', label: 'Company & Report Routing', icon: Building2, id: 'company-settings-nav-btn' },
-    { path: '/account', label: 'Account', icon: User, id: 'account-nav-btn' },
+    { path: '/recordings', label: 'Voice Files & Location', icon: FileAudio, id: 'recordings-library-nav-btn' },
     { path: '/settings/voice', label: 'Voice & Wake Words', icon: Mic, id: 'voice-settings-nav-btn' },
     { path: '/settings/schedule', label: 'Recording Schedule', icon: Calendar, id: 'schedule-settings-nav-btn' },
     { path: '/settings/privacy', label: 'Privacy & Security', icon: ShieldCheck, id: 'privacy-settings-nav-btn' },
@@ -561,6 +601,7 @@ function AppContent() {
 
   return (
     <div className="app-shell text-slate-800 dark:text-slate-100 font-sans transition-colors">
+      <MobileInstallBanner />
       {/* Compact top bar — fits one viewport row */}
       <header className="app-header shrink-0 z-40 pt-safe">
         <div className="mx-auto max-w-6xl px-3 sm:px-4 h-[var(--app-header-h)] flex items-center gap-2 sm:gap-3">
@@ -826,6 +867,12 @@ function AppContent() {
       ) : currentRoute === '/settings/voice' ? (
         <main>
           <VoiceSettingsView onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/recordings' || currentRoute === '/files' ? (
+        <main className="px-3 sm:px-4 py-4">
+          <RecordingsLibraryView
+            onOpenMeeting={(id) => navigate(`/meetings/${id}`)}
+          />
         </main>
       ) : currentRoute === '/meetings' ? (
         <main>
@@ -1146,9 +1193,9 @@ function AppContent() {
         <div className="grid grid-cols-4 h-16">
           {[
             { path: '/meetings', label: 'Meetings', icon: Layers, active: currentRoute.startsWith('/meetings') && currentRoute !== '/meetings/new' },
-            { path: '/inbox', label: 'Inbox', icon: Inbox, active: currentRoute === '/inbox' },
-            { path: '/field-talk', label: 'Talk', icon: Radio, active: currentRoute === '/field-talk' },
-            { path: '/settings/company', label: 'Company', icon: Building2, active: currentRoute === '/settings/company' || currentRoute.startsWith('/settings') },
+            { path: '/mom', label: 'MoM', icon: Sparkles, active: currentRoute === '/mom' || currentRoute === '/' },
+            { path: '/recordings', label: 'Files', icon: FileAudio, active: currentRoute.startsWith('/recordings') || currentRoute === '/files' },
+            { path: '/settings/voice', label: 'More', icon: Settings2, active: currentRoute.startsWith('/settings') },
           ].map((item) => {
             const Icon = item.icon;
             return (
