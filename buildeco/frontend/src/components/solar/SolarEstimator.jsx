@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import WhatsAppShare from "@/components/marketing/WhatsAppShare";
+import SolarConsultantProposal from "@/components/solar/SolarConsultantProposal";
 import { buildSolarWhatsAppMessage } from "@/lib/moduleUpgrades";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -43,7 +44,7 @@ export default function SolarEstimator({ embedded = false, onEstimate }) {
     segment: "residential", system_type: "ongrid", tier: "standard",
     monthly_bill: 5000, tariff: 8, roof_area_sqft: 600, autonomy_days: 1,
     down_payment_percent: 20, tenure_years: 10, interest_rate: "",
-    customer_name: "", site_address: "", state: "Maharashtra", discom: "", contact: "",
+    customer_name: "", site_address: "", state: "Uttar Pradesh", city: "Lucknow", discom: "", contact: "",
   });
   const [res, setRes] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -85,7 +86,7 @@ export default function SolarEstimator({ embedded = false, onEstimate }) {
     loan_enabled: true, down_payment_percent: Number(f.down_payment_percent) || 0,
     tenure_years: Number(f.tenure_years) || 0, interest_rate: f.interest_rate ? Number(f.interest_rate) : null,
     customer_name: f.customer_name, site_address: f.site_address, state: f.state,
-    discom: f.discom, contact: f.contact,
+    city: f.city, discom: f.discom, contact: f.contact,
     brand_selections: Object.fromEntries(Object.entries(sel).filter(([, v]) => v)),
   });
 
@@ -226,6 +227,8 @@ export default function SolarEstimator({ embedded = false, onEstimate }) {
                 <Input type="number" value={f.interest_rate} placeholder="auto" onChange={(e) => set("interest_rate", e.target.value)} className="rounded-none" /></div>
               <div><label className="text-xs text-muted-foreground mb-1 block">State</label>
                 <Input value={f.state} onChange={(e) => set("state", e.target.value)} className="rounded-none" /></div>
+              <div><label className="text-xs text-muted-foreground mb-1 block">City</label>
+                <Input data-testid="epc-city" value={f.city} onChange={(e) => set("city", e.target.value)} placeholder="Lucknow" className="rounded-none" /></div>
               <div className="col-span-2"><label className="text-xs text-muted-foreground mb-1 block">Customer / Company name</label>
                 <Input data-testid="epc-customer" value={f.customer_name} onChange={(e) => set("customer_name", e.target.value)} className="rounded-none" /></div>
               <div className="col-span-2"><label className="text-xs text-muted-foreground mb-1 block">Site address</label>
@@ -238,7 +241,7 @@ export default function SolarEstimator({ embedded = false, onEstimate }) {
           </details>
 
           <Button data-testid="epc-estimate" onClick={estimate} disabled={busy} className="w-full rounded-none">
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate EPC estimate"}
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate professional solar proposal"}
           </Button>
         </div>
 
@@ -259,6 +262,8 @@ export default function SolarEstimator({ embedded = false, onEstimate }) {
                 {res.financing?.emi ? <Metric icon={IndianRupee} label="EMI / month" value={inr(res.financing.emi)} color="text-tender" /> : null}
                 <Metric icon={TrendingUp} label="Payback" value={`${res.payback_years} yrs`} color="text-solar" />
               </div>
+
+              {res.consultant_proposal && <SolarConsultantProposal proposal={res.consultant_proposal} />}
 
               {res.sizing.roof_limited && (
                 <div className="text-xs border border-primary/30 bg-primary/5 text-primary px-3 py-2" data-testid="epc-roof-warn">
