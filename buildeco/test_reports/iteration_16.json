@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 16: Verified the behavior-preserving refactor of download_kyc() in /app/backend/solar_epc.py (Response return moved inside try; explicit `except HTTPException: raise`; other exceptions -> 502). Ran 9/9 GREEN pytest on backend covering (a) full KYC upload->download flow with byte-for-byte equality and Content-Disposition header, (b) 404 (not 500) for a non-existent file id, plus regressions on Solar catalog (components=11, brands>=18, seeded packages Premium Home + Value Home), estimate with brand override reflected in BOQ, brand approval RBAC (vendor pending hidden from public, vendor approve=403, admin reject empty reason=422, admin approve then public visible), customer /packages/manage=403, and freelancer enquiries contract {received, sent, unread} + mark-read flips unread to 0.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter16_kyc.py",
+    "/app/test_reports/pytest/iter16.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "download_kyc() refactor is correct: `data, ct = await asyncio.to_thread(_get_object, ...)` and `return Response(...)` are inside the same try scope, so no NameError on the response path. `except HTTPException: raise` correctly propagates the 404 raised earlier for missing/unowned records, while unexpected storage failures map to 502. Verified end-to-end: uploaded PNG comes back byte-identical with inline Content-Disposition filename.",
+    "_get_object uses a retry with force=True key mint on 404 from storage — good resilience. Note it will still map a genuine storage-side 404 (after retry) to a 502 in download_kyc via requests.raise_for_status(); that is acceptable behavior (server-side data inconsistency) but consider distinguishing 'object missing' from 'storage down' for observability.",
+    "upload_kyc size limit is checked AFTER `await file.read()` — an attacker can force the server to buffer up to arbitrary UploadFile size before the 15MB check triggers. Consider streaming/chunked read or enforcing FastAPI/Starlette max_upload_size at the router level.",
+    "download_kyc accepts token via query string (`?auth=`) by mutating request.scope['headers']. This works, but tokens in query strings can leak via server access logs / referrers; if this path is only used for browser <img>/<a> previews consider issuing a short-lived signed URL instead."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter16_kyc.py"],
+  "success_rate": {"backend": "100% (9/9 pytest)", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "abbhuadaya@gmail.com/Admin@12345, vendor@buildecogroup.com/Demo@12345, customer@buildecogroup.com/Demo@12345, architect@buildecogroup.com/Demo@12345 (id user_101810beb884). Verified against /app/memory/test_credentials.md.",
+  "seed_data_creation": "Test creates one proposal + one KYC PNG per run (no delete endpoint for proposals, small residual). TEST_ITER16_Inv brand is created and cleaned up via admin DELETE. One TEST_ITER16 enquiry left in architect's inbox (marked read).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "KYC download refactor is stable. Object storage IS available in this preview env — real PNG upload+download roundtrip works. If a future env lacks object storage, test_kyc_upload_then_download_returns_200_with_disposition will pytest.skip on upload 502 and only the 404 assertion still runs (which is enough to confirm the try/except structure). Estimate endpoint accepts `brand_selections` (not `brand_overrides`); BOQ is a dict with `items` list keyed by `code` + `brand` name. Components endpoint returns `{components:[...]}` wrapper (not a bare list).",
+  "rca of the issue": "N/A — refactor works as intended, no regressions detected."
+}

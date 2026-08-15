@@ -4,7 +4,7 @@ Voice → Transcript → AI Minutes → Tasks → Export / Share
 
 > React 19 · Vite 6 · Express · Gemini/OpenAI · Capacitor · PWA · Vercel
 
-BuildEco Group (`buildecogroup.com`) is a separate product.
+BuildEco Group (`buildecogroup.com`) lives in `buildeco/` (Hostinger SPA + option fallbacks). Canonical GitHub copy: `abhudaya2786/new-website-buildecogroup-`.
 
 ## Quick start
 

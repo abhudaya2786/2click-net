@@ -1,0 +1,44 @@
+{
+  "summary": "Phase 3B (White-Label Branding) + Phase 3C (Subscriptions/Invoicing/Commission Payouts) tested end-to-end. Backend: 24/24 pytest tests pass in /app/backend/tests/test_phase3bc.py — branding resolution (default+company_id+slug+host+custom_domain+unknown fallback), new fields (accent_color/favicon/slug/custom_domain), admin PATCH persists them, subscribe flow creates pending subscription invoice (INR 5898.82 = 4999 + 18% GST, number INV-YYYY-NNNN), pay marks paid and activates subscription, cancel sets cancelled, PDF endpoint returns application/pdf with %PDF header, non-owner blocked 403 on /invoices/{id}, all admin billing endpoints 403 for customer, commission run is idempotent (0 duplicates on re-run). Frontend: /pricing logged-out clicks plan-cta-business -> /register (pass); customer login -> nav-billing -> billing-section, billing-subscribe-business creates invoice-row + pending invoice-pay-*, pay -> plan-current shows 'active', sub-cancel -> plan-current shows 'cancelled' with 'Subscription cancelled' toast; logged-in customer /pricing CTA -> /dashboard with 'Welcome back' toast. Super admin panel Administration -> White Label tab: brand-company/brand-name/brand-tagline/brand-color/brand-accent/brand-logo/brand-favicon/brand-slug/brand-domain/brand-save/brand-preview all present; save triggers 'Branding saved' toast; preview reflects brand name. Billing tab: MRR ₹4,999, Total Invoiced ₹23,843.37, Collected ₹17,696.46, Outstanding ₹6,146.91 rendered; billing-subtab-invoices lists 5 invoices (mix subscription+commission types incl commission INV-2026-0003 vendor@buildsphere.in ₹248.09), billing-subtab-subscriptions lists customer+vendor subs; commission-period + run-commission-btn wired. Regression: seeded logins all still work; /freelancers public + /categories public still work.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "phase3.get_branding", "issue": "Query param `slug` shadows the module-level `slug()` helper function inside get_branding (both named `slug`). Not a bug today (helper isn't called inside the fn), but is a code-smell that will bite if someone later calls slug(something) inside the function."},
+      {"endpoint": "/api/admin/billing/run-commission", "issue": "Period math `end = datetime(year + (month // 12), (month % 12) + 1, 1, ...)` breaks for December (month=12 -> year+1, month=1 = OK) actually this is correct, but for month=12: month//12=1, month%12=0 -> next start = (year+1, 1) which is correct. However, when parsing paid_at from an order stored without tzinfo AND with non-ISO string it silently skips. Consider warning on skipped rows."},
+      {"endpoint": "/api/admin/billing/run-commission", "issue": "Runs against orders regardless of company_id; multi-tenant SaaS should scope to vendor.company_id + admin's company_id filter, otherwise a super_admin run creates commission invoices spanning all tenants."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase3bc.py",
+    "/app/test_reports/pytest/phase3bc_results.xml"
+  ],
+  "action_items": [
+    "(Low priority) Rename the query param `slug` in phase3.get_branding to avoid shadowing the module-level slug() helper.",
+    "(Medium) Scope run-commission by tenant company_id once white-label multi-tenant vendors go live — right now a single admin run bills across all tenants."
+  ],
+  "critical_code_review_comments": [
+    "phase3c._create_invoice: subtotal/tax/total rounding is per-line-sum then rounded; for multi-line invoices with floats this can drift by <=0.01. Fine for demo, revisit for accounting.",
+    "phase3c.subscribe: existing subscription is upserted with a fresh started_at/current_period_start (even if user was already active). Prior period is silently overwritten. Consider blocking re-subscribe when status='active' or capturing renewal history in a separate collection.",
+    "phase3c.pay_invoice: does not verify the invoice's `total` — it just flips status. For commission invoices this is fine (demo), but consider adding an idempotency ref check so double-clicking pay doesn't generate two audit rows.",
+    "phase3c.invoice_pdf: reportlab is imported lazily inside the function — good for cold-start, but if reportlab is missing the failure surfaces only at PDF request time; add a startup smoke import.",
+    "phase3c.run_commission uses `datetime.fromisoformat(raw)` which will raise on legacy 'Z'-suffixed ISO strings on Python < 3.11; safe here (3.11.15) but not portable.",
+    "phase3.get_branding: `slug` parameter name shadows the module-level `slug()` helper. Rename param to `by_slug` or import helper as `_slug`.",
+    "phase3c has no rate limiting on POST /invoices/{id}/pay (demo mode is fine but flag for real payment integration).",
+    "Front-end BillingSection likely fetches /plans + /subscriptions/me + /invoices/me on every render of the Billing nav — verify it doesn't re-fire on tab switch unnecessarily."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase3bc.py (NEW - 24 tests, all pass)"
+  ],
+  "success_rate": {"backend": "100% (24/24)", "frontend": "100% (branding save, customer subscribe/pay/cancel, admin billing tabs, commission run, pricing CTA logged-out/logged-in all verified)"},
+  "test_credentials": "abbhuadaya@gmail.com/Admin@12345 (super_admin via triple-click [data-testid=login-title]); vendor@/customer@/contractor@buildecogroup.com Demo@12345",
+  "seed_data_creation": "Test products created via /api/products as vendor (name TEST_prod_*); test invoices created during subscribe flow (INV-2026-0002/0004/0005 for customer@buildecogroup.com, INV-2026-0001 vendor sub, INV-2026-0003 vendor commission ₹248.09 for period 2026-08). Branding: slug set to 'buildecogroup', custom_domain set to 'test.buildecogroup.local' on company_default — you may want to reset these before demoing to keep production defaults clean.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Server clock is August 2026 (not January) — current-month commission tests should use datetime.utcnow().strftime('%Y-%m') which resolves to '2026-08' here. Existing commission invoice for vendor@buildsphere.in in period 2026-08 (INV-2026-0003, ₹248.09) — any re-run of run-commission for 2026-08 returns invoices_created=0 (idempotent per period.label). Endpoints under test: GET /api/branding (?company_id|slug|host), PATCH /api/admin/branding, POST /api/subscriptions/subscribe, GET /api/subscriptions/me, POST /api/subscriptions/cancel, GET /api/invoices/me, GET/POST /api/invoices/{id}, POST /api/invoices/{id}/pay, GET /api/invoices/{id}/pdf, GET /api/admin/billing/summary|invoices|subscriptions, POST /api/admin/billing/run-commission. Frontend testids: nav-billing, billing-section, billing-subscribe-{starter|business|enterprise}, invoice-row-*, invoice-pay-*, invoice-pdf-*, plan-current, sub-cancel, rbac-tab-billing, admin-billing, billing-subtab-{invoices|subscriptions}, commission-period, run-commission-btn, rbac-tab-branding, brand-company/name/tagline/color/accent/logo/favicon/slug/domain/save/preview, plan-cta-business (on /pricing).",
+  "rca of the issue": "No blocking issues found. Only a low-priority code smell (param name shadowing) and a forward-looking multi-tenant scoping note on run-commission."
+}

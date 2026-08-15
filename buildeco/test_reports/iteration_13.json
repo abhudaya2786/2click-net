@@ -1,0 +1,23 @@
+{
+  "summary": "Frontend E2E verification of REAL ad serving + tracking on public site. All three placements (header, sidebar, infeed) render live approved+active campaigns with correct data-testids. Impression beacon fires on mount and increments real ad_stats (customer analytics/me impressions: 28→33 after 3 marketplace reloads). Click endpoint /api/ads/click/{id} returns 302 to campaign destination_url (example.com/tmt for infeed, example.com/sale for header) and increments clicks (verified 4→7 with 3 GETs). Header close button hides slot for session. Super Admin toggle-sidebar disables sidebar placement — /marketplace no longer renders the sidebar ad slot and no layout break/console errors; re-enabling restores it. Advertiser Overview UI reflects real accumulated counts (33 Impressions, 4→7 Clicks, 12.12% CTR, ₹13,865 spend, 4 active ads). Per-campaign stats endpoint returns real per-campaign impressions/clicks (ad_demo_infeed: 8 imp / 4 clk). Analytics tab series returns today's data point. All placements left ENABLED at end of run.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AdSlot.jsx uses useRef fired-set to guard impressions per mount, but React 18 StrictMode double-mount in dev could still yield an extra beacon; in production build this is fine. Not blocking.",
+    "AdSlot.jsx close state is component-local — remounting the layout (route change) re-shows the header ad. Acceptable behaviour for a per-page session hide, but 'hides it for that session' wording in spec implies persistence; consider sessionStorage if strict session-scoped hide is desired.",
+    "Click endpoint only accepts GET (HEAD returns 405). Fine because the anchor navigates via GET; documenting for future prefetch/HEAD probes."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "test_credentials": "customer@buildecogroup.com / Demo@12345, abbhuadaya@gmail.com / Admin@12345",
+  "seed_data_creation": "None. Used existing seeded campaigns (Monsoon Cement Sale, TEST_Fe_Campaign, ACC Gold Cement — Best Rates ad_demo_sidebar, TMT Steel Monsoon Offer ad_demo_infeed). During click-count verification, ~5 additional impressions and ~5 clicks were accumulated on demo campaigns — no schema changes.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All ad-serving/tracking UI green. All 3 placements enabled at end. Header ad rendered on public marketplace/home; sidebar ACC Gold Cement in <aside>; infeed TMT Steel as first grid cell with orange ring. Analytics/me reads real ad_stats (top-level keys: impressions, clicks, ctr, spend, active_ads, series). Note: HEAD on /api/ads/click/{id} returns 405 (only GET supported)."
+}

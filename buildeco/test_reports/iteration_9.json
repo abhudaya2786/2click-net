@@ -1,0 +1,25 @@
+{
+  "summary": "Frontend-only E2E validation of the new Solar EPC Engine on both the public /solar page and the Customer dashboard 'Solar EPC' tab. All 5 requested flows PASS: (1) SolarEstimator renders and default residential estimate produces metric cards + 25-yr area chart + BOQ with 10 line items and Subtotal/GST/Total footer rows; (2) Commercial segment shows C&I Accelerated Depreciation + GST ITC and NO PM Surya Ghar subsidy, Hybrid shows autonomy input and 'LiFePO4 Battery Bank' row in BOQ, tier buttons change BOQ brand column (Premium: 'Waaree / Adani', Standard: 'Vikram / Premier', Budget: 'ALMM Approved (Local)'); (3) Customer login → nav-solar-epc → Generate → Save produces chip SOL-2026-0002, both Proposal PDF and Bank DPR calls return 200 application/pdf; (4) KYC panel appears, PAN upload succeeds, filename shown with download link; (5) Regression nav-materials and nav-quotes still render fine.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "CustomerDashboard > Material Calc", "issues": ["Pre-existing React hydration warning: instrumentation-injected <span> is placed as a child of <select><option> in MaterialCalculator (line 67). Not from Solar EPC and non-blocking, but should be cleaned up."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SolarEstimator.jsx KycPanel uses `useState(() => { load(); })` to fire the initial load — this is incorrect: it uses useState as an on-mount hook. It happens to work because useState's initializer runs once, but semantically this should be useEffect(() => { load(); }, [load]). Low priority (works today) but flag as a code-quality bug.",
+    "openDoc uses window.open on a blob URL created inside an async handler — Safari popup blockers may swallow the tab because the open is no longer in the direct user-gesture stack. Consider opening the tab first and then setting location = url after the blob resolves.",
+    "Chart occasionally logs 'width(-1) height(-1)' recharts warning during rapid re-renders on the public page (harmless — resolves on layout)."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (frontend-only)", "frontend": "100% (5/5 flows)" },
+  "test_credentials": "customer@buildecogroup.com / Demo@12345 (worked as expected)",
+  "seed_data_creation": "Proposal SOL-2026-0002 created for customer@buildecogroup.com; one KYC PAN file uploaded (tmp .txt).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Solar EPC frontend is fully working end-to-end. If regressing, verify the 4 key data-testids: solar-estimator, epc-estimate, epc-results (must contain epc-gen-chart + epc-boq), epc-save/pdf/dpr, kyc-panel + kyc-upload-{key}. Both /solar (public) and customer dashboard nav-solar-epc paths embed the same SolarEstimator component."
+}

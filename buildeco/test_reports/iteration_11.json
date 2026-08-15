@@ -1,0 +1,39 @@
+{
+  "summary": "Iteration 11 — E2E verification of the new Universal Payment Wallet + Vendor Order Details features. Backend regression: 16/16 pytest tests PASS (test_wallet_iter11.py). Covers /api/wallet/me for customer/vendor/contractor; 403 permission checks on all /api/admin/wallet/* endpoints for non-super-admin (customer & vendor tokens); admin credit + debit round-trip; 422 on empty reason and zero amount (AdjustIn validator); 400 + 'Insufficient wallet balance' on overdraw with balance NOT mutated; admin ledger listing; POST /api/orders persistence of site_location/architect_name/architect_phone/company_name verified via GET /api/vendor/orders; POST /api/orders/{id}/pay-wallet debits, marks order paid, second-pay attempt 400; pay-wallet 400 on insufficient balance; pay-wallet 403 when a different user attempts to pay someone else's order. UI: Admin → Administration → rbac-tab-wallet — 49 users listed, empty reason produced 'Reason is mandatory' toast, valid credit produced 'Wallet credit done · new balance ₹25,050' toast and ledger auto-refreshed (13 admin-wtx-* rows), overdraw produced 'Insufficient wallet balance' toast. Customer: nav-wallet shows wallet-section with balance ₹25,000 and Transaction Ledger; cart-checkout with empty order-address shows 'Site location / delivery address is required'; filling address+architect+company and clicking wallet-checkout-btn returned 'Paid via wallet — new balance ₹23,820' and My Orders now lists paid rows; regular Razorpay demo checkout-btn still returns 'Payment successful (demo mode) — order confirmed'. Vendor: nav-wallet balance ₹25,000; nav-orders shows 4 view-order-* buttons; expanding shows order-details-<id> row with Site Location / Architect / Architect Phone / Company / Items rendered (verified snippet 'Site LocationTEST_iter11 addr wrong-user … Items TEST_prod_7ddb9b × 1 ₹1,000'). Contractor: nav-wallet renders wallet-balance ₹25,000. All required data-testids present. No blocking issues.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "AdminRBAC → Wallet tab (wallet-user select)", "issues": ["Pre-existing hydration warning: platform instrumentation injects <span x-file-name=…> inside <option> children. Non-blocking, cosmetic. Same class of warning noted in iter7/8/9/10 for MaterialCalculator template-select. Fix: wrap the interpolated child in String(...) or use a single text expression without additional whitespace, e.g. <option>{`${u.name || u.email} · ₹${…}`}</option>."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_wallet_iter11.py",
+    "/app/test_reports/pytest/iter11.xml"
+  ],
+  "action_items": [
+    "(LOW) Silence <span>-inside-<option> hydration warning in AdminRBAC Wallet tab user selector (same root-cause as pre-existing warning in MaterialCalculator).",
+    "(LOW/nice-to-have) 49 users in the admin adjust-wallet select dropdown will grow unbounded. Consider replacing native <select> with a searchable combobox + server-side search once user count grows.",
+    "(LOW) OrderIn.items is `List[dict]` — no Pydantic model validating {product_id,name,price,qty}. A KeyError('price') can occur if a client omits price (observed while writing tests). Suggest an OrderItemIn model with typed fields for a proper 422 instead of 500."
+  ],
+  "critical_code_review_comments": [
+    "wallet.py apply_transaction correctly uses an atomic find_one_and_update with `{wallet_balance: {$gte: amount}}` for debit — race-safe. Good.",
+    "AdjustIn uses Field(gt=0) and min_length=2 on reason — server-side validation is enforced (422 confirmed). Reason min_length=2 is quite low; consider min_length=3 or a normalized check to prevent 'ok' etc.",
+    "pay_order_wallet does NOT roll back the wallet debit if the subsequent orders.update_one fails. In practice update_one won't raise unless Mongo is down, but wrap the two ops in a transactional pattern or at minimum reverse the debit on failure to avoid customer wallet being drained without the order flipping to paid.",
+    "OrderIn.items is `List[dict]` — see action item; should be a typed sub-model.",
+    "wallet.py migrate() reads legacy `wallet` field and backfills wallet_balance. If a user's legacy `wallet` and new `wallet_balance` diverge (e.g. after any manual DB edit), the migration will only run for users missing wallet_balance, which is correct — but the legacy `wallet` field is not removed, so two sources of truth coexist. Consider $unset of the legacy field after backfill.",
+    "AdminRBAC AdminWallet lists ALL users (up to 1000) in a native <select>; no search/filter. Fine for demo, not for enterprise scale. Also, the same user appears with same name (e.g. 'Anil Steel Traders · ₹25,000' repeated) — dedupe or show email in every row.",
+    "wallet_transactions collection has indexes on user_id and created_at only. For the admin 'all transactions' view sorted by created_at desc with no filter, a compound index (user_id, created_at) is not needed, but pagination is missing (hard-coded to_list(500)). Add skip/limit or `since` cursor."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_wallet_iter11.py (new — 16 tests, all pass)"
+  ],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "100% (all requested flows verified)"},
+  "test_credentials": "abbhuadaya@gmail.com / Admin@12345, customer@buildecogroup.com / Demo@12345, vendor@buildecogroup.com / Demo@12345, contractor@buildecogroup.com / Demo@12345 — all working (matches /app/memory/test_credentials.md).",
+  "seed_data_creation": "During testing: multiple wallet_transactions rows tagged with 'TEST_iter11' reason (credits/debits) and TEST_ orders under customer@buildecogroup.com with TEST_iter11 site addresses. Customer balance was drained-then-restored to ~₹25,000+ via admin adjust. Vendor/contractor balances unchanged. No production data modified.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Wallet feature is fully wired end-to-end. Key testids: rbac-tab-wallet, wallet-user, wallet-type, wallet-amount, wallet-reason, wallet-submit, admin-wtx-<id>, wallet-bal-<userId> (admin balances list), nav-wallet, wallet-section, wallet-balance (all dashboards), order-address, order-architect-name, order-architect-phone, order-company-name, checkout-btn (Razorpay demo), wallet-checkout-btn (pay from wallet), view-order-<id>, order-details-<id>. For cart flow tests, seed localStorage.bs_cart directly (fetch a real product via /api/products first) and dispatch 'cart-updated' event — this avoids the flaky Marketplace 'Add to Cart' page. OrderIn.items requires {product_id,name,price,qty} — omitting price causes a 500 (KeyError). Backend regression cmd: `pytest /app/backend/tests/test_wallet_iter11.py -v`. Prior regression suite /app/backend/tests/test_regression_iter10.py still relevant for non-wallet modules.",
+  "rca of the issue": "No blocking issues found. Only carried-over low-priority hydration warning and 3 minor code-quality suggestions (OrderIn typing, wallet debit rollback safety, admin dropdown UX)."
+}
