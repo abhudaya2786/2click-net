@@ -415,7 +415,7 @@ def nominatim_reverse(lat: float, lng: float) -> Optional[dict]:
         r = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
             params={"format": "json", "lat": lat, "lon": lng, "addressdetails": 1},
-            headers={"User-Agent": NOMINATIM_UA, "Accept-Language": "en-IN,en,hi"},
+            headers={"User-Agent": NOMINATIM_UA, "Accept-Language": "en-IN,en"},
             timeout=6,
         )
         if r.status_code != 200:

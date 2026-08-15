@@ -29,7 +29,7 @@ export async function fetchNominatimReverse(lat, lon, { fetchImpl } = {}) {
   const doFetch = fetchImpl || (typeof fetch === "function" ? fetch : null);
   if (!doFetch) return null;
   const res = await doFetch(nominatimUrl(lat, lon), {
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", "Accept-Language": "en-IN,en" },
   });
   if (!res.ok) return null;
   const data = await res.json();
