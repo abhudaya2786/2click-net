@@ -4,9 +4,8 @@ dotenv.config();
 import express from 'express';
 import path from 'path';
 import fs from 'fs/promises';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
-import { getAIProvider } from './server/ai/index.ts';
+import { getAIProvider, hasAiApiKey } from './server/ai/index.ts';
 import { getSpeechProvider } from './server/speech/index.ts';
 import { billingManager, SAAS_PLANS } from './server/billing/index.ts';
 import { registerEnterpriseRoutes } from './server/routes/enterpriseRoutes.ts';
@@ -19,8 +18,8 @@ const isProd = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '0.0.0.0';
 
-function requireGemini() {
-  if (!process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+function requireLiveAi() {
+  if (!hasAiApiKey()) {
     const err = new Error('Set GEMINI_API_KEY or OPENAI_API_KEY in .env / .env.local');
     (err as any).status = 503;
     throw err;
@@ -113,7 +112,7 @@ function minutesToMeeting(minutes: any, opts: {
   };
 }
 
-async function createApp() {
+function createApp() {
   const app = express();
   app.use(express.json({ limit: '40mb' }));
 
@@ -123,11 +122,7 @@ async function createApp() {
       app: '2click-voice-mom',
       gemini: Boolean(process.env.GEMINI_API_KEY),
       openai: Boolean(process.env.OPENAI_API_KEY),
-      enterprise: {
-        whatsapp: enterpriseConfig.whatsapp.enabled ? 'live' : 'mock',
-        zeroAudioRetention: enterpriseConfig.zeroAudioRetention,
-        piiRedaction: enterpriseConfig.piiRedactionEnabled,
-      },
+      demoMode: !hasAiApiKey(),
     });
   });
 
@@ -137,13 +132,19 @@ async function createApp() {
   // Core: generate MoM from audio and/or transcript text
   app.post('/api/generate-mom', async (req, res) => {
     try {
-      requireGemini();
       const { audioBase64, mimeType, transcriptText, context } = req.body || {};
       let transcript = typeof transcriptText === 'string' ? transcriptText.trim() : '';
       let segments: any[] = [];
       let languageDetected = context?.language || 'auto';
 
       if (!transcript && audioBase64) {
+        if (!hasAiApiKey()) {
+          return res.status(503).json({
+            error:
+              'Audio transcription requires GEMINI_API_KEY or OPENAI_API_KEY. Paste a transcript text, or set a key in .env.local.',
+            demoMode: true,
+          });
+        }
         const speech = getSpeechProvider(process.env.AI_PROVIDER);
         const speechResult = await speech.transcribe({
           audioBase64,
@@ -215,7 +216,7 @@ async function createApp() {
 
   app.post('/api/transcribe', async (req, res) => {
     try {
-      requireGemini();
+      requireLiveAi();
       const speech = getSpeechProvider(req.body?.provider || process.env.AI_PROVIDER);
       const result = await speech.transcribe({
         audioBase64: req.body.audioBase64,
@@ -250,7 +251,9 @@ async function createApp() {
 
   app.post('/api/minutes/generate', async (req, res) => {
     try {
-      requireGemini();
+      if (!req.body?.transcript || String(req.body.transcript).trim().length < 10) {
+        return res.status(400).json({ error: 'transcript is required (min 10 characters).' });
+      }
       const ai = getAIProvider(req.body?.provider || process.env.AI_PROVIDER);
       const minutes = await ai.generateMinutes({
         transcript: req.body.transcript,
@@ -294,8 +297,21 @@ async function createApp() {
 
   app.post('/api/chat-meeting', async (req, res) => {
     try {
-      requireGemini();
       const { meetingData, currentPrompt } = req.body || {};
+      if (!hasAiApiKey()) {
+        const title = meetingData?.title || 'the meeting';
+        const summary = meetingData?.executiveSummary || meetingData?.summary || '';
+        return res.json({
+          success: true,
+          reply: `Demo reply (no AI key): Regarding “${title}” — ${
+            summary
+              ? summary.slice(0, 280)
+              : 'set GEMINI_API_KEY for live answers grounded in the full MoM.'
+          }${currentPrompt ? ` (Q: ${String(currentPrompt).slice(0, 120)})` : ''}`,
+          demoMode: true,
+        });
+      }
+      requireLiveAi();
       const ai = geminiClient();
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -315,8 +331,23 @@ QUESTION: ${currentPrompt}`,
 
   app.post('/api/generate-email', async (req, res) => {
     try {
-      requireGemini();
       const { meetingData, emailStyle, recipient } = req.body || {};
+      if (!hasAiApiKey()) {
+        const who = recipient || 'team';
+        const title = meetingData?.title || 'our meeting';
+        const actions = Array.isArray(meetingData?.actionItems)
+          ? meetingData.actionItems
+              .slice(0, 3)
+              .map((a: any) => `- ${a.task || a} (${a.owner || a.responsible_person || 'TBD'})`)
+              .join('\n')
+          : '- (none listed)';
+        return res.json({
+          success: true,
+          demoMode: true,
+          emailText: `Hi ${who},\n\nFollowing up on ${title} (${emailStyle || 'professional'} demo draft).\n\nKey actions:\n${actions}\n\nBest regards`,
+        });
+      }
+      requireLiveAi();
       const ai = geminiClient();
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
@@ -480,8 +511,16 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
   app.post('/api/billing/webhook/stripe', (_req, res) => res.json({ received: true }));
   app.post('/api/billing/webhook/razorpay', (_req, res) => res.json({ received: true }));
 
+  return app;
+}
+
+async function attachFrontend(app: express.Express) {
+  // On Vercel, static files come from /public via CDN (express.static is ignored).
+  if (process.env.VERCEL) return;
+
   if (!isProd) {
-    const vite = await createViteServer({
+    const viteMod = await import('vite');
+    const vite = await viteMod.createServer({
       root: rootDir,
       server: { middlewareMode: true },
       appType: 'custom',
@@ -490,7 +529,7 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
     app.use('*', async (req, res, next) => {
       try {
         const url = req.originalUrl;
-        let template = await vite.transformIndexHtml(
+        const template = await vite.transformIndexHtml(
           url,
           await fs.readFile(path.join(rootDir, 'index.html'), 'utf-8'),
         );
@@ -500,24 +539,31 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
         next(e);
       }
     });
-  } else {
-    const clientDir = path.join(rootDir, 'dist', 'client');
-    app.use(express.static(clientDir));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(clientDir, 'index.html'));
-    });
+    return;
   }
 
-  return app;
+  const clientDir = path.join(rootDir, 'dist', 'client');
+  app.use(express.static(clientDir));
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(clientDir, 'index.html'));
+  });
 }
 
-createApp()
-  .then((app) => {
-    app.listen(PORT, HOST, () => {
-      console.log(`2Click Voice MoM listening on http://${HOST}:${PORT}`);
+const app = createApp();
+
+// Vercel Express runtime detects this default export (do not listen on Vercel).
+export default app;
+export { app, attachFrontend, createApp };
+
+if (!process.env.VERCEL) {
+  attachFrontend(app)
+    .then(() => {
+      app.listen(PORT, HOST, () => {
+        console.log(`2Click Voice MoM listening on http://${HOST}:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to start server', err);
+      process.exit(1);
     });
-  })
-  .catch((err) => {
-    console.error('Failed to start server', err);
-    process.exit(1);
-  });
+}
