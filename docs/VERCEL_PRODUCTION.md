@@ -27,16 +27,11 @@ Local verification already green: `npm run build:vercel` produces `public/` + `a
 
 | URL | Result |
 |-----|--------|
-| `https://www.2click.in/api/health` | **Still broken:** SPA `index.html` (GET 200 HTML). POST signup → **405**. |
-| GitHub → Vercel Production | Recent Production deployments **failed** (e.g. `dpl_53B2iq8V…`) — domain keeps serving an older static build without Express. |
-| Working temp API | Anonymous `vercel deploy --temporary` serves `/api/health` JSON + signup **201**. |
+| `https://www.2click.in/api/health` | **Still broken:** SPA HTML / signup **405** |
+| GitHub → Vercel Production | Repeated **failure** (zero-config `outputDirectory` + `api/` detection) |
+| Working Build Output API temp | `vercel deploy --prebuilt` after `node scripts/build-vercel-output.mjs` → health JSON + signup **201** |
 
-**Root cause:** code on `main` is fine (`api/index.js` + rewrites). **Production deploy on the Vercel project is failing**, so `www.2click.in` never gets the serverless function.
-
-**Fix path:**
-1. Merge deploy-hardening PR (esbuild in `dependencies`, Hobby-safe `maxDuration`, Node `22.x`).
-2. In Vercel dashboard: confirm Build Command = `npm run build:vercel`, then **Redeploy** latest main (or add `VERCEL_TOKEN` for the agent).
-3. Verify: `curl -sS https://www.2click.in/api/health` → JSON `"auth":true`.
+**Fix path:** deploy via **Build Output API** (`scripts/build-vercel-output.mjs`) so static + Express function are explicit. Merge that PR, then Redeploy Production (or claim a temp deploy and attach domains). Verify `curl -sS https://www.2click.in/api/health` is JSON.
 
 ---
 
