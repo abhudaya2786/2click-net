@@ -257,16 +257,24 @@ async def list_agreements(mode: str = "user", user_type: str = "customer"):
     return _agreements_for_mode(mode, user_type)
 
 
+AGREEMENT_ALIASES = {
+    "terms": "platform_terms",
+    "privacy": "privacy_policy",
+    "tos": "platform_terms",
+}
+
+
 @router.get("/agreements/{code}")
 async def get_agreement(code: str):
-    a = next((x for x in AGREEMENTS if x["code"] == code), None)
+    resolved = AGREEMENT_ALIASES.get(code, code)
+    a = next((x for x in AGREEMENTS if x["code"] == resolved), None)
     if not a:
         raise HTTPException(404, "Agreement not found")
     return a
 
 
-async def _user_dep():
-    return await _get_current_user()
+async def _user_dep(request: Request):
+    return await _get_current_user(request)
 
 
 @router.post("/complete")
@@ -393,7 +401,7 @@ async def complete_enrollment(body: EnrollmentCompleteIn, request: Request, resp
 
 @router.get("/receipt")
 async def enrollment_receipt(user=Depends(_user_dep)):
-    shops = await _db.shops.find({"owner_user_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    shops = await _db.shops.find({"owner_user_id": user["id"]}, {"_id": 0}).sort([("created_at", -1)]).to_list(50)
     shop = shops[0] if shops else None
     acceptances = await _db.agreement_acceptances.find({"user_id": user["id"]}, {"_id": 0}).to_list(100)
     agreements = []
@@ -542,7 +550,7 @@ async def admin_list_shops(status: Optional[str] = None, user=Depends(_user_dep)
     q = {}
     if status:
         q["status"] = status
-    return await _db.shops.find(q, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return await _db.shops.find(q, {"_id": 0}).sort([("created_at", -1)]).to_list(200)
 
 
 @admin_router.patch("/shops/{shop_id}/review")

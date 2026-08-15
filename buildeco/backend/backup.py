@@ -57,8 +57,12 @@ def run_backup(label: Optional[str] = None) -> dict:
     if dump_dir.exists():
         shutil.rmtree(dump_dir)
 
+    mongodump = shutil.which("mongodump")
+    if not mongodump:
+        raise FileNotFoundError("mongodump is not installed on this host")
+
     cmd = [
-        "mongodump",
+        mongodump,
         f"--uri={_mongo_uri()}",
         f"--db={_db_name()}",
         f"--out={dump_dir}",
@@ -126,6 +130,8 @@ def run_restore(backup_id: str) -> dict:
 async def create_backup(request: Request, user=Depends(rbac.rbac_super_admin)):
     try:
         meta = run_backup()
+    except FileNotFoundError as exc:
+        raise HTTPException(503, f"Backup unavailable: {exc}") from exc
     except Exception as exc:
         raise HTTPException(500, f"Backup failed: {exc}") from exc
     await rbac.audit_log("CREATE", "backup", meta["id"], None, meta, user=user, request=request)
