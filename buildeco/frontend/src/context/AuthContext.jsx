@@ -4,6 +4,8 @@ import { api } from "@/lib/api";
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
+const DEMO_USER_KEY = "bs_demo_user";
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,6 +13,19 @@ export function AuthProvider({ children }) {
   const loadMe = useCallback(async () => {
     const token = localStorage.getItem("bs_token");
     if (!token) { setLoading(false); return; }
+    if (token.startsWith("demo.")) {
+      try {
+        const stored = JSON.parse(localStorage.getItem(DEMO_USER_KEY) || "null");
+        setUser(stored);
+        if (!stored) localStorage.removeItem("bs_token");
+      } catch {
+        localStorage.removeItem("bs_token");
+        localStorage.removeItem(DEMO_USER_KEY);
+        setUser(null);
+      }
+      setLoading(false);
+      return;
+    }
     try {
       const { data } = await api.get("/auth/me");
       setUser(data);
@@ -29,12 +44,18 @@ export function AuthProvider({ children }) {
 
   const setSession = (token, u) => {
     if (token) localStorage.setItem("bs_token", token);
+    if (token && String(token).startsWith("demo.") && u) {
+      localStorage.setItem(DEMO_USER_KEY, JSON.stringify(u));
+    } else {
+      localStorage.removeItem(DEMO_USER_KEY);
+    }
     setUser(u);
   };
 
   const logout = async () => {
     try { await api.post("/auth/logout"); } catch {}
     localStorage.removeItem("bs_token");
+    localStorage.removeItem(DEMO_USER_KEY);
     setUser(null);
   };
 

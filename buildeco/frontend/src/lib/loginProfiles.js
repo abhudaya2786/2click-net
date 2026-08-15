@@ -107,3 +107,31 @@ export const LOGIN_PROFILES = [
 export function getProfile(id) {
   return LOGIN_PROFILES.find((p) => p.id === id) || LOGIN_PROFILES[0];
 }
+
+/** Merge /user-types into the login role grid (skip admin). */
+export function profilesFromUserTypes(types) {
+  const publicProfiles = LOGIN_PROFILES.filter((p) => p.id !== "admin");
+  const known = new Set(publicProfiles.map((p) => p.id));
+  const extra = [];
+  for (const ut of types || []) {
+    const code = ut?.code;
+    if (!code || known.has(code) || code === "super_admin" || code === "admin") continue;
+    extra.push({
+      id: code,
+      role: ut.role || code,
+      userType: code,
+      label: ut.label || code,
+      labelHi: ut.label || code,
+      subtitle: ut.label || code,
+      subtitleHi: ut.label || code,
+      icon: Package,
+      color: "text-primary",
+      bg: "bg-primary/10 border-primary/30",
+      features: [{ icon: Package, en: `${ut.label || code} workspace`, hi: ut.label || code }],
+      demo: null,
+      dashboard: ut.default_dashboard || ut.label || code,
+    });
+  }
+  extra.sort((a, b) => a.label.localeCompare(b.label));
+  return publicProfiles.concat(extra);
+}

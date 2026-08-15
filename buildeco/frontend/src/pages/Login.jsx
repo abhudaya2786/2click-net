@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -8,14 +8,17 @@ import {
   HardHat, Loader2, ArrowLeft, ShieldCheck, Languages, ChevronRight, LogIn,
 } from "lucide-react";
 import { toast } from "sonner";
-import { LOGIN_PROFILES } from "@/lib/loginProfiles";
+import { LOGIN_PROFILES, profilesFromUserTypes } from "@/lib/loginProfiles";
+import { formatLoginError, isDemoCredential } from "@/lib/loginError";
+import { buildLocalDemoSession } from "@/lib/demoAuth";
 import { useDemoMode } from "@/context/DemoModeContext";
 import AuthTabs from "@/components/auth/AuthTabs";
 
 const PUBLIC_LOGIN_PROFILES = LOGIN_PROFILES.filter((p) => p.id !== "admin");
 
-function getPublicProfile(id) {
-  return PUBLIC_LOGIN_PROFILES.find((p) => p.id === id) || PUBLIC_LOGIN_PROFILES[0];
+function getPublicProfile(id, list) {
+  const rows = list?.length ? list : PUBLIC_LOGIN_PROFILES;
+  return rows.find((p) => p.id === id) || rows[0];
 }
 
 export default function Login() {
@@ -23,6 +26,7 @@ export default function Login() {
   const nav = useNavigate();
   const [lang, setLang] = useState(() => localStorage.getItem("bs_lang") || "en");
   const [profileId, setProfileId] = useState("customer");
+  const [roleProfiles, setRoleProfiles] = useState(PUBLIC_LOGIN_PROFILES);
   const [stage, setStage] = useState("login");
   const [form, setForm] = useState({ email: "", password: "" });
   const [otp, setOtp] = useState("");
@@ -32,10 +36,21 @@ export default function Login() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const profile = getPublicProfile(profileId);
+  const profile = getPublicProfile(profileId, roleProfiles);
   const hi = lang === "hi";
-  const { openPanel } = useDemoMode();
+  const { openPanel, enableDemo } = useDemoMode();
   const t = (en, h) => (hi ? h : en);
+
+  useEffect(() => {
+    api.get("/user-types")
+      .then(({ data }) => {
+        const types = Array.isArray(data) ? data : data?.user_types || [];
+        if (types.length) setRoleProfiles(profilesFromUserTypes(types));
+      })
+      .catch(() => {
+        setRoleProfiles(PUBLIC_LOGIN_PROFILES);
+      });
+  }, []);
 
   const toggleLang = () => {
     const n = lang === "en" ? "hi" : "en";
@@ -62,16 +77,17 @@ export default function Login() {
         finish(data);
       }
     } catch (e2) {
-      if (!e2.response) {
-        setErr(
-          t(
-            "Cannot reach the server. If this persists, the API may be updating — try again in a minute.",
-            "सर्वर से कनेक्ट नहीं हो पाया। थोड़ी देर बाद फिर कोशिश करें।",
-          ),
-        );
-      } else {
-        setErr(formatApiErrorDetail(e2.response?.data?.detail) || e2.message);
+      if (isDemoCredential(creds.email, creds.password)) {
+        const data = buildLocalDemoSession(profileId);
+        enableDemo();
+        finish(data);
+        toast.message(t(
+          "Live demo users are not on this server — opened a local demo workspace.",
+          "लाइव डेमो यूज़र इस सर्वर पर नहीं हैं — लोकल डेमो वर्कस्पेस खोला गया।",
+        ));
+        return;
       }
+      setErr(formatLoginError(e2, { hi, email: creds.email, password: creds.password }));
     } finally {
       setBusy(false);
     }
@@ -91,7 +107,8 @@ export default function Login() {
 
   const selectProfile = (id) => {
     setProfileId(id);
-    const p = getPublicProfile(id);
+    setErr("");
+    const p = getPublicProfile(id, roleProfiles);
     if (p.demo) setForm({ email: p.demo.email, password: p.demo.password });
     else setForm({ email: "", password: "" });
   };
@@ -210,12 +227,12 @@ export default function Login() {
                   {t("Log in", "लॉग इन")}
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {t("Choose your role, then sign in", "अपनी भूमिका चुनें, फिर लॉग इन करें")}
+                  {t("Choose your login category, then sign in", "लॉगिन श्रेणी चुनें, फिर साइन इन करें")}
                 </p>
 
                 {/* Role selector */}
                 <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2" data-testid="login-role-grid">
-                  {PUBLIC_LOGIN_PROFILES.map((p) => {
+                  {roleProfiles.map((p) => {
                     const PIcon = p.icon;
                     const active = profileId === p.id;
                     return (
