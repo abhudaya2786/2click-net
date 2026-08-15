@@ -644,10 +644,13 @@ function AppContent() {
     <div className="app-shell text-slate-800 dark:text-slate-100 font-sans transition-colors">
       <MobileInstallBanner />
       <RecordingConsentBanner />
-      {/* Compact top bar — fits one viewport row */}
+      {/* Compact top bar — fits one viewport row; hidden on mobile meetings home (page owns brand) */}
       {currentRoute !== '/' && (
-      <header className="app-header shrink-0 z-40 pt-safe">
-        <div className="mx-auto max-w-6xl px-3 sm:px-4 h-[var(--app-header-h)] flex items-center gap-2 sm:gap-3">
+      <header
+        className={`app-header shrink-0 z-40 pt-safe ${
+          currentRoute === '/meetings' ? 'hidden md:block' : ''
+        }`}
+      >        <div className="mx-auto max-w-6xl px-3 sm:px-4 h-[var(--app-header-h)] flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => go('/meetings')}
             className="flex items-center gap-2.5 min-w-0 cursor-pointer text-left group"
@@ -1241,7 +1244,7 @@ function AppContent() {
 
       {/* Mobile bottom nav — floating app tab bar */}
       {currentRoute !== '/' && (
-      <nav id="mobile-bottom-nav" className="md:hidden shrink-0 no-print pt-1">
+      <nav id="mobile-bottom-nav" className="md:hidden no-print app-tabbar-wrap">
         <div className="app-tabbar grid grid-cols-4">
           {[
             { path: '/meetings', label: 'Meetings', icon: Layers, active: currentRoute.startsWith('/meetings') && currentRoute !== '/meetings/new' },
