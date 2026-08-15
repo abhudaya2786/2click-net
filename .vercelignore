@@ -1,4 +1,5 @@
-data/
+# Server-side runtime JSON only (auth/company). Do NOT ignore src/data/.
+/data/
 .env
 .env.*
 !.env.example
