@@ -5,6 +5,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { randomBytes } from 'crypto';
+import { resolveAppDataDir } from '../dataPath.ts';
 
 export type CompanyRole = 'owner' | 'manager' | 'employee';
 
@@ -88,7 +89,7 @@ const DEFAULT_ORG: CompanyOrgSettings = {
 function dataDir() {
   const override = String(process.env.COMPANY_DATA_DIR || '').trim();
   if (override) return path.resolve(override);
-  return path.join(process.cwd(), 'data', 'company');
+  return resolveAppDataDir('company');
 }
 
 function orgFile() {

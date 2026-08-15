@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { resolveApiUrl } from '../utils/apiBase.ts';
 
 export interface AuthUser {
   id: string;
@@ -78,9 +79,10 @@ async function authFetch(path: string, init: RequestInit = {}, token?: string | 
     ...(init.headers as Record<string, string> | undefined),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
+  const url = resolveApiUrl(path);
   let res: Response;
   try {
-    res = await fetch(path, { ...init, headers });
+    res = await fetch(url, { ...init, headers });
   } catch (e: any) {
     throw new Error(
       e?.message?.includes('Failed to fetch')
@@ -88,19 +90,34 @@ async function authFetch(path: string, init: RequestInit = {}, token?: string | 
         : e?.message || 'Network error during auth',
     );
   }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    if (res.status === 405) {
-      throw new Error(
-        'Signup/Sign-in API 405 (method not allowed). Backend auth route missing — server restart / redeploy karein.',
-      );
+  const contentType = res.headers.get('content-type') || '';
+  const rawBody = await res.text();
+  let data: any = {};
+  if (rawBody) {
+    try {
+      data = JSON.parse(rawBody);
+    } catch {
+      data = { error: rawBody.slice(0, 160) };
     }
+  }
+  const htmlLike =
+    contentType.includes('text/html') ||
+    (typeof data?.error === 'string' && data.error.trimStart().startsWith('<!'));
+
+  if (htmlLike || res.status === 405) {
+    throw new Error(
+      'Signup API band hai (405): www.2click.in pe /api serverless function missing. Vercel project pe Production Redeploy karein — Build Command must be `npm run build:vercel`.',
+    );
+  }
+  if (!res.ok) {
     if (res.status === 404) {
       throw new Error(
         'Auth API 404 — /api/v1/auth/* server pe nahi mila. Redeploy API (Vercel) karein.',
       );
     }
-    throw new Error(data.error || `Request failed (${res.status})`);
+    throw new Error(
+      (typeof data === 'object' && data && data.error) || `Request failed (${res.status})`,
+    );
   }
   return data;
 }

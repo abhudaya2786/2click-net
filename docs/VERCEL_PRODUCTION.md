@@ -27,11 +27,13 @@ Local verification already green: `npm run build:vercel` produces `public/` + `a
 
 | URL | Result |
 |-----|--------|
-| `https://2click.in` | `404` + `x-vercel-error: DEPLOYMENT_NOT_FOUND` |
-| `https://www.2click.in` | same |
-| `https://temporary-flying-cygnus-dou4esu.vercel.app` | `200` HTML + `/api/health` OK (older preview) |
+| `https://www.2click.in/api/health` | **Broken:** returns SPA `index.html` (GET 200 HTML). POST `/api/v1/auth/signup` → **405** + `content-disposition: filename="index.html"`. **No Express serverless function on this domain.** |
+| `https://2click.in` | 308 → `www.2click.in` |
+| Working API shape (anonymous temp deploy) | `/api/health` JSON with `"auth":true`; signup reaches Express (needs `/tmp` data dir — fixed in auth store) |
 
-**Meaning:** DNS already reaches Vercel, but the **project those hostnames are linked to has no active Production deployment** (or domains point at a removed/empty project). Fix by attaching domains to the **canonical 2click-net project** and creating a Production deployment — not by rebuilding the app architecture.
+**Root cause of signup 405:** custom domain deployment is **static-only** (or build skipped `api/index.js`). Frontend is fine; `/api/*` never hits Express.
+
+**Fix:** Redeploy Production from repo with `vercel.json` → `npm run build:vercel` so `public/` **and** `api/index.js` ship. Confirm Build Command in dashboard is not overridden to client-only `vite build`.
 
 ---
 

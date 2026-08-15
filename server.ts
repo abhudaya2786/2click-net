@@ -163,8 +163,11 @@ function createApp() {
       openai: Boolean(process.env.OPENAI_API_KEY),
       demoMode: !hasAiApiKey(),
       auth: true,
+      /** File auth on Vercel uses /tmp (not multi-instance durable). */
+      authDurable: !process.env.VERCEL,
       enterprise: true,
       rateLimit: true,
+      vercel: Boolean(process.env.VERCEL),
     });
   });
 
