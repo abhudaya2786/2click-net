@@ -102,17 +102,22 @@ async function authFetch(path: string, init: RequestInit = {}, token?: string | 
   }
   const htmlLike =
     contentType.includes('text/html') ||
-    (typeof data?.error === 'string' && data.error.trimStart().startsWith('<!'));
+    (typeof data?.error === 'string' &&
+      (data.error.trimStart().startsWith('<!') || /cannot post/i.test(data.error)));
 
   if (htmlLike || res.status === 405) {
+    const expressMissingRoute =
+      typeof data?.error === 'string' && /cannot post/i.test(data.error);
     throw new Error(
-      'Signup API band hai (405): www.2click.in pe /api serverless function missing. Vercel project pe Production Redeploy karein — Build Command must be `npm run build:vercel`.',
+      expressMissingRoute || res.status === 404
+        ? 'Auth API 404: yeh server purana hai — /api/v1/auth/signup route nahi mila. Latest Vercel deploy (Build Output API) use karo, purana preview mat kholo.'
+        : 'Signup API band hai (405): www.2click.in pe Express /api missing. Vercel pe working deploy claim karke domain lagao, ya Production Redeploy (npm run build:vercel).',
     );
   }
   if (!res.ok) {
     if (res.status === 404) {
       throw new Error(
-        'Auth API 404 — /api/v1/auth/* server pe nahi mila. Redeploy API (Vercel) karein.',
+        'Auth API 404 — /api/v1/auth/* is server pe nahi hai (purana deploy). Naya API deploy / domain attach karein.',
       );
     }
     throw new Error(

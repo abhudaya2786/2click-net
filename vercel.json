@@ -1,16 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install",
-  "buildCommand": "npm run build:vercel",
-  "outputDirectory": "public",
-  "framework": null,
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" },
-    { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
-  ]
+  "buildCommand": "node scripts/build-vercel-output.mjs"
 }

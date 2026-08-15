@@ -1,0 +1,60 @@
+# Deploys when Vercel Git integration is broken.
+# Requires repo secrets: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+name: Deploy Vercel Production (prebuilt)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'server/**'
+      - 'src/**'
+      - 'scripts/build-vercel-output.mjs'
+      - 'vercel.json'
+      - 'package.json'
+      - 'package-lock.json'
+
+concurrency:
+  group: vercel-prod
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Vercel secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "Missing VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID — skip deploy."
+            echo "skipped=true" >> "$GITHUB_ENV"
+          else
+            echo "skipped=false" >> "$GITHUB_ENV"
+          fi
+      - uses: actions/checkout@v4
+        if: env.skipped != 'true'
+      - uses: actions/setup-node@v4
+        if: env.skipped != 'true'
+        with:
+          node-version: '22'
+          cache: npm
+      - if: env.skipped != 'true'
+        run: npm ci
+      - if: env.skipped != 'true'
+        run: node scripts/build-vercel-output.mjs
+      - name: Pull Vercel project settings
+        if: env.skipped != 'true'
+        run: npx vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Deploy prebuilt to Production
+        if: env.skipped != 'true'
+        run: npx vercel deploy --prebuilt --prod --yes --token="${{ secrets.VERCEL_TOKEN }}"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
