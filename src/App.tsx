@@ -85,7 +85,6 @@ import { RecordingsLibraryView } from './components/recordings/RecordingsLibrary
 import { LandingPage } from './components/landing/LandingPage';
 import { RecordingConsentBanner } from './components/recording/RecordingConsentBanner';
 import { PhoneCallView } from './components/phone/PhoneCallView';
-import { DesignStudioPage } from './pages/DesignStudio';
 
 const LOCAL_STORAGE_KEY = 'voice_mom_saved_meetings_v1';
 const SCHEDULED_EVENTS_KEY = 'voice_mom_scheduled_events_v1';
@@ -113,8 +112,7 @@ function AppContent() {
       p === '/company' ||
       p === '/files' ||
       p === '/phone' ||
-      p === '/phone-call' ||
-      p === '/design'
+      p === '/phone-call'
     ) {
       return p === '/login' ? '/signin' : p === '/sales' ? '/for-real-estate' : p === '/phone-call' ? '/phone' : p;
     }
@@ -946,10 +944,6 @@ function AppContent() {
           <RecordingsLibraryView
             onOpenMeeting={(id) => navigate(`/meetings/${id}`)}
           />
-        </main>
-      ) : currentRoute === '/design' ? (
-        <main>
-          <DesignStudioPage />
         </main>
       ) : currentRoute === '/meetings' ? (
         <main>
