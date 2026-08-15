@@ -7,6 +7,8 @@ import {
   Radio,
   Sparkles,
   ChevronRight,
+  Inbox,
+  Mic,
 } from 'lucide-react';
 import { FullMeetingRecord } from '../../types';
 import { meetingDb } from '../../utils/meetingDatabase';
@@ -55,54 +57,87 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
   }, [selectedDept, selectedStatus, searchQuery]);
 
   const recordingCount = meetings.filter((m) => m.status === 'RECORDING').length;
+  const readyCount = meetings.filter((m) => m.status === 'READY').length;
 
   return (
-    <div className="w-full">
-      {/* App home — brand first, readable on phone */}
-      <section
-        className="mb-5 relative overflow-hidden rounded-2xl px-5 py-6 sm:px-6 sm:py-7 text-white"
-        style={{
-          background: 'linear-gradient(145deg, #0b4bd5 0%, #0a3aa8 55%, #0d2c6b 100%)',
-        }}
-      >
-        <div className="ai-orb w-40 h-40 bg-sky-300/25 -top-8 -right-6" aria-hidden />
-        <div className="relative z-10">
-          <h1 className="app-readable-title text-white">2Click</h1>
-          <p className="mt-2 app-readable-sub text-white">
-            Aapka AI meeting studio
-          </p>
-          <p className="mt-2 app-readable-body text-sky-50/95 max-w-md">
-            Record karein → transcript mile → Minutes of Meeting ban jaaye.
-            Hindi, English, Hinglish.
-          </p>
-          <div className="mt-5 flex flex-col xs:flex-row sm:flex-row gap-2.5">
+    <div className="w-full pb-4">
+      {/* Paytm-style navy/cyan hero */}
+      <section className="paytm-hero">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+              <Mic className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-display text-xl font-extrabold tracking-tight truncate">2Click</div>
+              <div className="text-sm text-sky-100/90 font-medium">Namaste · Voice MoM</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate('/account')}
+            className="shrink-0 rounded-full bg-white/15 border border-white/25 text-white text-sm font-bold px-3.5 py-2"
+          >
+            Account
+          </button>
+        </div>
+
+        <div className="relative z-10 mt-5 rounded-2xl bg-white/12 border border-white/20 px-4 py-3.5 backdrop-blur-sm">
+          <p className="text-sky-100 text-sm font-medium">Aaj ki activity</p>
+          <div className="mt-1 flex items-end justify-between gap-3">
+            <div>
+              <div className="font-display text-3xl font-extrabold tracking-tight">
+                {meetings.length}
+                <span className="text-lg font-bold text-sky-100 ml-1.5">meetings</span>
+              </div>
+              <p className="mt-1 text-sm text-sky-100/90">
+                {readyCount} ready
+                {recordingCount > 0 ? ` · ${recordingCount} live` : ''}
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => onNavigate('/meetings/new')}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-hs-800 font-bold text-base px-5 py-3.5 min-h-12 active:scale-[0.98]"
+              className="rounded-full bg-[#00baf2] text-white font-bold text-sm px-4 py-2.5 shadow-lg shadow-cyan-500/30 active:scale-[0.98]"
             >
-              <Plus className="w-5 h-5" />
-              Nayi meeting
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate('/mom')}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 text-white font-bold text-base px-5 py-3.5 min-h-12 active:scale-[0.98]"
-            >
-              <Sparkles className="w-5 h-5" />
-              MoM AI kholo
+              + Nayi
             </button>
           </div>
-          {recordingCount > 0 && (
-            <p className="mt-4 text-sm font-bold text-rose-100 flex items-center gap-2">
-              <Radio className="w-4 h-4 animate-pulse" />
-              {recordingCount} live recording chal rahi hai
-            </p>
-          )}
         </div>
       </section>
 
-      <div className="mb-4 space-y-3">
+      {/* Overlapping white sheet with quick actions */}
+      <div className="paytm-sheet">
+        <p className="paytm-section-title mb-3">Quick actions</p>
+        <div className="paytm-action-grid">
+          <button type="button" className="paytm-action" onClick={() => onNavigate('/meetings/new')}>
+            <span className="paytm-action-icon">
+              <Plus className="w-6 h-6" />
+            </span>
+            <span className="paytm-action-label">New</span>
+          </button>
+          <button type="button" className="paytm-action" onClick={() => onNavigate('/mom')}>
+            <span className="paytm-action-icon">
+              <Sparkles className="w-6 h-6" />
+            </span>
+            <span className="paytm-action-label">MoM AI</span>
+          </button>
+          <button type="button" className="paytm-action" onClick={() => onNavigate('/field-talk')}>
+            <span className="paytm-action-icon">
+              <Radio className="w-6 h-6" />
+            </span>
+            <span className="paytm-action-label">Talk</span>
+          </button>
+          <button type="button" className="paytm-action" onClick={() => onNavigate('/inbox')}>
+            <span className="paytm-action-icon">
+              <Inbox className="w-6 h-6" />
+            </span>
+            <span className="paytm-action-label">Inbox</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="px-3.5 mt-4 space-y-3">
         <div className="relative">
           <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -111,14 +146,15 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Meeting dhundo…"
             aria-label="Search meetings"
-            className="w-full pl-11 pr-4 py-3.5 bg-white/95 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-2xl text-base text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-hs-500/40"
+            className="w-full pl-11 pr-4 py-3.5 bg-white border-0 rounded-2xl text-base text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00baf2]/40"
           />
         </div>
-        <div className="hidden sm:flex flex-wrap items-center gap-2">
+
+        <div className="hidden sm:flex flex-wrap items-center gap-2 px-0.5">
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold"
+            className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold"
             aria-label="Filter by status"
           >
             {STATUS_FILTERS.map((s) => (
@@ -133,10 +169,10 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
                 key={dept}
                 type="button"
                 onClick={() => setSelectedDept(dept)}
-                className={`px-3.5 py-2 rounded-lg text-sm font-bold transition whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-full text-sm font-bold transition whitespace-nowrap ${
                   selectedDept === dept
-                    ? 'bg-hs-600 text-white'
-                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+                    ? 'bg-[#00baf2] text-white'
+                    : 'bg-white text-slate-600 border border-slate-200'
                 }`}
               >
                 {dept}
@@ -144,78 +180,79 @@ export const MeetingListView: React.FC<MeetingListViewProps> = ({ onNavigate, on
             ))}
           </div>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="py-16 text-center text-slate-500">
-          <div className="w-8 h-8 border-2 border-hs-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-base font-semibold">Meetings load ho rahi hain…</p>
+        <div className="flex items-center justify-between px-0.5 pt-1">
+          <h2 className="paytm-section-title">Aapki meetings</h2>
+          <span className="text-sm font-semibold text-slate-500">{meetings.length}</span>
         </div>
-      ) : meetings.length > 0 ? (
-        <div className="grid grid-cols-1 gap-3">
-          {meetings.map((m) => (
-            <div
-              key={m.id}
-              role="button"
-              tabIndex={0}
-              onClick={() => {
-                if (onSelectMeeting) onSelectMeeting(m.id);
-                onNavigate(`/meetings/${m.id}`);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onNavigate(`/meetings/${m.id}`);
-                }
-              }}
-              className="app-list-row"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-hs-50 dark:bg-hs-900/40 text-hs-700 dark:text-hs-300 flex items-center justify-center shrink-0">
-                {m.status === 'RECORDING' ? (
-                  <Radio className="w-6 h-6 text-rose-500 animate-pulse" />
-                ) : (
-                  <Layers className="w-6 h-6" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <MeetingStateBadge status={m.status} size="md" />
-                  <span className="text-sm font-bold text-slate-500 dark:text-slate-400 truncate">
-                    {m.department}
-                  </span>
-                </div>
-                <h3 className="app-list-row-title truncate">{m.title}</h3>
-                <p className="app-list-row-meta truncate">
-                  {m.date} · {m.startTime} · {m.participants.length} log
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="py-14 text-center px-4">
-          <div className="w-16 h-16 rounded-2xl bg-hs-50 dark:bg-hs-900 text-hs-600 flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-8 h-8" />
+
+        {loading ? (
+          <div className="py-14 text-center text-slate-500">
+            <div className="w-8 h-8 border-2 border-[#00baf2] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-base font-semibold">Meetings load ho rahi hain…</p>
           </div>
-          <h3 className="font-display text-xl font-bold text-slate-900 dark:text-white mb-2">
-            Abhi koi meeting nahi
-          </h3>
-          <p className="text-base text-slate-600 dark:text-slate-400 max-w-sm mx-auto mb-6 leading-relaxed">
-            Nayi meeting banao — record, transcript, aur Minutes of Meeting ek jagah.
-          </p>
-          <button type="button" onClick={() => onNavigate('/meetings/new')} className="btn-hs text-base">
-            <Plus className="w-5 h-5" />
-            Meeting banao
-          </button>
-        </div>
-      )}
+        ) : meetings.length > 0 ? (
+          <div className="grid grid-cols-1 gap-2.5">
+            {meetings.map((m) => (
+              <div
+                key={m.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (onSelectMeeting) onSelectMeeting(m.id);
+                  onNavigate(`/meetings/${m.id}`);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onNavigate(`/meetings/${m.id}`);
+                  }
+                }}
+                className="app-list-row"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-[#e8f9fe] text-[#002e6e] flex items-center justify-center shrink-0">
+                  {m.status === 'RECORDING' ? (
+                    <Radio className="w-6 h-6 text-rose-500 animate-pulse" />
+                  ) : (
+                    <Layers className="w-6 h-6" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <MeetingStateBadge status={m.status} size="md" />
+                    <span className="text-sm font-bold text-slate-500 truncate">{m.department}</span>
+                  </div>
+                  <h3 className="app-list-row-title truncate">{m.title}</h3>
+                  <p className="app-list-row-meta truncate">
+                    {m.date} · {m.startTime} · {m.participants.length} log
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-300 shrink-0" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-12 text-center px-4 bg-white rounded-2xl shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-[#e8f9fe] text-[#002e6e] flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8" />
+            </div>
+            <h3 className="font-display text-xl font-bold text-slate-900 mb-2">Abhi koi meeting nahi</h3>
+            <p className="text-base text-slate-600 max-w-sm mx-auto mb-6 leading-relaxed">
+              Nayi meeting banao — record, transcript, aur Minutes of Meeting.
+            </p>
+            <button type="button" onClick={() => onNavigate('/meetings/new')} className="btn-hs">
+              <Plus className="w-5 h-5" />
+              Meeting banao
+            </button>
+          </div>
+        )}
+      </div>
 
       <button
         type="button"
         aria-label="Create new meeting"
         onClick={() => onNavigate('/meetings/new')}
-        className="md:hidden fixed z-30 right-4 bottom-[calc(var(--app-bottom-h)+0.85rem)] w-14 h-14 rounded-2xl bg-hs-600 text-white flex items-center justify-center shadow-lg shadow-hs-600/30 active:scale-95"
+        className="md:hidden fixed z-30 right-4 bottom-[calc(var(--app-bottom-h)+0.85rem)] w-14 h-14 rounded-full bg-[#00baf2] text-white flex items-center justify-center shadow-lg shadow-cyan-500/40 active:scale-95"
       >
         <Plus className="w-7 h-7" />
       </button>

@@ -655,12 +655,12 @@ function AppContent() {
             onClick={() => go('/meetings')}
             className="flex items-center gap-2.5 min-w-0 cursor-pointer text-left group"
           >
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-hs-500 to-hs-700 text-white flex items-center justify-center group-hover:brightness-110 transition">
+            <div className="w-8 h-8 rounded-xl bg-[#00baf2] text-white flex items-center justify-center group-hover:brightness-110 transition">
               <Mic className="w-4 h-4" />
             </div>
             <div className="min-w-0 leading-tight">
-              <div className="font-display text-base sm:text-[15px] font-extrabold tracking-tight text-slate-950 dark:text-white truncate">
-                2Click<span className="hs-accent">MoM</span>
+              <div className="font-display text-base sm:text-[15px] font-extrabold tracking-tight text-[#002e6e] dark:text-white truncate">
+                2Click<span className="text-[#00baf2]">MoM</span>
               </div>
               <div className="hidden sm:block text-xs font-semibold text-slate-500">
                 Voice MoM · 2click.in
