@@ -10,6 +10,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
     },
   },
+  // Avoid Vite publicDir === outDir conflict (breaks Vercel/static copy).
+  publicDir: false,
   build: {
     outDir: 'dist/client',
     emptyOutDir: true,

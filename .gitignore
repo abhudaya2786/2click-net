@@ -1,6 +1,9 @@
 node_modules/
 build/
 dist/
+public/
+api/index.js
+api/index.js.map
 coverage/
 .DS_Store
 *.log
@@ -9,3 +12,5 @@ coverage/
 !.env.example
 .vite/
 *.local
+.vercel/
+.vercel
