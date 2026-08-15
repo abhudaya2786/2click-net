@@ -53,7 +53,7 @@ TRANSCRIPT:
 ${transcript}
 """`;
 
-    const modelName = 'gemini-3.7-flash';
+    const modelName = process.env.GEMINI_MODEL || process.env.GEMINI_FIELD_MODEL || 'gemini-2.5-flash';
 
     const response = await ai.models.generateContent({
       model: modelName,

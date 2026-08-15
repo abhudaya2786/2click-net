@@ -15,6 +15,11 @@ import { enterpriseConfig } from './server/config/env.ts';
 import { registerAuthRoutes } from './server/auth/index.ts';
 import { registerCompanyOrgRoutes } from './server/org/index.ts';
 import { redactCommandTriggers } from './src/utils/wakeWordRedaction.ts';
+import {
+  createRateLimiter,
+  requireAuthWhenLiveAi,
+  sanitizePublicError,
+} from './server/security/middleware.ts';
 
 const rootDir = process.cwd();
 const isProd = process.env.NODE_ENV === 'production';
@@ -23,6 +28,10 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 /** In-memory Instant Save store for command sessions (user-scoped). */
 const instantConversations: any[] = [];
+
+const aiRateLimit = createRateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'ai' });
+const generalRateLimit = createRateLimiter({ windowMs: 60_000, max: 120, keyPrefix: 'api' });
+const requireLiveAiAuth = requireAuthWhenLiveAi();
 
 function requireLiveAi() {
   if (!hasAiApiKey()) {
@@ -120,7 +129,8 @@ function minutesToMeeting(minutes: any, opts: {
 
 function createApp() {
   const app = express();
-  app.use(express.json({ limit: '40mb' }));
+  app.use(express.json({ limit: '12mb' }));
+  app.use('/api', generalRateLimit);
 
   app.get('/api/health', (_req, res) => {
     res.json({
@@ -129,6 +139,9 @@ function createApp() {
       gemini: Boolean(process.env.GEMINI_API_KEY),
       openai: Boolean(process.env.OPENAI_API_KEY),
       demoMode: !hasAiApiKey(),
+      auth: true,
+      enterprise: true,
+      rateLimit: true,
     });
   });
 
@@ -142,7 +155,7 @@ function createApp() {
   registerCompanyOrgRoutes(app);
 
   // Core: generate MoM from audio and/or transcript text
-  app.post('/api/generate-mom', async (req, res) => {
+  app.post('/api/generate-mom', aiRateLimit, requireLiveAiAuth, async (req, res) => {
     try {
       const { audioBase64, mimeType, transcriptText, context } = req.body || {};
       let transcript = typeof transcriptText === 'string' ? transcriptText.trim() : '';
@@ -315,7 +328,7 @@ function createApp() {
     });
   });
 
-  app.post('/api/transcribe', async (req, res) => {
+  app.post('/api/transcribe', aiRateLimit, requireLiveAiAuth, async (req, res) => {
     try {
       requireLiveAi();
       const speech = getSpeechProvider(req.body?.provider || process.env.AI_PROVIDER);
@@ -350,14 +363,22 @@ function createApp() {
     }
   });
 
-  app.post('/api/minutes/generate', async (req, res) => {
+  app.post('/api/minutes/generate', aiRateLimit, requireLiveAiAuth, async (req, res) => {
     try {
       if (!req.body?.transcript || String(req.body.transcript).trim().length < 10) {
         return res.status(400).json({ error: 'transcript is required (min 10 characters).' });
       }
+      let transcript = String(req.body.transcript);
+      transcript = redactCommandTriggers(transcript);
+      const privacy = preprocessTranscriptForEnterprise(transcript, {
+        redactPii: enterpriseConfig.piiRedactionEnabled,
+        discardChatter: enterpriseConfig.discardSmallTalk,
+      });
+      if (privacy.cleanedText.length >= 8) transcript = privacy.cleanedText;
+
       const ai = getAIProvider(req.body?.provider || process.env.AI_PROVIDER);
       const minutes = await ai.generateMinutes({
-        transcript: req.body.transcript,
+        transcript,
         meetingId: req.body.meetingId,
         meetingTitle: req.body.meetingTitle,
         meetingDate: req.body.meetingDate,
@@ -389,14 +410,18 @@ function createApp() {
         ...minutes,
         raw_decisions,
         action_items,
+        privacy: {
+          redactions: privacy.redactions,
+          discardedLines: privacy.discardedLines,
+        },
       });
     } catch (e: any) {
       console.error('[minutes/generate]', e);
-      res.status(e.status || 500).json({ error: e.message || 'Minutes generation failed' });
+      res.status(e.status || 500).json({ error: sanitizePublicError(e, 'Minutes generation failed') });
     }
   });
 
-  app.post('/api/chat-meeting', async (req, res) => {
+  app.post('/api/chat-meeting', aiRateLimit, requireLiveAiAuth, async (req, res) => {
     try {
       const { meetingData, currentPrompt } = req.body || {};
       if (!hasAiApiKey()) {
@@ -430,7 +455,7 @@ QUESTION: ${currentPrompt}`,
     }
   });
 
-  app.post('/api/generate-email', async (req, res) => {
+  app.post('/api/generate-email', aiRateLimit, requireLiveAiAuth, async (req, res) => {
     try {
       const { meetingData, emailStyle, recipient } = req.body || {};
       if (!hasAiApiKey()) {
@@ -594,7 +619,14 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
 
   // Billing stubs
   app.get('/api/billing/plans', (_req, res) => res.json({ success: true, plans: SAAS_PLANS }));
-  app.get('/api/billing/config', (_req, res) => res.json({ success: true, provider: process.env.BILLING_PROVIDER || 'mock' }));
+  app.get('/api/billing/config', (_req, res) =>
+    res.json({
+      success: true,
+      provider: process.env.BILLING_PROVIDER || 'mock',
+      liveCharges: false,
+      note: 'Checkout is simulated until Stripe/Razorpay secrets are configured and adapters call live SDKs.',
+    }),
+  );
   app.get('/api/billing/subscription', (_req, res) => res.json({ success: true, subscription: { tier: 'FREE', status: 'active' } }));
   app.get('/api/billing/usage', (_req, res) => res.json({ success: true, usage: { meetings: 0, minutes: 0 } }));
   app.get('/api/billing/invoices', (_req, res) => res.json({ success: true, invoices: [] }));
@@ -609,8 +641,18 @@ ${JSON.stringify(meetingData || {}, null, 2)}`,
   app.post('/api/billing/confirm-checkout', (_req, res) => res.json({ success: true }));
   app.post('/api/billing/cancel', (_req, res) => res.json({ success: true }));
   app.post('/api/billing/usage/simulate', (_req, res) => res.json({ success: true }));
-  app.post('/api/billing/webhook/stripe', (_req, res) => res.json({ received: true }));
-  app.post('/api/billing/webhook/razorpay', (_req, res) => res.json({ received: true }));
+  app.post('/api/billing/webhook/stripe', (_req, res) =>
+    res.status(501).json({
+      received: false,
+      error: 'Stripe webhook verification not configured. Set STRIPE_WEBHOOK_SECRET and implement signature check before enabling.',
+    }),
+  );
+  app.post('/api/billing/webhook/razorpay', (_req, res) =>
+    res.status(501).json({
+      received: false,
+      error: 'Razorpay webhook verification not configured.',
+    }),
+  );
 
   return app;
 }

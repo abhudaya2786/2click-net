@@ -41,7 +41,7 @@ Produce exact, timestamped dialogue segments with:
 - language ("Hindi", "English", or "Hinglish")`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.7-flash',
+      model: process.env.GEMINI_MODEL || process.env.GEMINI_FIELD_MODEL || 'gemini-2.5-flash',
       contents: {
         parts: [
           {
@@ -100,7 +100,7 @@ Produce exact, timestamped dialogue segments with:
       fullTranscript: parsed.fullTranscript || segments.map((s) => `${s.speaker}: ${s.text}`).join('\n'),
       detectedLanguage: parsed.detectedLanguage || 'Multilingual (English/Hindi/Hinglish)',
       segments,
-      modelUsed: 'gemini-3.7-flash',
+      modelUsed: process.env.GEMINI_MODEL || process.env.GEMINI_FIELD_MODEL || 'gemini-2.5-flash',
     };
   }
 }

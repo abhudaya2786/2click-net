@@ -14,6 +14,10 @@ import {
   privacyPreview,
 } from '../controllers/fieldVisitController.ts';
 import { fieldAnalytics } from '../controllers/analyticsController.ts';
+import { createRateLimiter, requireAuth, requireAuthWhenLiveAi } from '../security/middleware.ts';
+
+const fieldAiGate = requireAuthWhenLiveAi();
+const fieldRate = createRateLimiter({ windowMs: 60_000, max: 40, keyPrefix: 'field' });
 
 /**
  * Mount enterprise field-workforce routes WITHOUT removing existing MoM routes.
@@ -26,16 +30,16 @@ export function registerEnterpriseRoutes(app: Express) {
   app.post('/api/webhook/whatsapp', receiveWhatsAppWebhook);
 
   // Field visit pipeline
-  app.post('/api/field/process', processFieldVisit);
-  app.get('/api/field/visits', listVisits);
-  app.get('/api/field/visits/:id', getVisit);
+  app.post('/api/field/process', fieldRate, fieldAiGate, processFieldVisit);
+  app.get('/api/field/visits', requireAuth, listVisits);
+  app.get('/api/field/visits/:id', requireAuth, getVisit);
   app.post('/api/field/privacy/preview', privacyPreview);
-  app.post('/api/field/visits/:id/notify', resendOwnerSummary);
-  app.get('/api/field/analytics', fieldAnalytics);
+  app.post('/api/field/visits/:id/notify', requireAuth, resendOwnerSummary);
+  app.get('/api/field/analytics', requireAuth, fieldAnalytics);
 
-  // Serve generated PDFs
+  // Serve generated PDFs — require auth (no public dump)
   const pdfDir = path.resolve(process.cwd(), enterpriseConfig.fieldVisit.pdfStorageDir);
-  app.use('/api/field/pdfs', express.static(pdfDir));
+  app.use('/api/field/pdfs', requireAuth, express.static(pdfDir));
 
   // Health extension (additive path — does not replace /api/health)
   app.get('/api/enterprise/health', (_req, res) => {

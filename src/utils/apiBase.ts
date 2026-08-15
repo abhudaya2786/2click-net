@@ -13,7 +13,16 @@ declare global {
   }
 }
 
-const DEFAULT_API_BASE = 'https://temporary-flying-cygnus-dou4esu.vercel.app';
+const DEFAULT_API_BASE = '';
+
+/**
+ * Prefer VITE_API_BASE_URL / window override.
+ * Native APK without env falls back to https://2click.in (canonical production).
+ * Temporary Vercel preview hosts must be set explicitly via VITE_API_BASE_URL.
+ */
+function nativeFallbackBase(): string {
+  return 'https://2click.in';
+}
 
 export function getApiBase(): string {
   const fromWindow =
@@ -21,10 +30,8 @@ export function getApiBase(): string {
       ? String(window.__MOM_API_BASE__).trim()
       : '';
   const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim();
-  return (fromWindow || fromEnv || (Capacitor.isNativePlatform() ? DEFAULT_API_BASE : '')).replace(
-    /\/$/,
-    '',
-  );
+  const fallback = Capacitor.isNativePlatform() ? nativeFallbackBase() : DEFAULT_API_BASE;
+  return (fromWindow || fromEnv || fallback).replace(/\/$/, '');
 }
 
 export function resolveApiUrl(input: string): string {

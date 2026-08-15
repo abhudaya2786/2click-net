@@ -654,7 +654,7 @@ class MeetingDatabaseClient {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer active-user-session',
-          'x-user-email': request.userEmail || 'shrinet.info@gmail.com',
+          'x-user-email': request.userEmail || 'anonymous@local',
         },
         body: JSON.stringify(request),
       });
