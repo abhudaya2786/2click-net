@@ -90,6 +90,7 @@ function AppContent() {
   };
 
   const { voiceCommandProvider } = useVoice();
+  const { user, isAuthenticated, signout } = useAuth();
 
   // Bind Global Voice Actions
   useEffect(() => {
@@ -643,6 +644,41 @@ function AppContent() {
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
+            {isAuthenticated && user ? (
+              <button
+                id="account-header-btn"
+                onClick={() => go('/account')}
+                className="btn-hs-secondary !px-2.5 max-w-[9rem]"
+                title={`Signed in as @${user.userId}`}
+              >
+                <User className="w-3.5 h-3.5 text-hs-600" />
+                <span className="hidden sm:inline truncate font-mono text-[11px]">
+                  @{user.userId}
+                </span>
+              </button>
+            ) : (
+              <>
+                <button
+                  id="signin-header-btn"
+                  onClick={() => go('/signin')}
+                  className="btn-hs-secondary !px-2.5"
+                  title="Sign In"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Sign In</span>
+                </button>
+                <button
+                  id="signup-header-btn"
+                  onClick={() => go('/signup')}
+                  className="btn-hs !px-2.5"
+                  title="Sign Up"
+                >
+                  <span className="hidden sm:inline">Sign Up</span>
+                  <span className="sm:hidden">Join</span>
+                </button>
+              </>
+            )}
+
             <button
               onClick={() => go('/meetings/new')}
               className="btn-hs"
@@ -720,6 +756,28 @@ function AppContent() {
                         </button>
                       );
                     })}
+                    {isAuthenticated ? (
+                      <button
+                        id="signout-menu-btn"
+                        onClick={() => {
+                          setIsMoreOpen(false);
+                          void signout().then(() => navigate('/signin'));
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                      >
+                        <LogIn className="w-3.5 h-3.5 shrink-0 rotate-180" />
+                        Sign out
+                      </button>
+                    ) : (
+                      <button
+                        id="signin-menu-btn"
+                        onClick={() => go('/signin')}
+                        className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left text-xs font-semibold text-hs-700 dark:text-hs-300 hover:bg-hs-50 dark:hover:bg-hs-950/40 cursor-pointer"
+                      >
+                        <LogIn className="w-3.5 h-3.5 shrink-0" />
+                        Sign In / Sign Up
+                      </button>
+                    )}
                     <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
                     <button
                       id="open-scheduler-btn"
@@ -762,7 +820,19 @@ function AppContent() {
 
       <div className="app-main-inner">
       {/* Main Container Routed Views */}
-      {currentRoute === '/settings/location' || currentRoute === '/settings/geofence' ? (
+      {currentRoute === '/signin' || currentRoute === '/login' ? (
+        <main>
+          <AuthView mode="signin" onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/signup' ? (
+        <main>
+          <AuthView mode="signup" onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/account' ? (
+        <main>
+          <AccountView onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/settings/location' || currentRoute === '/settings/geofence' ? (
         <main>
           <LocationGeofenceSettingsView onNavigate={navigate} />
         </main>
@@ -1186,16 +1256,18 @@ function AppContent() {
 
 export default function App() {
   return (
-    <VoiceProvider>
-      <ScheduleProvider>
-        <GeofenceProvider>
-          <PrivacyProvider>
-            <SubscriptionProvider>
-              <AppContent />
-            </SubscriptionProvider>
-          </PrivacyProvider>
-        </GeofenceProvider>
-      </ScheduleProvider>
-    </VoiceProvider>
+    <AuthProvider>
+      <VoiceProvider>
+        <ScheduleProvider>
+          <GeofenceProvider>
+            <PrivacyProvider>
+              <SubscriptionProvider>
+                <AppContent />
+              </SubscriptionProvider>
+            </PrivacyProvider>
+          </GeofenceProvider>
+        </ScheduleProvider>
+      </VoiceProvider>
+    </AuthProvider>
   );
 }
