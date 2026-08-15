@@ -42,7 +42,9 @@ jobs:
 
       - name: Build debug APK
         env:
-          CAPACITOR_SERVER_URL: ${{ inputs.server_url || 'https://2click.in' }}
+          # Empty = bundled WebView assets (safe while 2click.in Production is down)
+          CAPACITOR_SERVER_URL: ${{ inputs.server_url }}
+          VITE_API_BASE_URL: https://temporary-flying-cygnus-dou4esu.vercel.app
         run: bash scripts/build-apk.sh
 
       - name: Upload APK artifact
