@@ -365,10 +365,14 @@ function createApp() {
 
   app.post('/api/minutes/generate', aiRateLimit, requireLiveAiAuth, async (req, res) => {
     try {
-      if (!req.body?.transcript || String(req.body.transcript).trim().length < 10) {
-        return res.status(400).json({ error: 'transcript is required (min 10 characters).' });
+      const rawTranscript =
+        req.body?.transcript ?? req.body?.transcriptText ?? req.body?.text ?? '';
+      if (!rawTranscript || String(rawTranscript).trim().length < 10) {
+        return res.status(400).json({
+          error: 'transcript is required (min 10 characters).',
+        });
       }
-      let transcript = String(req.body.transcript);
+      let transcript = String(rawTranscript);
       transcript = redactCommandTriggers(transcript);
       const privacy = preprocessTranscriptForEnterprise(transcript, {
         redactPii: enterpriseConfig.piiRedactionEnabled,
