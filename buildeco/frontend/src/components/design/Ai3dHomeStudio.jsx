@@ -45,7 +45,7 @@ function PromptBlock({ label, text, hi, onCopy }) {
   );
 }
 
-export default function Ai3dHomeStudio() {
+export default function Ai3dHomeStudio({ locationHint = "" }) {
   const { lang } = useLang();
   const hi = lang === "hi";
 
@@ -87,6 +87,7 @@ export default function Ai3dHomeStudio() {
     const composedExtra = [
       prefix && room ? `${prefix} ${room}` : room,
       styleLabel ? (hi ? styleLabel.hi : styleLabel.en) : style,
+      locationHint,
     ].filter(Boolean).join(" · ");
     setBusy(true);
     const local = buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra: composedExtra, lang });

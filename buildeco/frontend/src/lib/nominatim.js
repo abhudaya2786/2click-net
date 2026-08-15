@@ -35,3 +35,11 @@ export async function fetchNominatimReverse(lat, lon, { fetchImpl } = {}) {
   const data = await res.json();
   return parseNominatimAddress(data);
 }
+
+export function formatLiveAddress(loc) {
+  if (!loc) return "";
+  if (loc.display_name) return loc.display_name;
+  const parts = [loc.city, loc.district, loc.state, loc.pincode].filter(Boolean);
+  const unique = [...new Set(parts)];
+  return unique.join(", ");
+}

@@ -1,4 +1,4 @@
-import { parseNominatimAddress, nominatimUrl, fetchNominatimReverse } from "./nominatim";
+import { parseNominatimAddress, nominatimUrl, fetchNominatimReverse, formatLiveAddress } from "./nominatim";
 
 describe("nominatim reverse geocode", () => {
   it("builds the OSM reverse URL with lat/lon", () => {
@@ -33,6 +33,13 @@ describe("nominatim reverse geocode", () => {
   it("returns null for empty payloads", () => {
     expect(parseNominatimAddress(null)).toBeNull();
     expect(parseNominatimAddress({})).toBeNull();
+  });
+
+  it("formatLiveAddress prefers display_name then city/state/pin", () => {
+    expect(formatLiveAddress({ display_name: "Lucknow, Uttar Pradesh, India" })).toContain("Lucknow");
+    expect(formatLiveAddress({ city: "Lucknow", state: "Uttar Pradesh", pincode: "226027" })).toBe(
+      "Lucknow, Uttar Pradesh, 226027",
+    );
   });
 
   it("fetchNominatimReverse maps JSON via fetch", async () => {
