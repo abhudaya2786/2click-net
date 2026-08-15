@@ -526,7 +526,7 @@ class MeetingDatabaseClient {
     return target;
   }
 
-  // 6. Save Recording Session
+  // 6. Save Recording Session (user-scoped + visible file location)
   public async saveRecording(
     meetingId: string,
     data: {
@@ -535,19 +535,64 @@ class MeetingDatabaseClient {
       durationSeconds: number;
       fileSizeBytes?: number;
       audioData?: string;
+      blob?: Blob;
       status?: 'Saved' | 'Processing' | 'Failed' | 'Ready';
+      saveToDevice?: boolean;
     }
   ): Promise<RecordingEntity> {
     this.init();
+    const { getOrCreateLocalUser, saveRecordingToUserVisibleLocation } = await import('./recordingFileStore');
+    const user = getOrCreateLocalUser();
     const recId = `rec-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const mimeType = data.mimeType || 'audio/webm';
+    const ext = mimeType.includes('wav')
+      ? 'wav'
+      : mimeType.includes('mp4')
+        ? 'm4a'
+        : mimeType.includes('ogg')
+          ? 'ogg'
+          : 'webm';
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const fileName =
+      data.fileName || `2ClickMoM_${user.displayName.replace(/\s+/g, '_')}_${stamp}.${ext}`;
+
+    let audioData = data.audioData || '';
+    let localPath: string | undefined;
+    let savedToDevice = false;
+    let blobKey: string | undefined = recId;
+
+    try {
+      if (data.saveToDevice !== false && (data.blob || audioData)) {
+        const saved = await saveRecordingToUserVisibleLocation({
+          recordingId: recId,
+          fileName,
+          mimeType,
+          audioDataUrlOrBase64: audioData || undefined,
+          blob: data.blob,
+        });
+        localPath = saved.localPath;
+        savedToDevice = saved.savedToDevice;
+        if (saved.objectUrl && !audioData) {
+          audioData = saved.objectUrl;
+        }
+      }
+    } catch (e) {
+      console.warn('Device/library save failed, keeping in-app copy only', e);
+      blobKey = undefined;
+    }
+
     const newRec: RecordingEntity = {
       id: recId,
       meetingId,
-      fileName: data.fileName || `meeting-${meetingId}.webm`,
-      mimeType: data.mimeType || 'audio/webm',
+      userId: user.id,
+      fileName,
+      mimeType,
       durationSeconds: data.durationSeconds || 0,
-      fileSizeBytes: data.fileSizeBytes || 0,
-      audioData: data.audioData || '',
+      fileSizeBytes: data.fileSizeBytes || data.blob?.size || 0,
+      audioData,
+      blobKey,
+      localPath,
+      savedToDevice,
       status: data.status || 'Saved',
       recordedAt: new Date().toISOString(),
     };
@@ -556,17 +601,28 @@ class MeetingDatabaseClient {
       fetch(`/api/meetings/${meetingId}/recordings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newRec),
+        body: JSON.stringify({ ...newRec, audioData: audioData ? '[stored]' : '' }),
       }).catch(() => {});
     } catch {}
 
     const recs = this.getLocal<RecordingEntity[]>(RECORDINGS_STORAGE_KEY, []);
-    this.setLocal(RECORDINGS_STORAGE_KEY, [newRec, ...recs]);
+    // Avoid bloating localStorage with huge base64 when blobKey exists
+    const slim = { ...newRec };
+    if (slim.blobKey && slim.audioData && slim.audioData.length > 50_000) {
+      slim.audioData = undefined;
+    }
+    this.setLocal(RECORDINGS_STORAGE_KEY, [slim, ...recs]);
 
-    // Update meeting status to COMPLETED
     await this.updateMeetingState(meetingId, 'COMPLETED');
 
     return newRec;
+  }
+
+  public listRecordings(userId?: string): RecordingEntity[] {
+    this.init();
+    const recs = this.getLocal<RecordingEntity[]>(RECORDINGS_STORAGE_KEY, []);
+    if (!userId) return recs;
+    return recs.filter((r) => !r.userId || r.userId === userId);
   }
 
   // 7. Delete Meeting
