@@ -134,7 +134,7 @@ export const TranscriptViewer: React.FC<TranscriptViewerProps> = ({
         audioBase64: targetRec.audioData,
         mimeType: targetRec.mimeType || 'audio/webm',
         language: transcribeLang,
-        userEmail: meeting.organizerEmail || 'shrinet.info@gmail.com',
+        userEmail: meeting.organizerEmail || 'anonymous@local',
         speakerHint: participantNames,
         contextPrompt: meeting.agenda || meeting.title,
       });

@@ -17,12 +17,23 @@ async function requireUser(req: Request) {
 }
 
 export function registerCompanyOrgRoutes(app: Express) {
-  app.get('/api/v1/company/org', async (_req, res) => {
+  app.get('/api/v1/company/org', async (req, res) => {
     try {
       const org = await companyOrgStore.getOrg();
+      const user = await authStore.getUserForToken(readBearerToken(req));
+      const payload = user
+        ? org
+        : {
+            ...org,
+            ownerPhone: org.ownerPhone ? '[hidden]' : '',
+            reportRecipients: (org.reportRecipients || []).map((r: any) => ({
+              ...r,
+              phone: r.phone ? '[hidden]' : '',
+            })),
+          };
       res.json({
         success: true,
-        org,
+        org: payload,
         withinWorkHoursNow: isWithinWorkHours(org.workHours),
       });
     } catch (e: any) {
@@ -32,14 +43,21 @@ export function registerCompanyOrgRoutes(app: Express) {
 
   app.put('/api/v1/company/org', async (req, res) => {
     try {
-      await requireUser(req);
+      const user = await requireUser(req);
+      const current = await companyOrgStore.getOrg();
+      if (current.ownerUserId && current.ownerUserId !== user.userId) {
+        return res.status(403).json({
+          error: 'Only the company owner can update organization settings.',
+        });
+      }
       const body = req.body || {};
       const org = await companyOrgStore.updateOrg({
         companyName: body.companyName,
         industry: body.industry,
         tagline: body.tagline,
-        ownerUserId: body.ownerUserId,
-        ownerDisplayName: body.ownerDisplayName,
+        // First save claims ownership; ownerUserId cannot be stolen by others
+        ownerUserId: current.ownerUserId || user.userId,
+        ownerDisplayName: body.ownerDisplayName || user.displayName || user.userId,
         ownerPhone: body.ownerPhone,
         reportRecipients: body.reportRecipients,
         workHours: body.workHours,

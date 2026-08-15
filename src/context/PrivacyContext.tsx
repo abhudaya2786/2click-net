@@ -48,7 +48,7 @@ export function PrivacyProvider({ children }: { children: React.ReactNode }) {
   const [consents, setConsents] = useState<ConsentEntity[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntity[]>([]);
   const [currentRole, setCurrentRole] = useState<UserRole>('admin');
-  const [currentEmail, setCurrentEmail] = useState<string>('shrinet.info@gmail.com');
+  const [currentEmail, setCurrentEmail] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const refreshPolicy = useCallback(async () => {

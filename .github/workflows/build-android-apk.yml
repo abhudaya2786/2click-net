@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       server_url:
-        description: Live MoM URL loaded inside the APK WebView
+        description: "Live MoM URL for WebView (leave empty to ship bundled assets; set https://2click.in only when Production is live)"
         required: false
-        default: https://2click.in
+        default: ''
   push:
     branches: [main]
     paths:

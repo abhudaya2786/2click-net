@@ -15,6 +15,7 @@
     "lint": "tsc --noEmit",
     "test": "npm run lint && node scripts/smoke-test.mjs",
     "test:smoke": "node scripts/smoke-test.mjs",
+    "test:enterprise": "node scripts/enterprise-smoke.mjs",
     "icons": "node scripts/generate-pwa-icons.mjs",
     "cap:sync": "npm run build:client && npx cap sync android",
     "cap:open": "npx cap open android",
