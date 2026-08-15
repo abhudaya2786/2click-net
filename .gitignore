@@ -17,7 +17,8 @@ coverage/
 .vercel/
 .vercel
 *.apk
-data/
+# Server-side runtime JSON only (auth/company). Do NOT ignore src/data/.
+/data/
 android/.gradle/
 android/app/build/
 android/build/

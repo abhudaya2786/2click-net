@@ -16,7 +16,12 @@ const out = path.join(root, '.vercel', 'output');
 
 function run(cmd) {
   console.log(`$ ${cmd}`);
-  execSync(cmd, { stdio: 'inherit', cwd: root, env: process.env });
+  try {
+    execSync(cmd, { stdio: 'inherit', cwd: root, env: process.env });
+  } catch (err) {
+    console.error(`\n[build-vercel-output] Command failed: ${cmd}`);
+    throw err;
+  }
 }
 
 rmSync(out, { recursive: true, force: true });
