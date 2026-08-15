@@ -7,6 +7,7 @@ import { useLang } from "@/context/LanguageContext";
 import {
   fallbackStates, fallbackDistricts, fallbackCities, fallbackPincodes, lookupPincode as seedPincode, reverseGeocode,
 } from "@/lib/geoFallback";
+import { fetchNominatimReverse } from "@/lib/nominatim";
 
 /**
  * Location picker — pincode drives state/city/district when pincodeFirst is set.
@@ -144,27 +145,36 @@ export default function LocationPicker({ value = {}, onChange, className = "", p
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         try {
-          const { data } = await api.get("/geo/reverse", { params: { lat, lng } });
-          emit({
-            lat,
-            lng,
-            state: data.state || v.state,
-            city: data.city || v.city,
-            district: data.district || v.district,
-            pincode: data.pincode || v.pincode,
-          });
-        } catch {
-          const seed = reverseGeocode(lat, lng);
-          if (seed) {
+          let data = null;
+          try {
+            const res = await api.get("/geo/reverse", { params: { lat, lng } });
+            data = res.data;
+          } catch { /* live API often 404 */ }
+          if (!data?.city && !data?.state) {
+            data = await fetchNominatimReverse(lat, lng);
+          }
+          if (data?.city || data?.state) {
             emit({
-              lat, lng,
-              state: seed.state,
-              city: seed.city,
-              district: seed.district,
-              pincode: seed.pincode,
+              lat,
+              lng,
+              state: data.state || v.state,
+              city: data.city || v.city,
+              district: data.district || v.district,
+              pincode: data.pincode || v.pincode,
             });
           } else {
-            emit({ lat, lng });
+            const seed = reverseGeocode(lat, lng);
+            if (seed) {
+              emit({
+                lat, lng,
+                state: seed.state,
+                city: seed.city,
+                district: seed.district,
+                pincode: seed.pincode,
+              });
+            } else {
+              emit({ lat, lng });
+            }
           }
         } finally {
           setGpsBusy(false);

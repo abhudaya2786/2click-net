@@ -45,7 +45,7 @@ function PromptBlock({ label, text, hi, onCopy }) {
   );
 }
 
-export default function Ai3dHomeStudio() {
+export default function Ai3dHomeStudio({ locationHint = "" }) {
   const { lang } = useLang();
   const hi = lang === "hi";
 
@@ -70,8 +70,9 @@ export default function Ai3dHomeStudio() {
 
   useEffect(() => {
     const sqft = parseFloat(builtUp) || 400;
-    setWorkflow(buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra, lang }));
-  }, [builtUp, style, scale, fov, extra, lang]);
+    const extraWithLoc = [extra, locationHint].filter(Boolean).join(" · ");
+    setWorkflow(buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra: extraWithLoc, lang }));
+  }, [builtUp, style, scale, fov, extra, lang, locationHint]);
 
   const activeFeature = DESIGN_FEATURE_MODULES.find((f) => f.id === featureModule);
   const styleLabel = DESIGN_STYLES.find((s) => s.id === style);
@@ -87,6 +88,7 @@ export default function Ai3dHomeStudio() {
     const composedExtra = [
       prefix && room ? `${prefix} ${room}` : room,
       styleLabel ? (hi ? styleLabel.hi : styleLabel.en) : style,
+      locationHint,
     ].filter(Boolean).join(" · ");
     setBusy(true);
     const local = buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra: composedExtra, lang });

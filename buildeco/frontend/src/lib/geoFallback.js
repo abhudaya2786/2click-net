@@ -34,6 +34,7 @@ export const PINCODE_SEED = [
   { pincode: "380001", state: "Gujarat", city: "Ahmedabad", district: "Ahmedabad", lat: 23.0225, lng: 72.5714 },
   { pincode: "201301", state: "Uttar Pradesh", city: "Noida", district: "Gautam Buddha Nagar", lat: 28.5355, lng: 77.391 },
   { pincode: "122001", state: "Haryana", city: "Gurugram", district: "Gurugram", lat: 28.4595, lng: 77.0266 },
+  { pincode: "226001", state: "Uttar Pradesh", city: "Lucknow", district: "Lucknow", lat: 26.8467, lng: 80.9462 },
   { pincode: "273001", state: "Uttar Pradesh", city: "Gorakhpur", district: "Gorakhpur", lat: 26.7606, lng: 83.3732 },
   { pincode: "396191", state: "Gujarat", city: "Vapi", district: "Valsad", lat: 20.3893, lng: 72.9106 },
   { pincode: "700001", state: "West Bengal", city: "Kolkata", district: "Kolkata", lat: 22.5726, lng: 88.3639 },
