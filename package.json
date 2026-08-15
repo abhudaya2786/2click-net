@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "test:auth": "tsx scripts/test-auth.mts",
-    "test:company": "tsx scripts/test-company-reports.mts"
+    "test:company": "tsx scripts/test-company-reports.mts",
+    "pack:hostinger": "node scripts/pack-hostinger.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
