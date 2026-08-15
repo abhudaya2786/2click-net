@@ -5,7 +5,7 @@ import type { Express, Request, Response } from 'express';
 import { authStore, readBearerToken } from './store.ts';
 
 export function registerAuthRoutes(app: Express) {
-  app.post('/api/v1/auth/signup', async (req: Request, res: Response) => {
+  const signup = async (req: Request, res: Response) => {
     try {
       const body = req.body || {};
       const result = await authStore.signup({
@@ -21,9 +21,9 @@ export function registerAuthRoutes(app: Express) {
     } catch (e: any) {
       res.status(e.status || 500).json({ error: e.message || 'Signup failed' });
     }
-  });
+  };
 
-  app.post('/api/v1/auth/signin', async (req: Request, res: Response) => {
+  const signin = async (req: Request, res: Response) => {
     try {
       const body = req.body || {};
       const result = await authStore.signin({
@@ -38,27 +38,9 @@ export function registerAuthRoutes(app: Express) {
     } catch (e: any) {
       res.status(e.status || 500).json({ error: e.message || 'Sign in failed' });
     }
-  });
+  };
 
-  app.post('/api/v1/auth/login', async (req: Request, res: Response) => {
-    // Alias for signin
-    try {
-      const body = req.body || {};
-      const result = await authStore.signin({
-        userId: body.userId || body.user_id || body.username,
-        password: body.password,
-      });
-      res.json({
-        success: true,
-        user: result.user,
-        token: result.token,
-      });
-    } catch (e: any) {
-      res.status(e.status || 500).json({ error: e.message || 'Login failed' });
-    }
-  });
-
-  app.get('/api/v1/auth/me', async (req: Request, res: Response) => {
+  const me = async (req: Request, res: Response) => {
     try {
       const token = readBearerToken(req);
       const user = await authStore.getUserForToken(token);
@@ -69,9 +51,9 @@ export function registerAuthRoutes(app: Express) {
     } catch (e: any) {
       res.status(500).json({ error: e.message || 'Failed to load session' });
     }
-  });
+  };
 
-  app.post('/api/v1/auth/signout', async (req: Request, res: Response) => {
+  const signout = async (req: Request, res: Response) => {
     try {
       const token = readBearerToken(req);
       await authStore.signout(token);
@@ -79,7 +61,21 @@ export function registerAuthRoutes(app: Express) {
     } catch (e: any) {
       res.status(500).json({ error: e.message || 'Sign out failed' });
     }
-  });
+  };
+
+  // Canonical v1 routes
+  app.post('/api/v1/auth/signup', signup);
+  app.post('/api/v1/auth/signin', signin);
+  app.post('/api/v1/auth/login', signin);
+  app.get('/api/v1/auth/me', me);
+  app.post('/api/v1/auth/signout', signout);
+
+  // Short aliases (same handlers) — avoids 404/405 when a proxy strips /v1
+  app.post('/api/auth/signup', signup);
+  app.post('/api/auth/signin', signin);
+  app.post('/api/auth/login', signin);
+  app.get('/api/auth/me', me);
+  app.post('/api/auth/signout', signout);
 }
 
 export { authStore, readBearerToken };

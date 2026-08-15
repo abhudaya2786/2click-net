@@ -78,9 +78,28 @@ async function authFetch(path: string, init: RequestInit = {}, token?: string | 
     ...(init.headers as Record<string, string> | undefined),
   };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(path, { ...init, headers });
+  let res: Response;
+  try {
+    res = await fetch(path, { ...init, headers });
+  } catch (e: any) {
+    throw new Error(
+      e?.message?.includes('Failed to fetch')
+        ? 'Network/CORS error — API server unreachable. Local pe same-origin /api use hona chahiye.'
+        : e?.message || 'Network error during auth',
+    );
+  }
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    if (res.status === 405) {
+      throw new Error(
+        'Signup/Sign-in API 405 (method not allowed). Backend auth route missing — server restart / redeploy karein.',
+      );
+    }
+    if (res.status === 404) {
+      throw new Error(
+        'Auth API 404 — /api/v1/auth/* server pe nahi mila. Redeploy API (Vercel) karein.',
+      );
+    }
     throw new Error(data.error || `Request failed (${res.status})`);
   }
   return data;

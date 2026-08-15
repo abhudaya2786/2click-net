@@ -24,12 +24,35 @@ function nativeFallbackBase(): string {
   return 'https://2click.in';
 }
 
+function isBrowserDev(): boolean {
+  try {
+    return Boolean(import.meta.env?.DEV);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolve API origin for `/api/*` calls.
+ * - Local/dev web: always same-origin (ignore leftover APK VITE_API_BASE_URL in the shell)
+ * - Production web: honor baked VITE_API_BASE_URL (Hostinger UI → Vercel API)
+ * - Native: env, window override, or 2click.in
+ */
 export function getApiBase(): string {
   const fromWindow =
     typeof window !== 'undefined' && window.__MOM_API_BASE__
       ? String(window.__MOM_API_BASE__).trim()
       : '';
   const fromEnv = String(import.meta.env.VITE_API_BASE_URL || '').trim();
+
+  if (typeof window !== 'undefined' && !Capacitor.isNativePlatform()) {
+    // Dev server / local Express — never silently send signup to a remote preview
+    if (isBrowserDev()) {
+      return fromWindow.replace(/\/$/, '');
+    }
+    return (fromWindow || fromEnv || DEFAULT_API_BASE).replace(/\/$/, '');
+  }
+
   const fallback = Capacitor.isNativePlatform() ? nativeFallbackBase() : DEFAULT_API_BASE;
   return (fromWindow || fromEnv || fallback).replace(/\/$/, '');
 }
