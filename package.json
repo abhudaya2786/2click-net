@@ -8,7 +8,7 @@
     "dev": "tsx server.ts",
     "build:client": "vite build",
     "build:vercel-api": "mkdir -p api && esbuild scripts/vercel-api-entry.ts --bundle --platform=node --format=esm --packages=external --outfile=api/index.js",
-    "build:vercel": "npm run build:client && rm -rf public && mkdir -p public && cp -R dist/client/. public/ && npm run build:vercel-api",
+    "build:vercel": "node scripts/build-vercel-output.mjs",
     "build": "npm run build:client && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "NODE_ENV=production node dist/server.cjs",
     "preview": "vite preview",

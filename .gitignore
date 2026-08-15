@@ -2,9 +2,10 @@ node_modules/
 build/
 dist/
 public/
-# Keep api/index.js tracked so Vercel always ships the Express serverless
-# function even if a dashboard build override skips build:vercel-api.
+# Keep api/index.js tracked; CJS bundle is build-time only
 api/index.js.map
+api/index.cjs
+api/package-lock.json
 coverage/
 .DS_Store
 *.log
@@ -14,6 +15,7 @@ coverage/
 .vite/
 *.local
 .vercel/
+.vercel
 *.apk
 data/
 android/.gradle/
@@ -21,5 +23,3 @@ android/app/build/
 android/build/
 android/local.properties
 android/capacitor-cordova-android-plugins/build/
-.vercel
-api/package-lock.json
