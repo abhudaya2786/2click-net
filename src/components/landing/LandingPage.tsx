@@ -118,18 +118,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         <div className="ai-wave" aria-hidden />
 
         <div className="relative z-20 flex items-center justify-between px-5 sm:px-8 pt-5">
-          <div className="flex items-center gap-2 text-white/90">
-            <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
-              <Mic className="w-4 h-4" aria-hidden />
+          <div className="flex items-center gap-2.5 text-white/90">
+            <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center">
+              <Mic className="w-5 h-5" aria-hidden />
             </div>
-            <span className="font-display font-extrabold tracking-tight text-lg">2Click</span>
+            <span className="font-display font-extrabold tracking-tight text-xl">2Click</span>
           </div>
           <button
             type="button"
-            className="rounded-xl bg-white/15 text-white text-xs font-bold px-3.5 py-2 border border-white/25 hover:bg-white/25 transition"
+            className="rounded-xl bg-white/15 text-white text-sm font-bold px-4 py-2.5 border border-white/25 hover:bg-white/25 transition min-h-11"
             onClick={() => onNavigate('/meetings')}
           >
-            Open app
+            App kholo
           </button>
         </div>
 
@@ -173,7 +173,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.08 }}
-            className="mt-4 font-display text-xl sm:text-3xl font-bold tracking-tight text-white/95 leading-[1.2] max-w-xl"
+            className="mt-4 font-display text-2xl sm:text-3xl font-bold tracking-tight text-white/95 leading-[1.25] max-w-xl"
           >
             AI Voice Meeting &amp; Office Intelligence
           </motion.h1>
@@ -181,31 +181,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.16 }}
-            className="mt-4 text-base sm:text-lg text-sky-100/90 leading-relaxed max-w-md"
+            className="mt-4 text-lg sm:text-xl text-sky-50/95 leading-relaxed max-w-md"
           >
-            Speak naturally. Get transcripts, smart Minutes of Meeting, and actionable tasks —
-            in Hindi, English, and Hinglish.
+            Bolkar meeting record karo. Transcript, smart Minutes of Meeting, aur tasks —
+            Hindi, English, Hinglish mein.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.24 }}
-            className="mt-8 flex flex-wrap gap-3"
+            className="mt-8 flex flex-col sm:flex-row flex-wrap gap-3"
           >
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-xl bg-white text-hs-800 font-bold text-sm px-5 py-3 hover:bg-sky-50 active:scale-[0.98] transition"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-white text-hs-800 font-bold text-base px-6 py-3.5 min-h-12 hover:bg-sky-50 active:scale-[0.98] transition"
               onClick={() => onNavigate('/signup')}
             >
-              Start Free
-              <ArrowRight className="w-4 h-4" aria-hidden />
+              Free shuru karo
+              <ArrowRight className="w-5 h-5" aria-hidden />
             </button>
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-xl border border-white/35 text-white font-semibold text-sm px-5 py-3 hover:bg-white/10 active:scale-[0.98] transition"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/40 text-white font-bold text-base px-6 py-3.5 min-h-12 hover:bg-white/10 active:scale-[0.98] transition"
               onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              See How It Works
+              Kaise kaam karta hai
             </button>
           </motion.div>
         </div>

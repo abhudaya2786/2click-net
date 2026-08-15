@@ -659,10 +659,10 @@ function AppContent() {
               <Mic className="w-4 h-4" />
             </div>
             <div className="min-w-0 leading-tight">
-              <div className="font-display text-[15px] font-extrabold tracking-tight text-slate-950 dark:text-white truncate">
+              <div className="font-display text-base sm:text-[15px] font-extrabold tracking-tight text-slate-950 dark:text-white truncate">
                 2Click<span className="hs-accent">MoM</span>
               </div>
-              <div className="hidden sm:block text-[10px] font-semibold text-slate-500">
+              <div className="hidden sm:block text-xs font-semibold text-slate-500">
                 Voice MoM · 2click.in
               </div>
             </div>
