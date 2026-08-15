@@ -67,7 +67,9 @@ See `.env.example`. Critical: `GEMINI_API_KEY` / `OPENAI_API_KEY` (optional for 
 
 ## Manual Vercel / DNS
 
-See `docs/DEPLOYMENT.md`. Do not change DNS from CI agents automatically.
+See `docs/VERCEL_PRODUCTION.md` (dashboard steps) and `docs/DEPLOYMENT.md`.  
+Database readiness: `docs/DATABASE_AUDIT.md` — **no multi-tenant SaaS auth until durable Postgres**.  
+Do not change DNS from CI agents automatically.
 
 ## Verification run
 
