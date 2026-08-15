@@ -11,6 +11,7 @@ import {
   Radio,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { formatShortPlace, reverseGeocode } from '../../utils/reverseGeocode';
 
 interface Props {
   onNavigate: (path: string) => void;
@@ -28,9 +29,34 @@ export const FieldTalkView: React.FC<Props> = ({ onNavigate }) => {
   const [withinHours, setWithinHours] = useState(true);
   const [companyName, setCompanyName] = useState('');
   const [busy, setBusy] = useState(false);
+  const [geoBusy, setGeoBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+
+  const fillLocationFromGps = async () => {
+    setErr(null);
+    if (!('geolocation' in navigator)) {
+      setErr('GPS is browser pe available nahi hai.');
+      return;
+    }
+    setGeoBusy(true);
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+        });
+      });
+      const place = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+      setLocationLabel(formatShortPlace(place) || place.displayName);
+      setOk(`Location: ${place.displayName}`);
+    } catch (e: any) {
+      setErr(e?.message || 'GPS / address lookup fail');
+    } finally {
+      setGeoBusy(false);
+    }
+  };
 
   useEffect(() => {
     fetch('/api/v1/company/work-hours/status')
@@ -194,9 +220,20 @@ export const FieldTalkView: React.FC<Props> = ({ onNavigate }) => {
           </div>
         </div>
         <div>
-          <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-            Location label
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-[11px] font-bold uppercase text-slate-500">
+              Location label
+            </label>
+            <button
+              type="button"
+              onClick={() => void fillLocationFromGps()}
+              disabled={geoBusy}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-50"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              {geoBusy ? 'GPS…' : 'GPS → address'}
+            </button>
+          </div>
           <div className="relative">
             <MapPin className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
