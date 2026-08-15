@@ -9,8 +9,13 @@ import os
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional, List
+import logging
+import requests
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 import rbac
+
+logger = logging.getLogger("site_config")
+NOMINATIM_UA = "BuildEcoGroup/1.0 (https://www.buildecogroup.com; geo@buildecogroup.com)"
 
 _db = None
 DEFAULT_COMPANY_ID = "company_default"
@@ -53,6 +58,7 @@ PINCODE_SEED = [
     {"pincode": "380001", "state": "Gujarat", "city": "Ahmedabad", "district": "Ahmedabad", "lat": 23.0225, "lng": 72.5714},
     {"pincode": "201301", "state": "Uttar Pradesh", "city": "Noida", "district": "Gautam Buddha Nagar", "lat": 28.5355, "lng": 77.3910},
     {"pincode": "122001", "state": "Haryana", "city": "Gurugram", "district": "Gurugram", "lat": 28.4595, "lng": 77.0266},
+    {"pincode": "226001", "state": "Uttar Pradesh", "city": "Lucknow", "district": "Lucknow", "lat": 26.8467, "lng": 80.9462},
     {"pincode": "273001", "state": "Uttar Pradesh", "city": "Gorakhpur", "district": "Gorakhpur", "lat": 26.7606, "lng": 83.3732},
     {"pincode": "396191", "state": "Gujarat", "city": "Vapi", "district": "Valsad", "lat": 20.3893, "lng": 72.9106},
     {"pincode": "700001", "state": "West Bengal", "city": "Kolkata", "district": "Kolkata", "lat": 22.5726, "lng": 88.3639},
@@ -383,9 +389,50 @@ async def pincode_lookup(pincode: str):
     return row
 
 
+def _parse_nominatim(data: dict) -> Optional[dict]:
+    if not data or not isinstance(data, dict):
+        return None
+    a = data.get("address") or {}
+    city = a.get("city") or a.get("town") or a.get("village") or a.get("municipality") or a.get("city_district") or a.get("county") or ""
+    district = a.get("state_district") or a.get("county") or a.get("district") or city
+    state = a.get("state") or ""
+    pin = "".join(c for c in str(a.get("postcode") or "") if c.isdigit())[:6]
+    if not city and not state and not pin:
+        return None
+    return {
+        "state": state,
+        "city": city,
+        "district": district,
+        "pincode": pin,
+        "display_name": data.get("display_name") or "",
+        "source": "nominatim",
+    }
+
+
+def nominatim_reverse(lat: float, lng: float) -> Optional[dict]:
+    """OpenStreetMap Nominatim: coordinates → city, state, pincode."""
+    try:
+        r = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={"format": "json", "lat": lat, "lon": lng, "addressdetails": 1},
+            headers={"User-Agent": NOMINATIM_UA, "Accept-Language": "en-IN,en,hi"},
+            timeout=6,
+        )
+        if r.status_code != 200:
+            return None
+        return _parse_nominatim(r.json())
+    except Exception as exc:
+        logger.warning("nominatim reverse failed: %s", exc)
+        return None
+
+
 @public_router.get("/geo/reverse")
 async def reverse_geocode(lat: float, lng: float):
-    """Nearest seeded pincode for state/city hint."""
+    """GPS → city/state/pincode via Nominatim, then nearest seeded pincode."""
+    nom = nominatim_reverse(lat, lng)
+    if nom:
+        return {**nom, "lat": lat, "lng": lng}
+
     rows = await _db.geo_master.find(
         {"lat": {"$ne": 0}, "lng": {"$ne": 0}},
         {"_id": 0, "pincode": 1, "state": 1, "city": 1, "district": 1, "lat": 1, "lng": 1},
@@ -395,7 +442,7 @@ async def reverse_geocode(lat: float, lng: float):
     if not rows:
         rows = [r for r in _static_pincode_rows() if r.get("lat") and r.get("lng")]
     if not rows:
-        return {"state": "", "city": "", "pincode": "", "lat": lat, "lng": lng}
+        return {"state": "", "city": "", "pincode": "", "lat": lat, "lng": lng, "source": "none"}
     best = min(rows, key=lambda r: haversine_km(lat, lng, r.get("lat", 0), r.get("lng", 0)))
     return {
         "state": best.get("state", ""),
@@ -404,6 +451,7 @@ async def reverse_geocode(lat: float, lng: float):
         "pincode": best.get("pincode", ""),
         "lat": lat,
         "lng": lng,
+        "source": "seed",
     }
 
 

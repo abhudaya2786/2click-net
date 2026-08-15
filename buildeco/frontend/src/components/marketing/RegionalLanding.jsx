@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/context/LanguageContext";
 import { REGIONAL_UI } from "@/lib/homeCopy";
+import { fetchNominatimReverse } from "@/lib/nominatim";
+import { reverseGeocode as seedReverse, fallbackStates } from "@/lib/geoFallback";
 import {
   MapPin, Navigation, Loader2, Store, Gavel, Home, Users, Sun, Truck, ArrowRight,
 } from "lucide-react";
@@ -36,7 +38,9 @@ export default function RegionalLanding({ compact = false }) {
     }
   }, []);
 
-  useEffect(() => { api.get("/geo/states").then(({ data }) => setStates(data.states || [])); }, []);
+  useEffect(() => {
+    api.get("/geo/states").then(({ data }) => setStates(data.states || fallbackStates())).catch(() => setStates(fallbackStates()));
+  }, []);
 
   useEffect(() => {
     if (loc.state) {
@@ -64,16 +68,26 @@ export default function RegionalLanding({ compact = false }) {
     setGpsBusy(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
         try {
-          const { data } = await api.get("/geo/reverse", {
-            params: { lat: pos.coords.latitude, lng: pos.coords.longitude },
-          });
+          let data = null;
+          try {
+            const res = await api.get("/geo/reverse", { params: { lat, lng } });
+            data = res.data;
+          } catch { /* live API often 404 */ }
+          if (!data?.city && !data?.state) {
+            data = await fetchNominatimReverse(lat, lng);
+          }
+          if (!data?.city && !data?.state) {
+            data = seedReverse(lat, lng);
+          }
           setLoc({
-            state: data.state,
-            city: data.city,
-            pincode: data.pincode || "",
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
+            state: data?.state || "",
+            city: data?.city || "",
+            pincode: data?.pincode || "",
+            lat,
+            lng,
           });
         } finally {
           setGpsBusy(false);
