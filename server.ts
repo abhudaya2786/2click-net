@@ -129,6 +129,9 @@ function createApp() {
   // Enterprise field-workforce modules (additive — does not replace MoM routes)
   registerEnterpriseRoutes(app);
 
+  // Real-estate marketing: work-talk → owner / report desk
+  registerCompanyOrgRoutes(app);
+
   // Core: generate MoM from audio and/or transcript text
   app.post('/api/generate-mom', async (req, res) => {
     try {

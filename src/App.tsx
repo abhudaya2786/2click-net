@@ -832,6 +832,22 @@ function AppContent() {
         <main>
           <AccountView onNavigate={navigate} />
         </main>
+      ) : currentRoute === '/for-real-estate' || currentRoute === '/sales' ? (
+        <main>
+          <RealEstateSalesLanding onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/settings/company' || currentRoute === '/company' ? (
+        <main>
+          <CompanySettingsView onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/field-talk' ? (
+        <main>
+          <FieldTalkView onNavigate={navigate} />
+        </main>
+      ) : currentRoute === '/inbox' ? (
+        <main>
+          <OwnerInboxView onNavigate={navigate} />
+        </main>
       ) : currentRoute === '/settings/location' || currentRoute === '/settings/geofence' ? (
         <main>
           <LocationGeofenceSettingsView onNavigate={navigate} />
