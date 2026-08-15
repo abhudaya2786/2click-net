@@ -70,8 +70,9 @@ export default function Ai3dHomeStudio({ locationHint = "" }) {
 
   useEffect(() => {
     const sqft = parseFloat(builtUp) || 400;
-    setWorkflow(buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra, lang }));
-  }, [builtUp, style, scale, fov, extra, lang]);
+    const extraWithLoc = [extra, locationHint].filter(Boolean).join(" · ");
+    setWorkflow(buildFullWorkflow({ builtUpSqft: sqft, style, scale, fov, extra: extraWithLoc, lang }));
+  }, [builtUp, style, scale, fov, extra, lang, locationHint]);
 
   const activeFeature = DESIGN_FEATURE_MODULES.find((f) => f.id === featureModule);
   const styleLabel = DESIGN_STYLES.find((s) => s.id === style);
