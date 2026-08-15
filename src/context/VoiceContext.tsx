@@ -242,6 +242,7 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       emitFeedback('stop');
+      setInterimTranscript('');
       commandSessionController.flushPendingInterim();
       void commandSessionController.stopAndSave();
     });
@@ -264,12 +265,14 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return;
       }
       emitFeedback('stop');
+      setInterimTranscript('');
       commandSessionController.flushPendingInterim();
       void commandSessionController.stopAndSave();
     });
     const unsubCancel = provider.registerActionHandler('CANCEL_RECORDING', () => {
       if (!commandSessionController.isRecording()) return;
       emitFeedback('cancel');
+      setInterimTranscript('');
       void commandSessionController.cancel();
     });
 
@@ -453,13 +456,17 @@ export const VoiceProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const stopCommandSessionManual = useCallback(() => {
     if (!commandSessionController.isRecording()) return;
     emitFeedback('stop');
+    setInterimTranscript('');
     commandSessionController.flushPendingInterim();
+    voiceCommandProviderRef.current.suppressStartFor(2500);
     void commandSessionController.stopAndSave();
   }, [emitFeedback]);
 
   const cancelCommandSessionManual = useCallback(() => {
     if (!commandSessionController.isRecording()) return;
     emitFeedback('cancel');
+    setInterimTranscript('');
+    voiceCommandProviderRef.current.suppressStartFor(2500);
     void commandSessionController.cancel();
   }, [emitFeedback]);
 

@@ -160,7 +160,11 @@ export class CommandSessionController {
   }
 
   public async start(): Promise<boolean> {
-    if (this.status === 'recording' || this.status === 'processing') {
+    if (
+      this.status === 'recording' ||
+      this.status === 'processing' ||
+      this.status === 'saved'
+    ) {
       return false;
     }
     // Lock immediately so sibling handlers (e.g. Meeting Studio) skip duplicate mic capture
