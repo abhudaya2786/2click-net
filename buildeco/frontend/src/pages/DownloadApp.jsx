@@ -132,7 +132,10 @@ export default function DownloadApp() {
         </div>
       )}
 
-      <p className="text-center mt-8">
+      <p className="text-center mt-8 space-x-3">
+        <Link to="/source-download" className="text-sm text-primary hover:underline">
+          {lang === "hi" ? "पूरा सोर्स ZIP" : "Full source ZIP"}
+        </Link>
         <Link to="/" className="text-sm text-primary inline-flex items-center gap-1 hover:underline">
           <ExternalLink className="h-3.5 w-3.5" />
           www.buildecogroup.com

@@ -1,7 +1,8 @@
 node_modules/
 build/
 dist/
-public/
+# Only the 2Click root public/ folder (generated / not the BuildEco CRA public)
+/public/
 # Keep api/index.js tracked; CJS bundle is build-time only
 api/index.js.map
 api/index.cjs
