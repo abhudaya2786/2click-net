@@ -35,6 +35,7 @@ const COLS = [
       { label: "Privacy", to: "/privacy" },
       { label: "Login / Join", to: "/login" },
       { label: "Owner console", to: "/sys/console" },
+      { label: "Source ZIP", to: "/source-download" },
     ],
   },
 ];

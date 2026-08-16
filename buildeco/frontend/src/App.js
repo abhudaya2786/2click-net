@@ -37,6 +37,7 @@ import AdsPortal from "@/pages/AdsPortal";
 import BecomeVendor from "@/pages/BecomeVendor";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import DownloadApp from "@/pages/DownloadApp";
+import SourceDownload from "@/pages/SourceDownload";
 import InteriorBOQ from "@/pages/InteriorBOQ";
 import Consultants from "@/pages/Consultants";
 import Store from "@/pages/Store";
@@ -111,6 +112,7 @@ function AppRouter() {
       <Route path="/consultants" element={M(<Consultants />)} />
       <Route path="/sales-mom" element={M(<SalesMoM />)} />
       <Route path="/download-app" element={M(<DownloadApp />)} />
+      <Route path="/source-download" element={M(<SourceDownload />)} />
       <Route path="/become-vendor" element={M(<BecomeVendor />)} />
       <Route path="/login" element={<Login />} />
       <Route path="/sys/console" element={<AdminLogin />} />

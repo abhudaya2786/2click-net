@@ -21,6 +21,7 @@ const APPS = [
   { to: "/freelancers", icon: Users, en: "Freelancers", hi: "फ्रीलांसर" },
   { to: "/enroll", icon: FileText, en: "Enroll", hi: "पंजीकरण" },
   { to: "/download-app", icon: Download, en: "Install App", hi: "ऐप इंस्टॉल" },
+  { to: "/source-download", icon: FileText, en: "Source ZIP", hi: "सोर्स ZIP" },
 ];
 
 export default function MobileMoreSheet({ open, onClose }) {
