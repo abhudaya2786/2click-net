@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { api } from "@/lib/api";
+import { fetchSessionUser, LOGIN_API_BASE } from "@/lib/loginClient";
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -27,8 +27,12 @@ export function AuthProvider({ children }) {
       return;
     }
     try {
-      const { data } = await api.get("/auth/me");
-      setUser(data);
+      const result = await fetchSessionUser(token);
+      if (result.ok && result.data) setUser(result.data);
+      else {
+        localStorage.removeItem("bs_token");
+        setUser(null);
+      }
     } catch {
       localStorage.removeItem("bs_token");
       setUser(null);
@@ -53,7 +57,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    try { await api.post("/auth/logout"); } catch {}
+    try { await fetch(`${LOGIN_API_BASE}/auth/logout`, { method: "POST" }); } catch {}
     localStorage.removeItem("bs_token");
     localStorage.removeItem(DEMO_USER_KEY);
     setUser(null);

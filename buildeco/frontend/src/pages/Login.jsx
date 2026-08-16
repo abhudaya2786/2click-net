@@ -1,181 +1,187 @@
-import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { api, formatAxiosError } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  HardHat, Loader2, ArrowLeft, ShieldCheck, Languages, ChevronRight, LogIn, Package,
+  ArrowLeft, ChevronRight, HardHat, Languages, Loader2, LogIn, Package, ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { LOGIN_PROFILES, profilesFromUserTypes } from "@/lib/loginProfiles";
-import { formatLoginError, isDemoCredential, normalizeLoginCreds, readLoginPayload } from "@/lib/loginError";
-import { buildLocalDemoSession } from "@/lib/demoAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useDemoMode } from "@/context/DemoModeContext";
-import AuthTabs from "@/components/auth/AuthTabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { LOGIN_PROFILES, profilesFromUserTypes } from "@/lib/loginProfiles";
+import {
+  buildLocalDemoSession,
+  fetchLoginCategories,
+  isKnownDemoLogin,
+  loginErrorText,
+  loginWithPassword,
+  resendLoginOtp,
+  sendPasswordReset,
+  verifyLoginOtp,
+} from "@/lib/loginClient";
 
-const PUBLIC_LOGIN_PROFILES = LOGIN_PROFILES.filter((p) => p.id !== "admin");
-
-function getPublicProfile(id, list) {
-  const rows = list?.length ? list : PUBLIC_LOGIN_PROFILES;
-  return rows.find((p) => p.id === id) || rows[0];
-}
+const BASE_ROLES = LOGIN_PROFILES.filter((p) => p.id !== "admin");
 
 export default function Login() {
-  const { setSession } = useAuth();
   const nav = useNavigate();
+  const { setSession } = useAuth();
+  const { enableDemo, openPanel } = useDemoMode();
+
   const [lang, setLang] = useState(() => localStorage.getItem("bs_lang") || "en");
-  const [profileId, setProfileId] = useState("customer");
-  const [roleProfiles, setRoleProfiles] = useState(PUBLIC_LOGIN_PROFILES);
+  const hi = lang === "hi";
+  const t = (en, h) => (hi ? h : en);
+
+  const [roles, setRoles] = useState(BASE_ROLES);
+  const [roleId, setRoleId] = useState("customer");
   const [stage, setStage] = useState("login");
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [otpEmail, setOtpEmail] = useState("");
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSent, setForgotSent] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const profile = getPublicProfile(profileId, roleProfiles);
-  const hi = lang === "hi";
-  const { openPanel, enableDemo } = useDemoMode();
-  const t = (en, h) => (hi ? h : en);
+  const role = useMemo(
+    () => roles.find((r) => r.id === roleId) || roles[0] || BASE_ROLES[0],
+    [roles, roleId],
+  );
+  const Icon = role.icon || Package;
 
   useEffect(() => {
-    api.get("/user-types")
-      .then(({ data }) => {
-        const types = Array.isArray(data) ? data : data?.user_types || [];
-        if (types.length) setRoleProfiles(profilesFromUserTypes(types));
+    let live = true;
+    fetchLoginCategories()
+      .then((types) => {
+        if (!live || !types.length) return;
+        setRoles(profilesFromUserTypes(types));
       })
       .catch(() => {
-        setRoleProfiles(PUBLIC_LOGIN_PROFILES);
+        if (live) setRoles(BASE_ROLES);
       });
+    return () => { live = false; };
   }, []);
 
-  const toggleLang = () => {
-    const n = lang === "en" ? "hi" : "en";
-    localStorage.setItem("bs_lang", n);
-    setLang(n);
-  };
-
-  const finish = (data) => {
-    if (!data?.token || !data?.user) {
-      setErr(t("Login did not return a session. Try Sign up or Demo.", "सेशन नहीं मिला। साइन अप या डेमो आज़माएँ।"));
+  const enterSession = (token, user, localDemo) => {
+    if (!token || !user) {
+      setErr(t("Login did not return a session.", "सेशन नहीं मिला।"));
       return;
     }
-    setSession(data.token, data.user);
-    toast.success(t(`Welcome back, ${data.user.name || data.user.email}`, `स्वागत है, ${data.user.name || data.user.email}`));
+    if (localDemo) enableDemo();
+    setSession(token, user);
+    toast.success(t(`Welcome, ${user.name || user.email}`, `स्वागत है, ${user.name || user.email}`));
     nav("/dashboard");
   };
 
-  const doLogin = async (creds) => {
-    const body = normalizeLoginCreds(creds);
-    if (!body.email || !body.password) {
+  const runPasswordLogin = async () => {
+    const em = email.trim().toLowerCase();
+    const pw = password;
+    if (!em.includes("@") || !pw) {
       setErr(t("Please enter a valid email and password.", "कृपया सही ईमेल और पासवर्ड डालें।"));
       return;
     }
     setBusy(true);
     setErr("");
     try {
-      const { data } = await api.post("/auth/login", body);
-      const parsed = readLoginPayload(data);
-      if (!parsed.ok) {
-        setErr(parsed.error);
+      const result = await loginWithPassword(em, pw);
+      if (result.ok && result.data?.requires_otp) {
+        setOtpEmail(result.data.email || em);
+        setStage("otp");
+        toast.info(t("We emailed a 6-digit code.", "6 अंकों का कोड ईमेल किया गया।"));
         return;
       }
-      if (parsed.requires_otp) {
-        setOtpEmail(parsed.email || body.email);
-        setStage("otp");
-        toast.info(t("We emailed you a 6-digit code", "हमने 6 अंकों का कोड ईमेल किया"));
-      } else {
-        finish(parsed);
+      if (result.ok && result.data?.token && result.data?.user) {
+        enterSession(result.data.token, result.data.user, false);
+        return;
       }
-    } catch (e2) {
-      if (isDemoCredential(body.email, body.password)) {
-        const data = buildLocalDemoSession(profileId);
-        enableDemo();
-        finish(data);
+      if (isKnownDemoLogin(em, pw)) {
+        const demo = buildLocalDemoSession(roleId);
+        enterSession(demo.token, demo.user, true);
         toast.message(t(
-          "Live demo users are not on this server — opened a local demo workspace.",
-          "लाइव डेमो यूज़र इस सर्वर पर नहीं हैं — लोकल डेमो वर्कस्पेस खोला गया।",
+          "Live demo users are not on the server — opened a local demo workspace.",
+          "लाइव डेमो यूज़र सर्वर पर नहीं — लोकल डेमो खोला।",
         ));
         return;
       }
-      setErr(formatLoginError(e2, { hi, email: body.email, password: body.password }));
+      setErr(loginErrorText(result));
     } finally {
       setBusy(false);
     }
   };
 
-  const submit = (e) => {
-    e.preventDefault();
-    doLogin(form);
-  };
-
-  const demoLogin = () => {
-    if (!profile.demo) return;
-    const creds = { email: profile.demo.email, password: profile.demo.password };
-    setForm(creds);
-    doLogin(creds);
-  };
-
-  const selectProfile = (id) => {
-    setProfileId(id);
+  const pickRole = (id) => {
+    setRoleId(id);
     setErr("");
-    const p = getPublicProfile(id, roleProfiles);
-    if (p.demo) setForm({ email: p.demo.email, password: p.demo.password });
-    else setForm({ email: "", password: "" });
+    const next = roles.find((r) => r.id === id) || BASE_ROLES.find((r) => r.id === id);
+    if (next?.demo) {
+      setEmail(next.demo.email);
+      setPassword(next.demo.password);
+    } else {
+      setEmail("");
+      setPassword("");
+    }
   };
 
-  const verifyOtp = async (e) => {
+  const runDemo = () => {
+    if (!role.demo) return;
+    setEmail(role.demo.email);
+    setPassword(role.demo.password);
+    setBusy(true);
+    setErr("");
+    loginWithPassword(role.demo.email, role.demo.password)
+      .then((result) => {
+        if (result.ok && result.data?.token && result.data?.user) {
+          enterSession(result.data.token, result.data.user, false);
+          return;
+        }
+        const demo = buildLocalDemoSession(role.id);
+        enterSession(demo.token, demo.user, true);
+        toast.message(t(
+          "Opened local demo workspace (live demo accounts are not seeded).",
+          "लोकल डेमो वर्कस्पेस खुला (लाइव डेमो अकाउंट नहीं हैं)।",
+        ));
+      })
+      .finally(() => setBusy(false));
+  };
+
+  const runOtp = async (e) => {
     e.preventDefault();
     setBusy(true);
     setErr("");
     try {
-      const { data } = await api.post("/auth/otp/verify", { email: otpEmail, code: otp });
-      finish(data);
-    } catch (e2) {
-      setErr(formatAxiosError(e2));
+      const result = await verifyLoginOtp(otpEmail, otp);
+      if (result.ok && result.data?.token && result.data?.user) {
+        enterSession(result.data.token, result.data.user, false);
+        return;
+      }
+      setErr(loginErrorText(result, t("Invalid code.", "गलत कोड।")));
     } finally {
       setBusy(false);
     }
   };
 
-  const resendOtp = async () => {
-    try {
-      await api.post("/auth/otp/resend", { email: otpEmail });
-      toast.success(t("Code re-sent", "कोड फिर भेजा गया"));
-    } catch {
-      toast.error(t("Could not resend", "भेज नहीं हो पाया"));
-    }
+  const runResendOtp = async () => {
+    const result = await resendLoginOtp(otpEmail);
+    if (result.ok) toast.success(t("Code re-sent.", "कोड फिर भेजा गया।"));
+    else toast.error(loginErrorText(result, t("Could not resend.", "भेज नहीं सका।")));
   };
 
-  const sendReset = async (e) => {
+  const runReset = async (e) => {
     e.preventDefault();
     setBusy(true);
     setErr("");
     try {
-      await api.post("/auth/forgot-password", { email: forgotEmail, origin: window.location.origin });
-      setForgotSent(true);
-    } catch (e2) {
-      setErr(formatAxiosError(e2));
+      const result = await sendPasswordReset(resetEmail, window.location.origin);
+      if (result.ok) setResetSent(true);
+      else setErr(loginErrorText(result));
     } finally {
       setBusy(false);
     }
   };
-
-  const google = () => {
-    const redirectUrl = window.location.origin + "/dashboard";
-    window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-  };
-
-  const Icon = profile.icon || Package;
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
-      {/* Left — role-specific panel */}
       <div className="hidden lg:flex relative bg-slate-950 flex-col">
-        <div className="absolute inset-0 grid-lines opacity-20" />
         <div className="relative flex flex-col h-full p-10 xl:p-12 text-white">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="h-9 w-9 bg-primary flex items-center justify-center rounded-lg">
@@ -183,36 +189,33 @@ export default function Login() {
             </div>
             <span className="font-display font-extrabold text-lg tracking-tight">buildecogroup.com</span>
           </Link>
-
           <div className="flex-1 flex flex-col justify-center py-10">
-            <div className={`inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest border px-3 py-1.5 rounded-full w-fit mb-6 ${profile.bg}`}>
-              <Icon className={`h-3.5 w-3.5 ${profile.color}`} />
-              {hi ? profile.labelHi : profile.label}
+            <div className={`inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest border px-3 py-1.5 rounded-full w-fit mb-6 ${role.bg || "border-white/20"}`}>
+              <Icon className={`h-3.5 w-3.5 ${role.color || "text-white"}`} />
+              {hi ? role.labelHi : role.label}
             </div>
             <h2 className="font-display font-extrabold text-3xl xl:text-4xl tracking-tight leading-tight">
-              {hi ? profile.subtitleHi : profile.subtitle}
+              {hi ? role.subtitleHi : role.subtitle}
             </h2>
             <p className="mt-3 text-slate-400 text-sm">
-              {t("After login you will see:", "लॉगिन के बाद आपको मिलेगा:")}{" "}
-              <span className="text-white font-medium">{profile.dashboard}</span>
+              {t("After login you will see:", "लॉगिन के बाद:")}{" "}
+              <span className="text-white font-medium">{role.dashboard}</span>
             </p>
             <ul className="mt-8 space-y-3">
-              {(profile.features || []).map((f) => (
-                <li key={f.en} className="flex items-start gap-3 text-sm text-slate-300">
+              {(role.features || []).map((f) => (
+                <li key={f.en || f.hi} className="flex items-start gap-3 text-sm text-slate-300">
                   <span className="h-8 w-8 shrink-0 bg-white/10 flex items-center justify-center rounded-lg">
-                    <f.icon className={`h-4 w-4 ${profile.color}`} />
+                    {f.icon ? <f.icon className={`h-4 w-4 ${role.color || ""}`} /> : null}
                   </span>
                   <span className="pt-1.5">{hi ? f.hi : f.en}</span>
                 </li>
               ))}
             </ul>
           </div>
-
-          <p className="text-xs font-mono text-slate-500">ISO 27001 · GST Ready · Made in India</p>
+          <p className="text-xs font-mono text-slate-500">Sign-in server: wallet-vendor-mvp.emergent.host</p>
         </div>
       </div>
 
-      {/* Right — login form */}
       <div className="flex flex-col min-h-screen">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border lg:border-0">
           <Link to="/" className="lg:hidden flex items-center gap-2">
@@ -223,9 +226,12 @@ export default function Login() {
           </Link>
           <button
             type="button"
-            onClick={toggleLang}
-            data-testid="login-lang-toggle"
-            className="ml-auto flex items-center gap-1.5 text-xs font-mono border border-border px-2.5 py-1.5 rounded-lg hover:bg-accent"
+            onClick={() => {
+              const n = lang === "en" ? "hi" : "en";
+              localStorage.setItem("bs_lang", n);
+              setLang(n);
+            }}
+            className="ml-auto flex items-center gap-1.5 text-xs font-mono border border-border px-2.5 py-1.5 rounded-lg"
           >
             <Languages className="h-3.5 w-3.5" />
             {hi ? "EN" : "हि"}
@@ -234,122 +240,91 @@ export default function Login() {
 
         <div className="flex-1 flex items-center justify-center p-4 md:p-8">
           <div className="w-full max-w-md">
-            {stage === "login" && <AuthTabs active="login" registerTo={`/register?type=${profileId}`} />}
             {stage === "login" && (
               <>
-                <h1 data-testid="login-title" className="font-display font-extrabold text-2xl md:text-3xl tracking-tight">
-                  {t("Log in", "लॉग इन")}
-                </h1>
+                <div className="flex gap-1 p-1 border border-border rounded-lg bg-muted/30 mb-6">
+                  <span className="flex-1 text-center py-2.5 text-sm font-medium rounded-md bg-primary text-primary-foreground">
+                    {t("Log in", "लॉग इन")}
+                  </span>
+                  <Link to={`/register?type=${roleId}`} className="flex-1 text-center py-2.5 text-sm font-medium rounded-md text-muted-foreground hover:bg-accent/50">
+                    {t("Create account", "खाता बनाएँ")}
+                  </Link>
+                </div>
+
+                <h1 className="font-display font-extrabold text-2xl md:text-3xl tracking-tight">{t("Log in", "लॉग इन")}</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {t("Choose your login category, then sign in", "लॉगिन श्रेणी चुनें, फिर साइन इन करें")}
+                  {t("Choose a category, then sign in on the BuildEco server.", "श्रेणी चुनें, फिर BuildEco सर्वर पर साइन इन करें।")}
                 </p>
 
-                {/* Role selector */}
-                <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2" data-testid="login-role-grid">
-                  {roleProfiles.map((p) => {
+                <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {roles.map((p) => {
                     const PIcon = p.icon || Package;
-                    const active = profileId === p.id;
+                    const on = roleId === p.id;
                     return (
                       <button
                         key={p.id}
                         type="button"
-                        data-testid={`login-role-${p.id}`}
-                        onClick={() => selectProfile(p.id)}
-                        className={`text-left p-3 border transition-all rounded-lg ${
-                          active ? `${p.bg} ring-2 ring-primary ring-offset-1` : "border-border hover:bg-accent/50"
-                        }`}
+                        onClick={() => pickRole(p.id)}
+                        className={`text-left p-3 border rounded-lg ${on ? `${p.bg || ""} ring-2 ring-primary` : "border-border hover:bg-accent/50"}`}
                       >
-                        <PIcon className={`h-5 w-5 mb-1.5 ${active ? p.color : "text-muted-foreground"}`} />
-                        <div className="text-xs font-semibold leading-tight">{hi ? p.labelHi : p.label}</div>
+                        <PIcon className={`h-5 w-5 mb-1.5 ${on ? p.color : "text-muted-foreground"}`} />
+                        <div className="text-xs font-semibold">{hi ? p.labelHi : p.label}</div>
                       </button>
                     );
                   })}
                 </div>
 
-                {err && (
-                  <div data-testid="login-error" className="mt-4 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">
-                    {err}
-                  </div>
-                )}
+                {err ? (
+                  <div className="mt-4 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">{err}</div>
+                ) : null}
 
-                <form onSubmit={submit} className="mt-5 space-y-3">
+                <form
+                  className="mt-5 space-y-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void runPasswordLogin();
+                  }}
+                >
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("Email", "ईमेल")}</label>
-                    <Input
-                      data-testid="login-email"
-                      type="email"
-                      placeholder="you@company.com"
-                      required
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      className="rounded-none"
-                    />
+                    <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-none" autoComplete="username" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">{t("Password", "पासवर्ड")}</label>
-                    <Input
-                      data-testid="login-password"
-                      type="password"
-                      placeholder="••••••••"
-                      required
-                      value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      className="rounded-none"
-                    />
+                    <Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-none" autoComplete="current-password" />
                   </div>
                   <div className="text-right">
                     <button
                       type="button"
-                      data-testid="forgot-password-link"
-                      onClick={() => { setStage("forgot"); setErr(""); setForgotSent(false); setForgotEmail(form.email); }}
                       className="text-xs text-primary hover:underline"
+                      onClick={() => {
+                        setStage("forgot");
+                        setErr("");
+                        setResetSent(false);
+                        setResetEmail(email);
+                      }}
                     >
                       {t("Forgot password?", "पासवर्ड भूल गए?")}
                     </button>
                   </div>
-                  <Button data-testid="login-submit" type="submit" disabled={busy} className="w-full rounded-none btn-premium">
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-                      <><LogIn className="h-4 w-4 mr-1.5" />{t("Log in", "लॉग इन")}</>
-                    )}
+                  <Button type="submit" disabled={busy} className="w-full rounded-none btn-premium">
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><LogIn className="h-4 w-4 mr-1.5" />{t("Log in", "लॉग इन")}</>}
                   </Button>
                 </form>
 
-                {profile.demo && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    data-testid="demo-login-btn"
-                    disabled={busy}
-                    onClick={demoLogin}
-                    className="w-full rounded-none mt-2 border-dashed"
-                  >
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : (
-                      <>{t(`Demo: ${profile.demo.name}`, `डेमो: ${profile.demo.name}`)} <ChevronRight className="h-4 w-4 ml-1" /></>
-                    )}
+                {role.demo ? (
+                  <Button type="button" variant="outline" disabled={busy} onClick={runDemo} className="w-full rounded-none mt-2 border-dashed">
+                    {t(`Demo: ${role.demo.name}`, `डेमो: ${role.demo.name}`)} <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
-                )}
-                {profile.adminNote && (
-                  <p className="text-xs text-muted-foreground mt-2 text-center">
-                    {hi ? profile.adminNoteHi : profile.adminNote}
-                  </p>
-                )}
-
-                <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-                  <div className="h-px flex-1 bg-border" />{t("OR", "या")}<div className="h-px flex-1 bg-border" />
-                </div>
-                <Button data-testid="login-google" variant="outline" onClick={google} className="w-full rounded-none">
-                  {t("Continue with Google", "Google से जारी रखें")}
-                </Button>
+                ) : null}
 
                 <p className="text-sm text-muted-foreground mt-6 text-center">
-                  {t("No account?", "खाता नहीं है?")}{" "}
-                  <Link to={`/register?type=${profileId}`} className="text-primary font-medium hover:underline">
-                    {t("Sign up", "रजिस्टर करें")}
-                  </Link>
+                  {t("No account?", "खाता नहीं?")}{" "}
+                  <Link to={`/register?type=${roleId}`} className="text-primary font-medium">{t("Sign up", "रजिस्टर करें")}</Link>
                 </p>
                 <p className="text-sm text-center mt-3">
-                  <button type="button" onClick={openPanel} className="text-primary font-medium hover:underline" data-testid="login-try-demo">
-                    {t("Try interactive demo (no signup)", "बिना साइनअप डेमो देखें")}
+                  <button type="button" onClick={openPanel} className="text-primary font-medium hover:underline">
+                    {t("Try interactive demo (no signup)", "बिना साइनअप डेमो")}
                   </button>
                 </p>
               </>
@@ -359,60 +334,42 @@ export default function Login() {
               <>
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-6 w-6 text-primary" />
-                  <h1 className="font-display font-extrabold text-2xl tracking-tight">{t("Verify it's you", "पहचान सत्यापित करें")}</h1>
+                  <h1 className="font-display font-extrabold text-2xl">{t("Verify it's you", "कोड डालें")}</h1>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t("Enter the 6-digit code sent to", "6 अंकों का कोड दर्ज करें")}{" "}
-                  <span className="font-mono">{otpEmail}</span>
-                </p>
-                {err && <div className="mt-4 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">{err}</div>}
-                <form onSubmit={verifyOtp} className="mt-6 space-y-4">
-                  <Input
-                    data-testid="otp-code"
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="______"
-                    required
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    className="rounded-none tracking-[0.5em] text-center font-mono text-lg"
-                  />
-                  <Button data-testid="otp-submit" type="submit" disabled={busy} className="w-full rounded-none btn-premium">
+                <p className="text-sm text-muted-foreground mt-1">{otpEmail}</p>
+                {err ? <div className="mt-4 text-sm text-destructive border border-destructive/30 px-3 py-2">{err}</div> : null}
+                <form onSubmit={runOtp} className="mt-6 space-y-4">
+                  <Input inputMode="numeric" maxLength={6} required value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} className="rounded-none tracking-[0.5em] text-center font-mono text-lg" />
+                  <Button type="submit" disabled={busy} className="w-full rounded-none btn-premium">
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Verify & continue", "सत्यापित करें")}
                   </Button>
                 </form>
-                <div className="mt-4 flex items-center justify-between text-xs">
-                  <button type="button" onClick={() => { setStage("login"); setErr(""); setOtp(""); }} className="text-muted-foreground hover:underline flex items-center gap-1">
+                <div className="mt-4 flex justify-between text-xs">
+                  <button type="button" onClick={() => { setStage("login"); setErr(""); setOtp(""); }} className="flex items-center gap-1 text-muted-foreground">
                     <ArrowLeft className="h-3 w-3" />{t("Back", "पीछे")}
                   </button>
-                  <button type="button" data-testid="otp-resend" onClick={resendOtp} className="text-primary hover:underline">
-                    {t("Resend code", "कोड फिर भेजें")}
-                  </button>
+                  <button type="button" onClick={() => void runResendOtp()} className="text-primary">{t("Resend code", "फिर भेजें")}</button>
                 </div>
               </>
             )}
 
             {stage === "forgot" && (
               <>
-                <h1 className="font-display font-extrabold text-2xl tracking-tight">{t("Reset password", "पासवर्ड रीसेट")}</h1>
-                {forgotSent ? (
-                  <div data-testid="forgot-sent" className="mt-4 text-sm border border-border bg-muted/40 px-3 py-3">
-                    {t("If an account exists for", "यदि खाता मौजूद है")}{" "}
-                    <span className="font-mono">{forgotEmail}</span>, {t("a reset link has been emailed.", "रीसेट लिंक ईमेल किया गया।")}
-                  </div>
+                <h1 className="font-display font-extrabold text-2xl">{t("Reset password", "पासवर्ड रीसेट")}</h1>
+                {resetSent ? (
+                  <p className="mt-4 text-sm border px-3 py-3">
+                    {t("If an account exists, a reset link was emailed to", "अगर खाता है तो लिंक भेजा गया:")} {resetEmail}
+                  </p>
                 ) : (
-                  <>
-                    <p className="text-sm text-muted-foreground mt-1">{t("Enter your email for a reset link.", "रीसेट लिंक के लिए ईमेल दें।")}</p>
-                    {err && <div className="mt-4 text-sm text-destructive border border-destructive/30 bg-destructive/5 px-3 py-2">{err}</div>}
-                    <form onSubmit={sendReset} className="mt-6 space-y-4">
-                      <Input data-testid="forgot-email" type="email" required value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} className="rounded-none" />
-                      <Button data-testid="forgot-submit" type="submit" disabled={busy} className="w-full rounded-none">
-                        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Send reset link", "रीसेट लिंक भेजें")}
-                      </Button>
-                    </form>
-                  </>
+                  <form onSubmit={runReset} className="mt-6 space-y-4">
+                    {err ? <div className="text-sm text-destructive border px-3 py-2">{err}</div> : null}
+                    <Input type="email" required value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} className="rounded-none" />
+                    <Button type="submit" disabled={busy} className="w-full rounded-none">
+                      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Send reset link", "लिंक भेजें")}
+                    </Button>
+                  </form>
                 )}
-                <button type="button" onClick={() => { setStage("login"); setErr(""); }} className="mt-4 text-xs text-muted-foreground hover:underline flex items-center gap-1">
+                <button type="button" onClick={() => { setStage("login"); setErr(""); }} className="mt-4 text-xs text-muted-foreground flex items-center gap-1">
                   <ArrowLeft className="h-3 w-3" />{t("Back to log in", "लॉग इन पर वापस")}
                 </button>
               </>
