@@ -1,5 +1,5 @@
 import { formatApiErrorDetail, formatAxiosError } from "./api";
-import { formatLoginError, isDemoCredential } from "./loginError";
+import { formatLoginError, isDemoCredential, normalizeLoginCreds, readLoginPayload } from "./loginError";
 import { profilesFromUserTypes } from "./loginProfiles";
 import { fallbackTreeForType } from "./signupCategories";
 import { buildLocalDemoSession } from "./demoAuth";
@@ -8,6 +8,16 @@ describe("login categories and errors", () => {
   it("detects seeded demo credentials", () => {
     expect(isDemoCredential("customer@buildecogroup.com", "Demo@12345")).toBe(true);
     expect(isDemoCredential("customer@buildecogroup.com", "wrong")).toBe(false);
+  });
+
+  it("normalizes email and reads login payloads", () => {
+    expect(normalizeLoginCreds({ email: "  A@B.com ", password: "x" })).toEqual({
+      email: "a@b.com",
+      password: "x",
+    });
+    expect(readLoginPayload({ requires_otp: true, email: "a@b.com" }).requires_otp).toBe(true);
+    expect(readLoginPayload({ token: "t", user: { name: "Priya" } }).ok).toBe(true);
+    expect(readLoginPayload("<html>").ok).toBe(false);
   });
 
   it("explains live 401 for demo accounts", () => {

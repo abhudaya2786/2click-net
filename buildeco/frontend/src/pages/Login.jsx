@@ -5,11 +5,11 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  HardHat, Loader2, ArrowLeft, ShieldCheck, Languages, ChevronRight, LogIn,
+  HardHat, Loader2, ArrowLeft, ShieldCheck, Languages, ChevronRight, LogIn, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { LOGIN_PROFILES, profilesFromUserTypes } from "@/lib/loginProfiles";
-import { formatLoginError, isDemoCredential } from "@/lib/loginError";
+import { formatLoginError, isDemoCredential, normalizeLoginCreds, readLoginPayload } from "@/lib/loginError";
 import { buildLocalDemoSession } from "@/lib/demoAuth";
 import { useDemoMode } from "@/context/DemoModeContext";
 import AuthTabs from "@/components/auth/AuthTabs";
@@ -59,25 +59,39 @@ export default function Login() {
   };
 
   const finish = (data) => {
+    if (!data?.token || !data?.user) {
+      setErr(t("Login did not return a session. Try Sign up or Demo.", "सेशन नहीं मिला। साइन अप या डेमो आज़माएँ।"));
+      return;
+    }
     setSession(data.token, data.user);
-    toast.success(t(`Welcome back, ${data.user.name}`, `स्वागत है, ${data.user.name}`));
+    toast.success(t(`Welcome back, ${data.user.name || data.user.email}`, `स्वागत है, ${data.user.name || data.user.email}`));
     nav("/dashboard");
   };
 
   const doLogin = async (creds) => {
+    const body = normalizeLoginCreds(creds);
+    if (!body.email || !body.password) {
+      setErr(t("Please enter a valid email and password.", "कृपया सही ईमेल और पासवर्ड डालें।"));
+      return;
+    }
     setBusy(true);
     setErr("");
     try {
-      const { data } = await api.post("/auth/login", creds);
-      if (data.requires_otp) {
-        setOtpEmail(data.email);
+      const { data } = await api.post("/auth/login", body);
+      const parsed = readLoginPayload(data);
+      if (!parsed.ok) {
+        setErr(parsed.error);
+        return;
+      }
+      if (parsed.requires_otp) {
+        setOtpEmail(parsed.email || body.email);
         setStage("otp");
         toast.info(t("We emailed you a 6-digit code", "हमने 6 अंकों का कोड ईमेल किया"));
       } else {
-        finish(data);
+        finish(parsed);
       }
     } catch (e2) {
-      if (isDemoCredential(creds.email, creds.password)) {
+      if (isDemoCredential(body.email, body.password)) {
         const data = buildLocalDemoSession(profileId);
         enableDemo();
         finish(data);
@@ -87,7 +101,7 @@ export default function Login() {
         ));
         return;
       }
-      setErr(formatLoginError(e2, { hi, email: creds.email, password: creds.password }));
+      setErr(formatLoginError(e2, { hi, email: body.email, password: body.password }));
     } finally {
       setBusy(false);
     }
@@ -155,7 +169,7 @@ export default function Login() {
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
-  const Icon = profile.icon;
+  const Icon = profile.icon || Package;
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -183,7 +197,7 @@ export default function Login() {
               <span className="text-white font-medium">{profile.dashboard}</span>
             </p>
             <ul className="mt-8 space-y-3">
-              {profile.features.map((f) => (
+              {(profile.features || []).map((f) => (
                 <li key={f.en} className="flex items-start gap-3 text-sm text-slate-300">
                   <span className="h-8 w-8 shrink-0 bg-white/10 flex items-center justify-center rounded-lg">
                     <f.icon className={`h-4 w-4 ${profile.color}`} />
@@ -233,7 +247,7 @@ export default function Login() {
                 {/* Role selector */}
                 <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-2" data-testid="login-role-grid">
                   {roleProfiles.map((p) => {
-                    const PIcon = p.icon;
+                    const PIcon = p.icon || Package;
                     const active = profileId === p.id;
                     return (
                       <button

@@ -1,6 +1,26 @@
 import { formatApiErrorDetail, formatAxiosError } from "./api";
 import { LOGIN_PROFILES } from "./loginProfiles";
 
+export function normalizeLoginCreds(creds) {
+  return {
+    email: String(creds?.email || "").trim().toLowerCase(),
+    password: String(creds?.password || ""),
+  };
+}
+
+export function readLoginPayload(data) {
+  if (!data || typeof data !== "object") {
+    return { ok: false, error: "Login did not return a session. Try Sign up or Demo." };
+  }
+  if (data.requires_otp) {
+    return { ok: true, requires_otp: true, email: data.email || "" };
+  }
+  if (data.token && data.user) {
+    return { ok: true, token: data.token, user: data.user };
+  }
+  return { ok: false, error: "Login did not return a session. Try Sign up or Demo." };
+}
+
 export function isDemoCredential(email, password) {
   const em = String(email || "").trim().toLowerCase();
   const pw = String(password || "");
