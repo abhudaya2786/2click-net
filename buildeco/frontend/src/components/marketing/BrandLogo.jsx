@@ -16,7 +16,7 @@ export default function BrandLogo({ className = "h-8 w-8", iconClass = "h-4 w-4"
     return <img src={logo} alt="" className={`${className} object-contain rounded-lg`} />;
   }
   return (
-    <div className={`${className} bg-primary flex items-center justify-center rounded-lg shadow-sm`}>
+    <div className={`${className} bg-primary flex items-center justify-center rounded shadow-sm`}>
       <HardHat className={`${iconClass} text-white`} strokeWidth={1.75} />
     </div>
   );

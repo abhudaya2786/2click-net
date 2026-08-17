@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -9,17 +9,15 @@ import { useLang } from "@/context/LanguageContext";
 import BrandLogo from "@/components/marketing/BrandLogo";
 import CartNavButton from "@/components/store/CartNavButton";
 import { NAV_COPY } from "@/lib/homeCopy";
-import { SUPER_COPY } from "@/lib/superAppCopy";
 import ExploreDropdownLinks, { exploreLabel } from "@/components/marketing/ExploreDropdownLinks";
 import { EXPLORE_MENU, EXPLORE_EXTENDED } from "@/lib/exploreNavMap";
-import { useDemoMode } from "@/context/DemoModeContext";
 
 const PRIMARY_LINKS = [
-  { to: "/", key: "home" },
-  { to: "/build", key: "build" },
-  { to: "/estimate", key: "estimate" },
-  { to: "/design", key: "design" },
-  { to: "/projects", key: "projects" },
+  { to: "/build", key: "modular", en: "Modular Homes", hi: "मॉड्यूलर होम" },
+  { to: "/services", key: "green", en: "Green Building", hi: "ग्रीन बिल्डिंग" },
+  { to: "/upcoming-projects", key: "portfolio", en: "Portfolio", hi: "पोर्टफोलियो" },
+  { to: "/about", key: "about", en: "About", hi: "हमारे बारे में" },
+  { to: "/platform", key: "insights", en: "Insights", hi: "इनसाइट्स" },
 ];
 
 const MOBILE_EXPLORE = [...EXPLORE_MENU, ...EXPLORE_EXTENDED];
@@ -30,14 +28,13 @@ export default function Navbar() {
   const { brand_name, navbar_style } = useBranding();
   const { lang, toggle: toggleLang, t, enabled } = useLang();
   const navCopy = NAV_COPY[lang] || NAV_COPY.en;
-  const superNav = SUPER_COPY[lang]?.nav || SUPER_COPY.en.nav;
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const nav = useNavigate();
-  const { openPanel } = useDemoMode();
 
   const lbl = (l) => {
-    if (l.key && superNav[l.key]) return superNav[l.key];
+    if (l.en) return lang === "hi" ? l.hi : l.en;
     if (l.key) {
       const translated = t(l.key);
       if (translated && translated !== l.key) return translated;
@@ -45,36 +42,33 @@ export default function Navbar() {
     return exploreLabel(l, lang, t);
   };
 
-  const openAi = () => {
-    window.dispatchEvent(new Event("open-ai-assistant"));
-  };
+  const isActive = (to) => location.pathname === to || location.pathname.startsWith(`${to}/`);
 
   return (
     <header
-      className={`z-50 border-b border-border bg-background/95 backdrop-blur-md mobile-app-header ${
+      className={`z-50 border-b border-border bg-card mobile-app-header ${
         navbar_style === "sticky" ? "sticky top-0" : "sticky top-0 md:static"
       }`}
     >
-      <div className="mx-auto max-w-6xl px-4 md:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="marketing-shell h-16 flex items-center justify-between gap-4">
         <Link to="/" data-testid="nav-logo" className="flex items-center gap-2.5 shrink-0">
-          <BrandLogo className="h-8 w-8" iconClass="h-4 w-4" />
-          <span className="font-display font-extrabold text-base tracking-tight truncate max-w-[10rem] sm:max-w-none">{brand_name}</span>
+          <BrandLogo className="h-8 w-8 rounded" iconClass="h-4 w-4" />
+          <span className="font-display font-bold text-base tracking-tight text-primary truncate max-w-[11rem] sm:max-w-none">
+            {brand_name || "Build Eco Group"}
+          </span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-7">
           {PRIMARY_LINKS.map((l) => (
             <Link
               key={l.to}
               to={l.to}
               data-testid={`nav-${l.key}`}
-              className="nav-link"
+              className={`nav-link ${isActive(l.to) ? "nav-link-active" : ""}`}
             >
               {lbl(l)}
             </Link>
           ))}
-          <button type="button" onClick={openAi} className="nav-link">
-            {superNav.ai}
-          </button>
           <div className="relative">
             <button
               type="button"
@@ -88,7 +82,7 @@ export default function Navbar() {
             {exploreOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setExploreOpen(false)} aria-hidden />
-                <div className="absolute top-full right-0 mt-2 w-60 rounded-sm border border-border bg-card shadow-md py-2 z-50 max-h-[70vh] overflow-y-auto">
+                <div className="absolute top-full right-0 mt-2 w-60 rounded border border-border bg-card emerald-shadow py-2 z-50 max-h-[70vh] overflow-y-auto">
                   <ExploreDropdownLinks onNavigate={() => setExploreOpen(false)} lbl={lbl} />
                 </div>
               </>
@@ -102,7 +96,7 @@ export default function Navbar() {
               type="button"
               data-testid="lang-toggle"
               onClick={toggleLang}
-              className="h-9 w-9 flex items-center justify-center rounded-lg text-xs font-mono uppercase text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors"
+              className="h-9 w-9 flex items-center justify-center rounded text-xs font-mono uppercase text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
               title="Switch language"
             >
               {navCopy.langSwitch}
@@ -112,7 +106,7 @@ export default function Navbar() {
           <button
             data-testid="theme-toggle"
             onClick={toggle}
-            className="h-9 w-9 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/60 transition-colors"
+            className="h-9 w-9 flex items-center justify-center rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
           >
             {theme === "dark" ? <Sun className="h-4 w-4" strokeWidth={1.5} /> : <Moon className="h-4 w-4" strokeWidth={1.5} />}
           </button>
@@ -120,22 +114,21 @@ export default function Navbar() {
             <Button
               data-testid="nav-dashboard-btn"
               onClick={() => nav("/dashboard")}
-              className="btn-premium hidden sm:inline-flex h-9 rounded-xl px-4"
+              className="btn-premium btn-primary-eco hidden sm:inline-flex h-9 rounded px-4"
             >
               {navCopy.dashboard}
             </Button>
           ) : (
-            <>
-              <Button variant="ghost" data-testid="nav-demo-btn" onClick={openPanel}
-                className="rounded-lg hidden sm:inline-flex h-9 text-primary">{lang === "hi" ? "डेमो" : "Demo"}</Button>
-              <Button variant="ghost" data-testid="nav-login-btn" onClick={() => nav("/login")}
-                className="rounded-lg hidden sm:inline-flex h-9">{navCopy.login}</Button>
-              <Button data-testid="nav-signup-btn" onClick={() => nav("/register")}
-                className="btn-premium hidden sm:inline-flex h-9 text-sm px-3">{navCopy.join}</Button>
-            </>
+            <Button
+              data-testid="nav-enquire-btn"
+              onClick={() => nav("/contact")}
+              className="btn-premium btn-primary-eco hidden sm:inline-flex h-9 text-xs font-semibold uppercase tracking-[0.06em] px-4 rounded"
+            >
+              {lang === "hi" ? "Enquire Now" : "Enquire Now"}
+            </Button>
           )}
           <button
-            className="lg:hidden h-9 w-9 flex items-center justify-center rounded-lg hover:bg-accent/60"
+            className="lg:hidden h-9 w-9 flex items-center justify-center rounded hover:bg-accent"
             onClick={() => setOpen(!open)}
             data-testid="nav-mobile-toggle"
           >
@@ -145,9 +138,14 @@ export default function Navbar() {
       </div>
 
       {open && (
-        <div className="lg:hidden border-t border-border/40 bg-background px-4 py-4 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
+        <div className="lg:hidden border-t border-border bg-card px-4 py-4 flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
           {PRIMARY_LINKS.map((l) => (
-            <Link key={l.to} to={l.to} onClick={() => setOpen(false)} className="text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-accent/50 active:text-primary">
+            <Link
+              key={l.to}
+              to={l.to}
+              onClick={() => setOpen(false)}
+              className="text-sm font-semibold uppercase tracking-wide py-2.5 px-2 rounded hover:bg-accent active:text-primary"
+            >
               {lbl(l)}
             </Link>
           ))}
@@ -157,27 +155,18 @@ export default function Navbar() {
               key={l.to}
               to={l.to}
               onClick={() => setOpen(false)}
-              className="text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-accent/50 active:text-primary"
+              className="text-sm font-medium py-2.5 px-2 rounded hover:bg-accent active:text-primary"
             >
               {lbl(l)}
             </Link>
           ))}
-          <button
-            type="button"
-            onClick={() => { setOpen(false); openAi(); }}
-            className="text-sm font-medium py-2.5 px-2 rounded-lg hover:bg-accent/50 text-left"
+          <Link
+            to="/contact"
+            onClick={() => setOpen(false)}
+            className="mt-2 text-center text-sm font-semibold uppercase tracking-wide py-2.5 rounded bg-primary text-primary-foreground"
           >
-            {superNav.ai}
-          </button>
-          {!user && (
-            <Link
-              to="/login"
-              onClick={() => setOpen(false)}
-              className="mt-2 text-center text-sm font-semibold py-2.5 rounded-xl bg-primary text-primary-foreground"
-            >
-              {navCopy.authCta}
-            </Link>
-          )}
+            Enquire Now
+          </Link>
         </div>
       )}
     </header>

@@ -24,14 +24,14 @@ export default function ServiceGrid({ className = "" }) {
   const label = (item) => (lang === "hi" ? item.hi : item.en);
 
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 border-t border-l border-border ${className}`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 ${className}`}>
       {c.services.map((s) => {
         const Icon = ICONS[s.id] || Package;
         return (
           <Link
             key={s.id}
             to={s.to}
-            className="group flex items-start gap-3 border-r border-b border-border p-5 md:p-6 bg-background hover:bg-muted/40 transition-colors"
+            className="group flex items-start gap-3 rounded-lg border border-border bg-card p-5 hover:border-primary/40 transition-colors"
           >
             <Icon className="h-5 w-5 text-primary shrink-0 mt-0.5" strokeWidth={1.5} />
             <div className="min-w-0 flex-1">

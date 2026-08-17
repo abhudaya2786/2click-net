@@ -4,35 +4,32 @@ import BrandLogo from "@/components/marketing/BrandLogo";
 
 const COLS = [
   {
-    h: "Build",
+    h: "Services",
     items: [
-      { label: "Start project", to: "/build" },
-      { label: "Free estimate", to: "/estimate" },
-      { label: "Design studio", to: "/design" },
-      { label: "Full home BOQ", to: "/boq-builder" },
-      { label: "Interior BOQ", to: "/interior-boq" },
-    ],
-  },
-  {
-    h: "Shop & bid",
-    items: [
-      { label: "Store", to: "/store" },
-      { label: "Super Mart", to: "/mart" },
-      { label: "Tenders", to: "/tenders" },
+      { label: "Modular Homes", to: "/build" },
+      { label: "Green Building", to: "/services" },
       { label: "Solar", to: "/solar" },
-      { label: "Equipment rental", to: "/equipment-rental" },
+      { label: "Design Studio", to: "/design" },
+      { label: "Estimate", to: "/estimate" },
     ],
   },
   {
-    h: "Company",
+    h: "Corporate",
     items: [
+      { label: "About Us", to: "/about" },
+      { label: "Portfolio", to: "/upcoming-projects" },
       { label: "Platform guide", to: "/platform" },
-      { label: "Professionals", to: "/professionals" },
-      { label: "Contact", to: "/contact" },
       { label: "Become vendor", to: "/become-vendor" },
+      { label: "Contact", to: "/contact" },
+    ],
+  },
+  {
+    h: "Legal",
+    items: [
+      { label: "Privacy Policy", to: "/privacy" },
+      { label: "Terms of Service", to: "/terms" },
+      { label: "Client Agreement", to: "/client-agreement" },
       { label: "Login / Join", to: "/login" },
-      { label: "Terms", to: "/terms" },
-      { label: "Privacy", to: "/privacy" },
     ],
   },
 ];
@@ -40,26 +37,26 @@ const COLS = [
 export default function Footer() {
   const { brand_name, tagline, footer_text } = useBranding();
   return (
-    <footer className="bg-muted/30 border-t border-border">
-      <div className="mx-auto max-w-6xl px-4 md:px-8 py-14 md:py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-5">
+    <footer className="bg-[hsl(var(--slate-deep))] text-white">
+      <div className="marketing-shell py-14 md:py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <div className="flex items-center gap-2.5 mb-4">
-            <BrandLogo className="h-9 w-9" iconClass="h-5 w-5" />
-            <span className="font-display font-extrabold text-lg tracking-tight">{brand_name}</span>
+            <BrandLogo className="h-9 w-9 rounded" iconClass="h-5 w-5" />
+            <span className="font-display font-bold text-lg tracking-tight">{brand_name || "Build Eco Group"}</span>
           </div>
-          <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
+          <p className="text-sm text-white/65 max-w-sm leading-relaxed">
             {footer_text ||
               tagline ||
-              "India's construction platform — materials, BOQ, tenders, solar, and consultants in one place."}
+              "Sustainable Engineering Excellence — modular construction, green building, and precision delivery."}
           </p>
-          <div className="mt-5 space-y-1 text-sm text-muted-foreground">
-            <a href="tel:+917007254932" data-testid="footer-phone" className="block hover:text-foreground transition-colors">
+          <div className="mt-5 space-y-1 text-sm text-white/65">
+            <a href="tel:+917007254932" data-testid="footer-phone" className="block hover:text-white transition-colors">
               +91 70072 54932
             </a>
             <a
               href="mailto:sales@buildecogroup.com"
               data-testid="footer-email"
-              className="block hover:text-foreground transition-colors"
+              className="block hover:text-white transition-colors"
             >
               sales@buildecogroup.com
             </a>
@@ -67,11 +64,11 @@ export default function Footer() {
         </div>
         {COLS.map((col) => (
           <div key={col.h}>
-            <h4 className="text-xs font-semibold uppercase tracking-[0.16em] text-foreground mb-4">{col.h}</h4>
+            <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-white/50 mb-4">{col.h}</h4>
             <ul className="space-y-2.5">
               {col.items.map((item) => (
                 <li key={item.to}>
-                  <Link to={item.to} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <Link to={item.to} className="text-sm text-white/70 hover:text-white transition-colors">
                     {item.label}
                   </Link>
                 </li>
@@ -80,13 +77,11 @@ export default function Footer() {
           </div>
         ))}
       </div>
-      <div className="mx-auto max-w-6xl px-4 md:px-8 py-5 border-t border-border flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+      <div className="marketing-shell py-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-white/45">
         <span>
-          © {new Date().getFullYear()} {brand_name}
+          © {new Date().getFullYear()} {brand_name || "Build Eco Group"}
         </span>
-        <Link to="/sys/console" className="hover:text-foreground transition-colors">
-          Owner console
-        </Link>
+        <span>Designed for a sustainable future</span>
       </div>
     </footer>
   );
