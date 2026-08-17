@@ -3,9 +3,9 @@ import { api } from "@/lib/api";
 
 const BrandingContext = createContext(null);
 const DEFAULTS = {
-  brand_name: "BuildEco Group",
-  primary_color: "#FF5A1F",
-  accent_color: "#10B981",
+  brand_name: "Build Eco Group",
+  primary_color: "#046c5c",
+  accent_color: "#034648",
   logo: "",
   favicon: "",
   tagline: "",

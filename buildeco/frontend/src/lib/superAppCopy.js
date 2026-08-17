@@ -74,8 +74,6 @@ export const SUPER_COPY = {
     ],
   },
   hi: {
-    tagline: "ज़मीन से संपूर्ण घर — BuildEco Group के साथ",
-    taglineHiShort: "ज़मीन से संपूर्ण घर — BuildEco Group के साथ",
     tagline: "भविष्य के लिए सतत् इंजीनियरिंग",
     taglineHiShort: "भविष्य के लिए सतत् इंजीनियरिंग",
     heroTitle: "भविष्य के लिए सतत् इंजीनियरिंग",

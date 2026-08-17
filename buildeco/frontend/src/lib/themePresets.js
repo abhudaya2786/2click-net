@@ -20,12 +20,12 @@ export const THEME_PRESETS = [
   },
   {
     id: "emerald",
-    label: "Cyber Emerald",
-    labelHi: "साइबर एमराल्ड",
-    primary: "160 84% 39%",
-    accent: "160 30% 12%",
-    solar: "160 84% 45%",
-    tender: "172 66% 45%",
+    label: "Eco Emerald",
+    labelHi: "इको एमराल्ड",
+    primary: "171 93% 22%",
+    accent: "168 25% 92%",
+    solar: "171 70% 32%",
+    tender: "214 23% 28%",
   },
   {
     id: "amber",
@@ -51,6 +51,6 @@ export function applyThemePreset(presetId) {
 }
 
 export function loadStoredPreset() {
-  const id = localStorage.getItem("bs_ui_preset");
-  if (id) applyThemePreset(id);
+  const id = localStorage.getItem("bs_ui_preset") || "emerald";
+  applyThemePreset(id);
 }
