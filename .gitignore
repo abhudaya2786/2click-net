@@ -1,7 +1,8 @@
 node_modules/
 build/
 dist/
-public/
+# Vite/Hostinger output at repo root only — keep buildeco/frontend/public tracked
+/public/
 # Keep api/index.js tracked; CJS bundle is build-time only
 api/index.js.map
 api/index.cjs

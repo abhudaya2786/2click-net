@@ -1,0 +1,16 @@
+Options -MultiViews
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Existing files and folders (JS/CSS/images) are served as-is
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # SPA: every other path → index.html so /store /tenders /login work on refresh
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+ErrorDocument 404 /index.html
+DirectoryIndex index.html
