@@ -51,7 +51,7 @@ export default function Navbar() {
 
   return (
     <header
-      className={`z-50 border-b border-border/40 bg-background/80 backdrop-blur-2xl mobile-app-header ${
+      className={`z-50 border-b border-border bg-background/95 backdrop-blur-md mobile-app-header ${
         navbar_style === "sticky" ? "sticky top-0" : "sticky top-0 md:static"
       }`}
     >
@@ -61,7 +61,7 @@ export default function Navbar() {
           <span className="font-display font-extrabold text-base tracking-tight truncate max-w-[10rem] sm:max-w-none">{brand_name}</span>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-4 xl:gap-5">
+        <nav className="hidden lg:flex items-center gap-5 xl:gap-6">
           {PRIMARY_LINKS.map((l) => (
             <Link
               key={l.to}
@@ -88,7 +88,7 @@ export default function Navbar() {
             {exploreOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setExploreOpen(false)} aria-hidden />
-                <div className="absolute top-full right-0 mt-2 w-56 rounded-xl border border-border/80 bg-card/95 backdrop-blur-xl shadow-lg py-2 z-50 max-h-[70vh] overflow-y-auto">
+                <div className="absolute top-full right-0 mt-2 w-60 rounded-sm border border-border bg-card shadow-md py-2 z-50 max-h-[70vh] overflow-y-auto">
                   <ExploreDropdownLinks onNavigate={() => setExploreOpen(false)} lbl={lbl} />
                 </div>
               </>

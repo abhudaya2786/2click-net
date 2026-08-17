@@ -14,91 +14,100 @@ body {
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 222 47% 11%;
+    /* Safety Orange industrial — #FF5A1F primary */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 222 47% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 25 52% 52%;
+    --popover-foreground: 222 47% 9%;
+    --primary: 16 100% 56%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 16% 94%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 220 16% 94%;
-    --muted-foreground: 215 16% 40%;
-    --accent: 220 14% 92%;
-    --accent-foreground: 222 47% 11%;
+    --secondary: 214 18% 94%;
+    --secondary-foreground: 222 47% 9%;
+    --muted: 214 16% 94%;
+    --muted-foreground: 215 16% 38%;
+    --accent: 214 14% 92%;
+    --accent-foreground: 222 47% 9%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 25 52% 52%;
-    --solar: 160 84% 39%;
-    --tender: 217 91% 60%;
-    --chart-1: 25 52% 52%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 217 91% 60%;
-    --chart-4: 43 96% 56%;
-    --chart-5: 280 65% 60%;
-    --radius: 0.75rem;
+    --border: 214 18% 88%;
+    --input: 214 18% 88%;
+    --ring: 16 100% 56%;
+    --solar: 160 84% 36%;
+    --tender: 217 82% 52%;
+    --steel: 215 25% 27%;
+    --chart-1: 16 100% 56%;
+    --chart-2: 160 84% 36%;
+    --chart-3: 217 82% 52%;
+    --chart-4: 43 90% 48%;
+    --chart-5: 200 55% 42%;
+    --radius: 0.375rem;
   }
   .dark {
-    --background: 222 42% 7%;
+    --background: 222 40% 6%;
     --foreground: 210 40% 96%;
-    --card: 222 34% 13%;
+    --card: 222 32% 10%;
     --card-foreground: 210 40% 96%;
-    --popover: 222 34% 13%;
+    --popover: 222 32% 10%;
     --popover-foreground: 210 40% 96%;
-    --primary: 28 58% 58%;
+    --primary: 16 100% 58%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
+    --secondary: 217 28% 14%;
     --secondary-foreground: 210 40% 96%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 20%;
+    --muted: 217 28% 14%;
+    --muted-foreground: 215 18% 62%;
+    --accent: 217 28% 16%;
     --accent-foreground: 210 40% 96%;
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 17%;
-    --input: 217 33% 20%;
-    --ring: 28 58% 58%;
-    --solar: 160 84% 39%;
-    --tender: 217 91% 60%;
-    --chart-1: 28 58% 58%;
-    --chart-2: 160 84% 45%;
-    --chart-3: 217 91% 60%;
-    --chart-4: 43 96% 56%;
-    --chart-5: 280 65% 65%;
+    --border: 217 28% 16%;
+    --input: 217 28% 18%;
+    --ring: 16 100% 58%;
+    --solar: 160 72% 42%;
+    --tender: 217 82% 58%;
+    --steel: 215 20% 70%;
+    --chart-1: 16 100% 58%;
+    --chart-2: 160 72% 42%;
+    --chart-3: 217 82% 58%;
+    --chart-4: 43 90% 52%;
+    --chart-5: 200 50% 50%;
   }
 }
 
 @layer components {
   .btn-premium {
-    @apply rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300;
+    @apply rounded-sm shadow-none hover:shadow-sm hover:-translate-y-0.5 transition-all duration-150 ease-out;
   }
   .card-premium {
-    @apply rounded-xl border border-border/80 bg-card shadow-sm hover:shadow-md hover:border-border transition-all duration-300;
+    @apply rounded-sm border border-border bg-card hover:border-foreground/20 transition-colors duration-150;
   }
   .section-premium {
-    @apply py-20 md:py-28;
+    @apply py-16 md:py-24;
   }
   .section-heading {
-    @apply font-display font-bold text-3xl md:text-4xl tracking-tight text-balance;
+    @apply font-display font-extrabold text-3xl md:text-4xl tracking-tight text-balance;
   }
   .section-sub {
     @apply mt-3 text-muted-foreground text-base md:text-lg leading-relaxed max-w-2xl;
   }
   .nav-link {
-    @apply text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200;
+    @apply text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-150;
   }
   .surface-muted {
-    @apply bg-muted/40 border border-border/60 rounded-2xl;
+    @apply bg-muted/50 border border-border rounded-sm;
   }
   .glass-card {
-    @apply bg-card/70 backdrop-blur-md border border-border/60 shadow-sm;
+    @apply bg-card border border-border;
   }
   .hero-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--background)) 50%, hsl(var(--solar) / 0.06) 100%);
+    background: linear-gradient(180deg, hsl(222 40% 8% / 0.55) 0%, hsl(222 40% 8% / 0.78) 100%);
+  }
+  .marketing-shell {
+    @apply mx-auto w-full max-w-6xl px-4 md:px-8;
+  }
+  .link-row {
+    @apply flex items-baseline justify-between gap-4 border-b border-border py-4 hover:border-primary/50 transition-colors;
   }
 }
 
