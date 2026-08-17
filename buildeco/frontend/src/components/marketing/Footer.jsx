@@ -41,7 +41,7 @@ export default function Footer() {
       <div className="marketing-shell py-14 md:py-16 grid gap-10 md:grid-cols-2 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <div className="flex items-center gap-2.5 mb-4">
-            <BrandLogo className="h-9 w-9 rounded" iconClass="h-5 w-5" />
+            <BrandLogo className="h-12 w-12" />
             <span className="font-display font-bold text-lg tracking-tight">{brand_name || "Build Eco Group"}</span>
           </div>
           <p className="text-sm text-white/65 max-w-sm leading-relaxed">

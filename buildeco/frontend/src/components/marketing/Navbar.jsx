@@ -52,7 +52,7 @@ export default function Navbar() {
     >
       <div className="marketing-shell h-16 flex items-center justify-between gap-4">
         <Link to="/" data-testid="nav-logo" className="flex items-center gap-2.5 shrink-0">
-          <BrandLogo className="h-8 w-8 rounded" iconClass="h-4 w-4" />
+          <BrandLogo className="h-11 w-11" />
           <span className="font-display font-bold text-base tracking-tight text-primary truncate max-w-[11rem] sm:max-w-none">
             {brand_name || "Build Eco Group"}
           </span>
