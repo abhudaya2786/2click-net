@@ -68,23 +68,23 @@ export default function Home() {
         <div className="absolute inset-0 noise-overlay opacity-40 pointer-events-none" aria-hidden />
 
         <div
-          className={`relative z-10 marketing-shell pb-16 pt-28 md:pb-24 md:pt-32 ${
-            centered ? "text-center" : "max-w-3xl"
-          }`}
+          className={`relative z-10 marketing-shell pb-16 pt-32 md:pb-24 md:pt-40 ${
+            centered ? "text-center mx-auto" : ""
+          } ${centered ? "max-w-3xl" : "max-w-3xl"}`}
         >
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
           >
-            <p className="font-display font-extrabold text-2xl sm:text-3xl md:text-4xl tracking-tight text-white mb-5 md:mb-6">
+            <p className="font-display font-extrabold text-5xl sm:text-6xl lg:text-7xl tracking-tight leading-[0.98] text-white text-balance">
               {brand}
             </p>
-            <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-white text-balance">
+            <h1 className="mt-5 md:mt-6 font-display font-bold text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-[1.15] text-white/95 text-balance">
               {sa.heroTitle}
             </h1>
             <p
-              className={`mt-5 text-base md:text-lg text-white/75 leading-relaxed ${
+              className={`mt-4 text-base md:text-lg text-white/70 leading-relaxed ${
                 centered ? "mx-auto max-w-xl" : "max-w-lg"
               }`}
             >
