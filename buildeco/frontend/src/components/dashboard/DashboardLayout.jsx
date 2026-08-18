@@ -3,6 +3,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useBranding } from "@/context/BrandingContext";
 import { HardHat, LogOut, Sun, Moon, Globe } from "lucide-react";
+import BrandLogo from "@/components/marketing/BrandLogo";
 import { isNativeCapacitor } from "@/lib/pwa";
 import CatalogBrandStrip from "@/components/catalog/CatalogBrandStrip";
 
@@ -20,9 +21,7 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
       <div className="md:hidden border-b border-border bg-card sticky top-0 z-30">
         <div className="h-14 flex items-center justify-between px-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-primary flex items-center justify-center shrink-0">
-              <HardHat className="h-4 w-4 text-white" strokeWidth={1.75} />
-            </div>
+            <BrandLogo className="h-9 w-9" />
             <span className="font-display font-extrabold text-sm tracking-tight truncate max-w-[140px]">{title}</span>
           </Link>
           <div className="flex items-center gap-1">
@@ -61,7 +60,7 @@ export default function DashboardLayout({ nav, active, setActive, children, titl
 
       <aside className="hidden md:flex w-60 border-r border-border flex-col shrink-0 bg-card">
         <Link to="/" className="h-16 flex items-center gap-2.5 px-4 border-b border-border">
-          <div className="h-8 w-8 bg-primary flex items-center justify-center shrink-0"><HardHat className="h-4.5 w-4.5 text-white" strokeWidth={1.75} /></div>
+          <BrandLogo className="h-9 w-9" />
           <span className="font-display font-extrabold tracking-tight hidden md:inline">{brand_name}</span>
         </Link>
         <nav className="flex-1 py-4 space-y-1 px-2">

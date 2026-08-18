@@ -4,6 +4,7 @@ import { api, formatApiErrorDetail } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import BrandLogo from "@/components/marketing/BrandLogo";
 import {
   HardHat, Loader2, ArrowLeft, ShieldCheck, Languages, ChevronRight, LogIn,
 } from "lucide-react";
@@ -164,10 +165,8 @@ export default function Login() {
         <div className="absolute inset-0 grid-lines opacity-20" />
         <div className="relative flex flex-col h-full p-10 xl:p-12 text-white">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="h-9 w-9 bg-primary flex items-center justify-center rounded-lg">
-              <HardHat className="h-5 w-5" strokeWidth={1.75} />
-            </div>
-            <span className="font-display font-extrabold text-lg tracking-tight">buildecogroup.com</span>
+            <BrandLogo className="h-10 w-10" />
+            <span className="font-display font-extrabold text-lg tracking-tight">Build Eco Group</span>
           </Link>
 
           <div className="flex-1 flex flex-col justify-center py-10">
@@ -202,10 +201,8 @@ export default function Login() {
       <div className="flex flex-col min-h-screen">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border lg:border-0">
           <Link to="/" className="lg:hidden flex items-center gap-2">
-            <div className="h-8 w-8 bg-primary flex items-center justify-center rounded-lg">
-              <HardHat className="h-4 w-4 text-white" />
-            </div>
-            <span className="font-display font-bold text-sm">buildecogroup.com</span>
+            <BrandLogo className="h-9 w-9" />
+            <span className="font-display font-bold text-sm">Build Eco Group</span>
           </Link>
           <button
             type="button"

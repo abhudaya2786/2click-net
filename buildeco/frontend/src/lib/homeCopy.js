@@ -12,8 +12,8 @@ export const HOME_COPY = {
     ctaTenders: "View live tenders",
     waMsg: "Hello buildecogroup.com — I would like to know more about the construction platform.",
     waLabel: "WhatsApp",
-    modulesTitle: "One platform. Eight verticals.",
-    modulesSub: "Every workflow your construction business needs — modular, integrated, enterprise-grade.",
+    modulesTitle: "Platform pillars",
+    modulesSub: "Tenders, store, solar, ERP and AI — modular tools that share one login.",
     modules: [
       { title: "Tender & Reverse Auction", desc: "Publish tenders, run live reverse auctions with auto-ranking and AI bid evaluation." },
       { title: "B2B/B2C Marketplace", desc: "Multi-vendor procurement of steel, cement, solar and more with GST invoicing." },
@@ -56,8 +56,8 @@ export const HOME_COPY = {
     ctaTenders: "लाइव टेंडर देखें",
     waMsg: "नमस्ते buildecogroup.com — मुझे निर्माण प्लेटफ़ॉर्म के बारे में जानकारी चाहिए।",
     waLabel: "व्हाट्सऐप",
-    modulesTitle: "एक प्लेटफ़ॉर्म। आठ क्षेत्र।",
-    modulesSub: "आपके निर्माण व्यवसाय के लिए हर कार्यप्रवाह — मॉड्यूलर, एकीकृत, एंटरप्राइज स्तर पर।",
+    modulesTitle: "प्लेटफ़ॉर्म स्तंभ",
+    modulesSub: "टेंडर, स्टोर, सोलर, ERP और AI — एक लॉगिन पर मॉड्यूलर टूल।",
     modules: [
       { title: "टेंडर और रिवर्स ऑक्शन", desc: "टेंडर प्रकाशित करें, लाइव रिवर्स ऑक्शन चलाएँ, स्वचालित रैंकिंग और एआई बिड मूल्यांकन।" },
       { title: "बीटूबी और बीटूसी मार्केटप्लेस", desc: "स्टील, सीमेंट, सोलर आदि की मल्टी-विक्रेता खरीद, जीएसटी इनवॉइसिंग के साथ।" },

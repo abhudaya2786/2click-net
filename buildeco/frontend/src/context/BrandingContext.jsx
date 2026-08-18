@@ -3,19 +3,19 @@ import { api } from "@/lib/api";
 
 const BrandingContext = createContext(null);
 const DEFAULTS = {
-  brand_name: "BuildEco Group",
-  primary_color: "#FF5A1F",
-  accent_color: "#10B981",
-  logo: "",
-  favicon: "",
-  tagline: "",
+  brand_name: "Build Eco Group",
+  primary_color: "#046c5c",
+  accent_color: "#034648",
+  logo: "/logo-build-eco-group.png",
+  favicon: "/logo-build-eco-group.png",
+  tagline: "Sustainable Future",
   theme: {
     default_theme: "light",
     layout: "standard",
     navbar_style: "sticky",
-    icon_mode: "hardhat",
+    icon_mode: "logo",
     support_badge_url: "",
-    footer_text: "",
+    footer_text: "Sustainable Engineering Excellence — Build Eco Group.",
     hero_layout: "split",
     card_style: "rounded",
     enabled_languages: ["en", "hi"],

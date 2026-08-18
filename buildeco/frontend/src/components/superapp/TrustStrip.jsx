@@ -10,16 +10,16 @@ export default function TrustStrip({ className = "" }) {
   const label = (item) => (lang === "hi" ? item.hi : item.en);
 
   return (
-    <div className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-3 ${className}`}>
+    <ul className={`grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5 ${className}`}>
       {c.trust.map((t, i) => {
         const Icon = ICONS[i % ICONS.length];
         return (
-          <div key={t.en} className="flex items-center gap-3 rounded-xl border border-border/50 bg-card/60 px-4 py-3">
-            <Icon className="h-4 w-4 text-primary shrink-0" />
-            <span className="text-sm text-muted-foreground">{label(t)}</span>
-          </div>
+          <li key={t.en} className="flex items-start gap-3">
+            <Icon className="h-4 w-4 text-primary shrink-0 mt-1" strokeWidth={1.75} />
+            <span className="text-sm md:text-base text-foreground/80 leading-snug">{label(t)}</span>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }

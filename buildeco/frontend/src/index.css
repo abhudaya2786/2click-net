@@ -1,5 +1,4 @@
-@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,111 +6,157 @@
 
 body {
   margin: 0;
-  font-family: "IBM Plex Sans", sans-serif;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 @layer base {
   :root {
-    --background: 220 20% 98%;
-    --foreground: 222 47% 11%;
+    /* Emerald Structured Grid — Eco-Corporate */
+    --background: 210 17% 98%;
+    --foreground: 200 10% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 200 10% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 25 52% 52%;
+    --popover-foreground: 200 10% 10%;
+    --primary: 171 93% 22%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 16% 94%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 220 16% 94%;
-    --muted-foreground: 215 16% 40%;
-    --accent: 220 14% 92%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 72% 51%;
+    --primary-hover: 181 92% 15%;
+    --secondary: 210 16% 93%;
+    --secondary-foreground: 200 10% 10%;
+    --muted: 210 14% 94%;
+    --muted-foreground: 165 8% 32%;
+    --accent: 168 25% 92%;
+    --accent-foreground: 171 93% 18%;
+    --destructive: 0 72% 42%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 25 52% 52%;
-    --solar: 160 84% 39%;
-    --tender: 217 91% 60%;
-    --chart-1: 25 52% 52%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 217 91% 60%;
-    --chart-4: 43 96% 56%;
-    --chart-5: 280 65% 60%;
-    --radius: 0.75rem;
+    --border: 214 20% 91%;
+    --input: 214 20% 91%;
+    --ring: 171 93% 22%;
+    --solar: 171 70% 32%;
+    --tender: 214 23% 28%;
+    --steel: 214 23% 23%;
+    --slate-deep: 214 23% 23%;
+    --emerald-light: 168 25% 92%;
+    --chart-1: 171 93% 22%;
+    --chart-2: 181 50% 35%;
+    --chart-3: 214 23% 35%;
+    --chart-4: 168 40% 45%;
+    --chart-5: 200 30% 40%;
+    --radius: 0.25rem;
+    --shadow-emerald: 0 10px 30px -10px rgba(4, 108, 92, 0.12);
   }
   .dark {
-    --background: 222 42% 7%;
-    --foreground: 210 40% 96%;
-    --card: 222 34% 13%;
-    --card-foreground: 210 40% 96%;
-    --popover: 222 34% 13%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 28 58% 58%;
+    --background: 200 14% 8%;
+    --foreground: 210 20% 96%;
+    --card: 200 12% 11%;
+    --card-foreground: 210 20% 96%;
+    --popover: 200 12% 11%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 168 55% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 20%;
-    --accent-foreground: 210 40% 96%;
+    --primary-hover: 168 55% 36%;
+    --secondary: 200 12% 16%;
+    --secondary-foreground: 210 20% 96%;
+    --muted: 200 12% 16%;
+    --muted-foreground: 168 10% 68%;
+    --accent: 171 30% 16%;
+    --accent-foreground: 168 55% 70%;
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 17%;
-    --input: 217 33% 20%;
-    --ring: 28 58% 58%;
-    --solar: 160 84% 39%;
-    --tender: 217 91% 60%;
-    --chart-1: 28 58% 58%;
-    --chart-2: 160 84% 45%;
-    --chart-3: 217 91% 60%;
-    --chart-4: 43 96% 56%;
-    --chart-5: 280 65% 65%;
+    --border: 200 12% 18%;
+    --input: 200 12% 20%;
+    --ring: 168 55% 42%;
+    --solar: 168 50% 45%;
+    --tender: 214 30% 55%;
+    --steel: 214 15% 70%;
+    --slate-deep: 214 20% 70%;
+    --emerald-light: 171 25% 14%;
+    --chart-1: 168 55% 42%;
+    --chart-2: 181 40% 45%;
+    --chart-3: 214 30% 55%;
+    --chart-4: 168 40% 50%;
+    --chart-5: 200 30% 50%;
   }
 }
 
 @layer components {
   .btn-premium {
-    @apply rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300;
+    @apply rounded transition-all duration-150 ease-out;
+  }
+  .btn-primary-eco {
+    @apply bg-primary text-primary-foreground hover:opacity-95;
+    background-color: hsl(var(--primary));
+  }
+  .btn-primary-eco:hover {
+    background-color: hsl(var(--primary-hover));
   }
   .card-premium {
-    @apply rounded-xl border border-border/80 bg-card shadow-sm hover:shadow-md hover:border-border transition-all duration-300;
+    @apply rounded-lg border border-border bg-card transition-colors duration-150;
   }
   .section-premium {
-    @apply py-20 md:py-28;
+    @apply py-20 md:py-28 lg:py-32;
   }
   .section-heading {
-    @apply font-display font-bold text-3xl md:text-4xl tracking-tight text-balance;
+    @apply font-display font-semibold text-3xl md:text-4xl tracking-tight text-balance;
   }
   .section-sub {
     @apply mt-3 text-muted-foreground text-base md:text-lg leading-relaxed max-w-2xl;
   }
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-[0.08em] text-primary;
+  }
   .nav-link {
-    @apply text-sm font-medium text-muted-foreground hover:text-foreground transition-colors duration-200;
+    @apply text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground hover:text-foreground transition-colors duration-150;
+  }
+  .nav-link-active {
+    @apply text-foreground underline decoration-primary decoration-2 underline-offset-8;
   }
   .surface-muted {
-    @apply bg-muted/40 border border-border/60 rounded-2xl;
+    @apply bg-muted border border-border rounded;
   }
   .glass-card {
-    @apply bg-card/70 backdrop-blur-md border border-border/60 shadow-sm;
+    @apply bg-card border border-border;
   }
   .hero-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.08) 0%, hsl(var(--background)) 50%, hsl(var(--solar) / 0.06) 100%);
+    background: linear-gradient(
+      105deg,
+      hsl(200 14% 8% / 0.72) 0%,
+      hsl(200 14% 8% / 0.45) 48%,
+      hsl(200 14% 8% / 0.25) 100%
+    );
+  }
+  .marketing-shell {
+    @apply mx-auto w-full max-w-[80rem] px-4 md:px-8 lg:px-16;
+  }
+  .link-row {
+    @apply flex items-baseline justify-between gap-4 border-b border-border py-4 hover:border-primary/50 transition-colors;
+  }
+  .emerald-shadow {
+    box-shadow: var(--shadow-emerald);
+  }
+  .grid-blueprint {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.7) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.7) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }
 
 @layer base {
   * { @apply border-border; }
   body { @apply bg-background text-foreground; }
-  h1, h2, h3, h4, .font-display { font-family: "Cabinet Grotesk", sans-serif; }
-  .font-mono, .mono { font-family: "JetBrains Mono", monospace; }
+  h1, h2, h3, h4, .font-display {
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+  .font-mono, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
   ::selection { background: hsl(var(--primary)); color: #fff; }
 }
 
 .noise-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 .grid-lines {
@@ -119,11 +164,11 @@ body {
   background-size: 48px 48px;
 }
 
-@keyframes pulse-orange {
-  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.4); }
+@keyframes pulse-emerald {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.35); }
   50% { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
 }
-.pulse-bid { animation: pulse-orange 0.6s ease-out; }
+.pulse-bid { animation: pulse-emerald 0.6s ease-out; }
 
 /* Mobile app shell */
 @supports (padding: env(safe-area-inset-bottom)) {
@@ -163,7 +208,7 @@ body {
     min-width: 44px;
   }
   input, select, textarea, button {
-    font-size: 16px; /* prevent iOS zoom */
+    font-size: 16px;
   }
   .safe-bottom-offset {
     margin-bottom: env(safe-area-inset-bottom, 0px);
@@ -177,7 +222,6 @@ body {
   }
 }
 
-/* Installed PWA / Capacitor — native app chrome */
 html.app-mode body {
   user-select: none;
   -webkit-user-select: none;
